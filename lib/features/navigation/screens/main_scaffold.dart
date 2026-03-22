@@ -6,6 +6,7 @@ import '../../subscriptions/screens/due_screen.dart';
 import '../../subscriptions/screens/add_subscription_screen.dart';
 import '../../history/screens/history_screen.dart';
 import '../../account/screens/account_screen.dart';
+import '../../settings/screens/settings_screen.dart';
 
 class NavigationIndexNotifier extends Notifier<int> {
   @override
@@ -40,7 +41,10 @@ class MainScaffold extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: Navigate to settings or open settings modal
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
             },
           ),
         ],
