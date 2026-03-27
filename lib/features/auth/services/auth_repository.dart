@@ -18,8 +18,21 @@ class AuthRepository {
 
   AuthRepository({required this.dio, required this.storage});
 
+  // ── Hardcoded test credentials (bypass server) ──
+  static const _testEmail = 'admin@mail.com';
+  static const _testPassword = 'password';
+
   /// POST /auth/login → stores JWT + user info in secure storage.
   Future<void> login(LoginRequest request) async {
+    // ── Offline test shortcut ──
+    if (request.email == _testEmail && request.password == _testPassword) {
+      await storage.saveToken('test-jwt-token');
+      await storage.saveUserId(1);
+      await storage.saveUserEmail(_testEmail);
+      await storage.saveUserName('Admin');
+      return;
+    }
+
     final response = await dio.post(
       ApiEndpoints.login,
       data: request.toJson(),

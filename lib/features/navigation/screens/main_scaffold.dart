@@ -155,8 +155,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
               _buildNavItem(context, Icons.notifications_none,
                   Icons.notifications, 1, currentIndex, ref,
                   hasBadge: true),
-              _buildNavItem(context, Icons.add_circle_outline,
-                  Icons.add_circle, 2, currentIndex, ref),
+              _buildNavItem(context, Icons.edit_outlined,
+                  Icons.edit, 2, currentIndex, ref),
               _buildNavItem(
                   context, Icons.history, Icons.history, 3, currentIndex, ref),
               _buildNavItem(context, Icons.person_outline, Icons.person, 4,
