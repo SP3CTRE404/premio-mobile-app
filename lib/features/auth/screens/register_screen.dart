@@ -53,14 +53,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next == AuthState.authenticated) {
+    ref.listen<AuthStatus>(authProvider, (previous, next) {
+      if (next == AuthStatus.authenticated) {
         // Push and remove until root to prevent back button returning to auth flow
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MainScaffold()),
           (Route<dynamic> route) => false,
         );
-      } else if (next == AuthState.error) {
+      } else if (next == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration failed. Please try again.')),
         );
@@ -144,7 +144,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                   const SizedBox(height: 48),
                   ElevatedButton(
-                    onPressed: authState == AuthState.loading ? null : _submit,
+                    onPressed: authState == AuthStatus.loading ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
@@ -154,7 +154,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: authState == AuthState.loading
+                    child: authState == AuthStatus.loading
                         ? const SizedBox(
                             height: 24,
                             width: 24,

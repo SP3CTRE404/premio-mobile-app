@@ -20,12 +20,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next == AuthState.authenticated) {
+    ref.listen<AuthStatus>(authProvider, (previous, next) {
+      if (next == AuthStatus.authenticated) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const MainScaffold()),
         );
-      } else if (next == AuthState.unauthenticated || next == AuthState.error) {
+      } else if (next == AuthStatus.unauthenticated || next == AuthStatus.error) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );

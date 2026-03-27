@@ -1,40 +1,62 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/api/api_client.dart';
+import '../../../core/api/api_endpoints.dart';
+import '../../../core/secure_storage/secure_storage_service.dart';
+import '../../account/models/user_model.dart';
 import '../models/auth_request.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  final secureStorage = ref.watch(secureStorageProvider);
-  return AuthRepository(apiClient: apiClient.dio, secureStorage: secureStorage);
+  final storage = ref.watch(secureStorageServiceProvider);
+  return AuthRepository(dio: apiClient.dio, storage: storage);
 });
 
 class AuthRepository {
-  final Dio apiClient;
-  final FlutterSecureStorage secureStorage;
+  final Dio dio;
+  final SecureStorageService storage;
 
-  AuthRepository({required this.apiClient, required this.secureStorage});
+  AuthRepository({required this.dio, required this.storage});
 
+  /// POST /auth/login → stores JWT + user info in secure storage.
   Future<void> login(LoginRequest request) async {
-    final response = await apiClient.post('/auth/login', data: request.toJson());
-    final token = response.data['token'] as String;
-    await secureStorage.write(key: 'jwt_token', value: token);
+    final response = await dio.post(
+      ApiEndpoints.login,
+      data: request.toJson(),
+    );
+
+    final data = response.data as Map<String, dynamic>;
+    final token = data['token'] as String;
+
+    await storage.saveToken(token);
+
+    // If the backend returns user info alongside the token, persist it.
+    if (data.containsKey('user')) {
+      final user = User.fromJson(data['user'] as Map<String, dynamic>);
+      await storage.saveUserId(user.id);
+      await storage.saveUserEmail(user.email);
+      await storage.saveUserName(user.fullName);
+    }
   }
 
+  /// POST /auth/register → registers the user.
   Future<void> register(RegisterRequest request) async {
-    await apiClient.post('/auth/register', data: request.toJson());
-    // The prompt states /register returns a User object.
-    // To issue a token, log them in immediately after.
+    await dio.post(
+      ApiEndpoints.register,
+      data: request.toJson(),
+    );
+    // Auto-login after successful registration.
     await login(LoginRequest(email: request.email, password: request.password));
   }
 
+  /// Clears all persisted credentials.
   Future<void> logout() async {
-    await secureStorage.delete(key: 'jwt_token');
+    await storage.clearAll();
   }
 
+  /// Checks whether a JWT token is currently stored.
   Future<bool> hasValidToken() async {
-    final token = await secureStorage.read(key: 'jwt_token');
+    final token = await storage.getToken();
     return token != null && token.isNotEmpty;
   }
 }

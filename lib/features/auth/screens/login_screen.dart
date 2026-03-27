@@ -39,12 +39,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next == AuthState.authenticated) {
+    ref.listen<AuthStatus>(authProvider, (previous, next) {
+      if (next == AuthStatus.authenticated) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const MainScaffold()),
         );
-      } else if (next == AuthState.error) {
+      } else if (next == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed. Please check your credentials.')),
         );
@@ -86,7 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 48),
                   ElevatedButton(
-                    onPressed: authState == AuthState.loading ? null : _submit,
+                    onPressed: authState == AuthStatus.loading ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
@@ -96,7 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: authState == AuthState.loading
+                    child: authState == AuthStatus.loading
                         ? const SizedBox(
                             height: 24,
                             width: 24,

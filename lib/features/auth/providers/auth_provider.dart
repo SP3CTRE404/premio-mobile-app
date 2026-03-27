@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/auth_repository.dart';
 import '../models/auth_request.dart';
 
-enum AuthState {
+enum AuthStatus {
   initial,
   loading,
   authenticated,
@@ -10,53 +10,56 @@ enum AuthState {
   error,
 }
 
-class AuthNotifier extends Notifier<AuthState> {
+class AuthNotifier extends Notifier<AuthStatus> {
   @override
-  AuthState build() => AuthState.initial;
+  AuthStatus build() => AuthStatus.initial;
 
   Future<void> checkAuthStatus() async {
-    state = AuthState.loading;
+    state = AuthStatus.loading;
     try {
       final repository = ref.read(authRepositoryProvider);
       final hasToken = await repository.hasValidToken();
-      state = hasToken ? AuthState.authenticated : AuthState.unauthenticated;
+      state = hasToken ? AuthStatus.authenticated : AuthStatus.unauthenticated;
     } catch (e) {
-      state = AuthState.unauthenticated;
+      state = AuthStatus.unauthenticated;
     }
   }
 
   Future<void> login(LoginRequest request) async {
-    state = AuthState.loading;
+    state = AuthStatus.loading;
     try {
       final repository = ref.read(authRepositoryProvider);
       await repository.login(request);
-      state = AuthState.authenticated;
+      state = AuthStatus.authenticated;
     } catch (e) {
-      state = AuthState.error;
+      state = AuthStatus.error;
+      rethrow; // Let the UI catch and show the error message.
     }
   }
 
   Future<void> register(RegisterRequest request) async {
-    state = AuthState.loading;
+    state = AuthStatus.loading;
     try {
       final repository = ref.read(authRepositoryProvider);
       await repository.register(request);
-      state = AuthState.authenticated;
+      state = AuthStatus.authenticated;
     } catch (e) {
-      state = AuthState.error;
+      state = AuthStatus.error;
+      rethrow;
     }
   }
 
   Future<void> logout() async {
-    state = AuthState.loading;
+    state = AuthStatus.loading;
     try {
       final repository = ref.read(authRepositoryProvider);
       await repository.logout();
-      state = AuthState.unauthenticated;
+      state = AuthStatus.unauthenticated;
     } catch (e) {
-      state = AuthState.error;
+      state = AuthStatus.error;
     }
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthStatus>(AuthNotifier.new);
