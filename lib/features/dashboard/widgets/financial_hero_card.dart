@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
-import '../models/mock_data.dart';
 import 'ring_chart_painter.dart';
-import 'sparkline_painter.dart';
 
-/// The hero card showing monthly/yearly spend, ring chart, and sparkline.
+/// The hero card showing monthly/yearly spend and ring chart.
 class FinancialHeroCard extends StatelessWidget {
   final double monthly;
   final int upToDate;
@@ -105,11 +103,8 @@ class FinancialHeroCard extends StatelessWidget {
               _LegendItem(label: 'Overdue', color: Colors.redAccent, count: overdue),
             ],
           ),
-
-          const SizedBox(height: 24),
-
-          // Sparkline
-          _SparklineSection(),
+          
+          // Removed the SparklineSection from here
         ],
       ),
     );
@@ -174,84 +169,6 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
       ], 
-    );
-  }
-}
-
-class _SparklineSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Divider
-        Container(
-          height: 1,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withValues(alpha: 0.06),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            const SizedBox(width: 8),
-            Text(
-              '6-Month Trend',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.5),
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '+3.2%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: AppColors.cobaltBlue.withValues(alpha: 0.8),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 48,
-          child: CustomPaint(
-            size: const Size(double.infinity, 48),
-            painter: SparklinePainter(
-              data: monthlyTrend,
-              lineColor: AppColors.cobaltBlue,
-              fillColor: AppColors.cobaltBlue.withValues(alpha: 0.08),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        // Month labels
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: monthLabels
-                .map((m) => Text(
-                      m,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.3),
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-      ],
     );
   }
 }

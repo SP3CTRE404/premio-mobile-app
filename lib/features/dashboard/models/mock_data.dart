@@ -11,8 +11,7 @@ class MockSub {
   final double price;
   final IconData icon;
   final Color statusColor;
-  final double valueScore;
-  final String category;
+  final String category; // valueScore removed
 
   const MockSub({
     required this.name,
@@ -20,7 +19,6 @@ class MockSub {
     required this.price,
     required this.icon,
     required this.statusColor,
-    required this.valueScore,
     required this.category,
   });
 }
@@ -35,8 +33,7 @@ const mockSubs = [
     due: 'Overdue by 1 day',
     price: 4230,
     icon: Icons.brush,
-    statusColor: Colors.redAccent,
-    valueScore: 9.2,
+    statusColor: Color(0xFFD32F2F), // Colors.red.shade700
     category: 'Productivity',
   ),
   MockSub(
@@ -44,8 +41,7 @@ const mockSubs = [
     due: 'Due in 2 days',
     price: 649,
     icon: Icons.movie,
-    statusColor: Colors.amberAccent,
-    valueScore: 7.5,
+    statusColor: Color(0xFFF57C00), // Colors.orange.shade700
     category: 'Entertainment',
   ),
   MockSub(
@@ -53,8 +49,7 @@ const mockSubs = [
     due: 'Due in 3 days',
     price: 119,
     icon: Icons.music_note,
-    statusColor: Colors.amberAccent,
-    valueScore: 8.8,
+    statusColor: Color(0xFFF57C00), // Colors.orange.shade700
     category: 'Entertainment',
   ),
   MockSub(
@@ -62,8 +57,7 @@ const mockSubs = [
     due: 'Paid',
     price: 75,
     icon: Icons.cloud,
-    statusColor: AppColors.cobaltBlue,
-    valueScore: 6.0,
+    statusColor: AppColors.cobaltBlue, 
     category: 'Cloud',
   ),
 ];

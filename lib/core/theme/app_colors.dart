@@ -9,6 +9,6 @@ class AppColors {
   static const Color darkSurface = Color.fromARGB(252, 19, 18, 18); // Slightly elevated from black
 
   // Light Mode Colors
-  static const Color pureWhite = Color.fromARGB(255, 231, 224, 224);
-  static const Color lightSurface = Color.fromARGB(255, 221, 223, 226); // Very faint light grey tint
+static const Color pureWhite = Color.fromARGB(255, 255, 255, 255); // True white for max contrast
+  static const Color lightSurface = Color.fromARGB(255, 244, 246, 248); // Crisp, cool-toned very light grey
 }

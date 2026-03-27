@@ -28,9 +28,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final currencySymbol = ref.watch(currencySymbolProvider);
     final userAsync = ref.watch(userProvider);
+    
+    // ── Dynamically calculate the safe top padding to account for the transparent AppBar ──
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 40;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+      // ── Apply the calculated padding here ──
+      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

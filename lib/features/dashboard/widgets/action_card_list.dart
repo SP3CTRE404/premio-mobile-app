@@ -53,6 +53,10 @@ class ActionCardList extends StatelessWidget {
 // Individual action card
 // ─────────────────────────────────────────
 
+// ─────────────────────────────────────────
+// Individual action card
+// ─────────────────────────────────────────
+
 class _ActionCard extends StatelessWidget {
   final MockSub sub;
   final bool isPaid;
@@ -102,53 +106,50 @@ class _ActionCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // Text content
+            
+            // Text content (Title and Due Date)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          sub.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            decoration: isPaid
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                          ),
-                        ),
-                      ),
-                      _ValueBadge(score: sub.valueScore),
-                    ],
+                  Text(
+                    sub.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      decoration: isPaid
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          isPaid ? 'Paid ✓' : sub.due,
-                          style: TextStyle(
-                            color: isPaid ? Colors.green : sub.statusColor,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        formatCurrency(sub.price, currencySymbol),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    isPaid ? 'Paid ✓' : sub.due,
+                    style: TextStyle(
+                      color: isPaid ? Colors.green : sub.statusColor,
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            
+            const SizedBox(width: 12),
+            
+            // ── Price (Now aligned vertically outside the Column) ──
+            Text(
+              formatCurrency(sub.price, currencySymbol),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            
+            const SizedBox(width: 16),
+            
             // Mark as Paid button
             GestureDetector(
               onTap: onTogglePaid,
@@ -182,47 +183,6 @@ class _ActionCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// Value score badge
-// ─────────────────────────────────────────
-
-class _ValueBadge extends StatelessWidget {
-  final double score;
-  const _ValueBadge({required this.score});
-
-  @override
-  Widget build(BuildContext context) {
-    Color badgeColor;
-    if (score >= 8.0) {
-      badgeColor = Colors.greenAccent;
-    } else if (score >= 6.0) {
-      badgeColor = Colors.amberAccent;
-    } else {
-      badgeColor = Colors.redAccent;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: badgeColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: badgeColor.withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        '${score.toStringAsFixed(1)}/10',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: badgeColor,
         ),
       ),
     );
