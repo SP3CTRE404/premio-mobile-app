@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../subscriptions/screens/due_screen.dart';
-import '../../subscriptions/screens/add_subscription_screen.dart';
-import '../../history/screens/history_screen.dart';
+import '../../subscriptions/screens/subscription_detail_screen.dart'; 
 import '../../account/screens/account_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
@@ -62,36 +61,19 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     final List<Widget> screens = [
       const DashboardScreen(),
       const DueScreen(),
-      const _VaultPlaceholder(), 
+      const SubscriptionDetailScreen(),
       const AccountScreen(),
     ];
 
     return Scaffold(
       extendBody: true,
-      // ── AppBar: Restored with Title and Settings ──
       appBar: AppBar(
         title: const Text('SubTrack'),
         centerTitle: false,
         actions: [
-          // ── Contextual Actions: Search & History (Vault Tab Only) ──
-          if (currentIndex == 2) ...[
-            IconButton(
-              icon: const Icon(Icons.search_rounded),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(Icons.history_rounded),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HistoryScreen()),
-                );
-              },
-            ),
-          ],
-          // ── Global Settings Button ──
           IconButton(
             icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
             onPressed: () {
               Navigator.push(
                 context,
@@ -105,24 +87,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
         onNotification: _handleScrollNotification,
         child: screens[currentIndex],
       ),
-
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddSubscriptionScreen()),
-          );
-        },
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add_rounded, size: 30),
-      ),
+      
+      // Global FAB is null; handled contextually in SubscriptionDetailScreen
+      floatingActionButton: null,
 
       bottomNavigationBar: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         curve: Curves.easeOutCubic,
         margin: _isPill
-            ? const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0)
+            ? const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0)
             : EdgeInsets.zero,
         height: _isPill ? 64 : 64 + MediaQuery.of(context).padding.bottom,
         decoration: BoxDecoration(
@@ -143,13 +116,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
               ? EdgeInsets.zero
               : EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            // Removed SpaceEvenly so Expanded widgets can control distribution
             children: [
-              _buildNavItem(Icons.grid_view_rounded, 0, currentIndex),
-              _buildNavItem(Icons.calendar_today_outlined, 1, currentIndex),
-              const SizedBox(width: 40), // FAB Gap
-              _buildNavItem(Icons.view_list_rounded, 2, currentIndex),
-              _buildNavItem(Icons.person_outline_rounded, 3, currentIndex),
+              _buildNavItem(context, Icons.home_outlined, Icons.home, 0, currentIndex, ref),
+              _buildNavItem(context, Icons.notifications_none, Icons.notifications, 1, currentIndex, ref),
+              _buildNavItem(context, Icons.view_list_outlined, Icons.view_list_rounded, 2, currentIndex, ref),
+              _buildNavItem(context, Icons.person_outline, Icons.person, 3, currentIndex, ref),
             ],
           ),
         ),
@@ -157,45 +129,54 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     );
   }
 
-  Widget _buildNavItem(IconData icon, int index, int currentIndex) {
+  Widget _buildNavItem(
+    BuildContext context,
+    IconData outlinedIcon,
+    IconData filledIcon,
+    int index,
+    int currentIndex,
+    WidgetRef ref, {
+    bool hasBadge = false,
+  }) {
     final isSelected = currentIndex == index;
-    return GestureDetector(
-      onTap: () => ref.read(navigationIndexProvider.notifier).setIndex(index),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        child: Icon(
-          icon,
-          color: isSelected 
-              ? Theme.of(context).primaryColor 
-              : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-          size: 26,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => ref.read(navigationIndexProvider.notifier).setIndex(index),
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Center vertically inside the Expanded block
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              decoration: BoxDecoration(
+                // Samsung S24 Material 3 style pill
+                color: isSelected 
+                    ? theme.primaryColor.withValues(alpha: 0.2) 
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Badge(
+                isLabelVisible: hasBadge,
+                smallSize: 8,
+                backgroundColor: Colors.redAccent,
+                child: Icon(
+                  isSelected ? filledIcon : outlinedIcon,
+                  color: isSelected 
+                      ? theme.primaryColor 
+                      : colorScheme.onSurface.withValues(alpha: 0.5),
+                  size: 26,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class _VaultPlaceholder extends StatelessWidget {
-  const _VaultPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // House button remains in the body of the Vault tab
-        Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: IconButton(
-              icon: const Icon(Icons.add_home_rounded),
-              onPressed: () {},
-            ),
-          ),
-        ),
-        const Expanded(child: Center(child: Text('The Vault: All Subscriptions'))),
-      ],
     );
   }
 }
