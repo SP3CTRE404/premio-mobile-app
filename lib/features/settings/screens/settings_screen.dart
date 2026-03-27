@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/about_section.dart';
+import '../widgets/account_section.dart';
+import '../widgets/data_section.dart';
+import '../widgets/look_and_feel_section.dart';
+import '../widgets/settings_section_header.dart';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -8,9 +14,30 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
-      body: const Center(
-        child: Text('Settings Options Go Here'),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: const [
+          SettingsSectionHeader(title: 'Account'),
+          AccountSection(),
+          SizedBox(height: 12),
+
+          SettingsSectionHeader(title: 'Look and Feel'),
+          LookAndFeelSection(),
+          SizedBox(height: 12),
+
+          SettingsSectionHeader(title: 'Data'),
+          DataSection(),
+          SizedBox(height: 12),
+
+          SettingsSectionHeader(title: 'About'),
+          AboutSection(),
+          SizedBox(height: 40),
+        ],
       ),
     );
   }

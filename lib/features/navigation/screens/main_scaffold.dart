@@ -27,39 +27,29 @@ class MainScaffold extends ConsumerStatefulWidget {
 
 class _MainScaffoldState extends ConsumerState<MainScaffold>
     with SingleTickerProviderStateMixin {
-  /// true = pill (floating), false = docked (full-width at bottom)
   bool _isPill = true;
-
-  // Track scroll position info
   bool _isAtBottom = false;
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification) {
       final metrics = notification.metrics;
-
-      // Check if we're at the bottom
       final atBottom = metrics.pixels >= metrics.maxScrollExtent - 1;
 
       if (atBottom && !_isAtBottom) {
-        // Just reached the bottom → dock
         setState(() {
           _isAtBottom = true;
           _isPill = false;
         });
       } else if (!atBottom && _isAtBottom) {
-        // Was at bottom, now scrolling up → pill
         setState(() {
           _isAtBottom = false;
           _isPill = true;
         });
       }
 
-      // Also detect scroll direction when NOT at bottom
       if (!atBottom && notification.scrollDelta != null) {
         final scrollingUp = notification.scrollDelta! < 0;
-        if (scrollingUp && !_isPill) {
-          setState(() => _isPill = true);
-        }
+        if (scrollingUp && !_isPill) setState(() => _isPill = true);
       }
     }
     return false;
@@ -72,18 +62,36 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     final List<Widget> screens = [
       const DashboardScreen(),
       const DueScreen(),
-      const AddSubscriptionScreen(),
-      const HistoryScreen(),
+      const _VaultPlaceholder(), 
       const AccountScreen(),
     ];
 
     return Scaffold(
       extendBody: true,
+      // ── AppBar: Restored with Title and Settings ──
       appBar: AppBar(
         title: const Text('SubTrack'),
+        centerTitle: false,
         actions: [
+          // ── Contextual Actions: Search & History (Vault Tab Only) ──
+          if (currentIndex == 2) ...[
+            IconButton(
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(Icons.history_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                );
+              },
+            ),
+          ],
+          // ── Global Settings Button ──
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () {
               Navigator.push(
                 context,
@@ -93,33 +101,23 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
-              child: const Text(
-                'SubTrack Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.info),
-              title: const Text('About'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
         child: screens[currentIndex],
       ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddSubscriptionScreen()),
+          );
+        },
+        shape: const CircleBorder(),
+        child: const Icon(Icons.add_rounded, size: 30),
+      ),
+
       bottomNavigationBar: AnimatedContainer(
         duration: const Duration(milliseconds: 260),
         curve: Curves.easeOutCubic,
@@ -129,14 +127,11 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
         height: _isPill ? 64 : 64 + MediaQuery.of(context).padding.bottom,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: _isPill
-              ? BorderRadius.circular(32)
-              : BorderRadius.zero,
+          borderRadius: _isPill ? BorderRadius.circular(32) : BorderRadius.zero,
           boxShadow: _isPill
               ? [
                   BoxShadow(
-                    color: const Color.fromARGB(255, 89, 89, 89)
-                        .withValues(alpha: 0.1),
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 5),
                   ),
@@ -148,19 +143,13 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
               ? EdgeInsets.zero
               : EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(context, Icons.home_outlined, Icons.home, 0,
-                  currentIndex, ref),
-              _buildNavItem(context, Icons.notifications_none,
-                  Icons.notifications, 1, currentIndex, ref,
-                  hasBadge: true),
-              _buildNavItem(context, Icons.edit_outlined,
-                  Icons.edit, 2, currentIndex, ref),
-              _buildNavItem(
-                  context, Icons.history, Icons.history, 3, currentIndex, ref),
-              _buildNavItem(context, Icons.person_outline, Icons.person, 4,
-                  currentIndex, ref),
+              _buildNavItem(Icons.grid_view_rounded, 0, currentIndex),
+              _buildNavItem(Icons.calendar_today_outlined, 1, currentIndex),
+              const SizedBox(width: 40), // FAB Gap
+              _buildNavItem(Icons.view_list_rounded, 2, currentIndex),
+              _buildNavItem(Icons.person_outline_rounded, 3, currentIndex),
             ],
           ),
         ),
@@ -168,43 +157,45 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     );
   }
 
-  Widget _buildNavItem(
-    BuildContext context,
-    IconData outlinedIcon,
-    IconData filledIcon,
-    int index,
-    int currentIndex,
-    WidgetRef ref, {
-    bool hasBadge = false,
-  }) {
+  Widget _buildNavItem(IconData icon, int index, int currentIndex) {
     final isSelected = currentIndex == index;
-    final iconColor = isSelected
-        ? Theme.of(context).colorScheme.surface
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5);
-    final bgColor =
-        isSelected ? Theme.of(context).primaryColor : Colors.transparent;
-
     return GestureDetector(
       onTap: () => ref.read(navigationIndexProvider.notifier).setIndex(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.all(10),
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: bgColor,
-          shape: BoxShape.circle,
-        ),
-        child: Badge(
-          isLabelVisible: hasBadge,
-          smallSize: 8,
-          backgroundColor: Colors.redAccent,
-          child: Icon(
-            isSelected ? filledIcon : outlinedIcon,
-            color: iconColor,
-            size: 26,
-          ),
+        child: Icon(
+          icon,
+          color: isSelected 
+              ? Theme.of(context).primaryColor 
+              : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          size: 26,
         ),
       ),
+    );
+  }
+}
+
+class _VaultPlaceholder extends StatelessWidget {
+  const _VaultPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // House button remains in the body of the Vault tab
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: IconButton(
+              icon: const Icon(Icons.add_home_rounded),
+              onPressed: () {},
+            ),
+          ),
+        ),
+        const Expanded(child: Center(child: Text('The Vault: All Subscriptions'))),
+      ],
     );
   }
 }

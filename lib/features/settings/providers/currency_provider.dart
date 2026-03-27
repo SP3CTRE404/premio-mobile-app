@@ -1,11 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/secure_storage/secure_storage_service.dart';
 
 /// Notifier that holds the user's chosen currency symbol.
+/// Persists the value via [SecureStorageService] so it survives restarts.
 class CurrencySymbolNotifier extends Notifier<String> {
   @override
-  String build() => '₹'; // default
+  String build() {
+    _loadFromStorage();
+    return '₹'; // default until async load completes
+  }
 
-  void set(String symbol) => state = symbol;
+  Future<void> _loadFromStorage() async {
+    final storage = ref.read(secureStorageServiceProvider);
+    final saved = await storage.getCurrency();
+    if (saved != null) {
+      state = saved;
+    }
+  }
+
+  Future<void> set(String symbol) async {
+    state = symbol;
+    final storage = ref.read(secureStorageServiceProvider);
+    await storage.saveCurrency(symbol);
+  }
 }
 
 /// The user's chosen currency symbol (e.g. '₹', '$', '€', '£', '¥').

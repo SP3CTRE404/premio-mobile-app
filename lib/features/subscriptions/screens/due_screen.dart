@@ -6,11 +6,10 @@ class DueScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Text(
-        'Due Subscriptions',
-        style: Theme.of(context).textTheme.headlineMedium,
-      ),
+    return Column(
+      children: [
+        const Expanded(child: Center(child: Text('Due Subscriptions'))),
+      ],
     );
   }
 }

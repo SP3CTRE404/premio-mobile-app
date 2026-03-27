@@ -6,11 +6,15 @@ class AccountScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Text(
-        'Account Screen',
-        style: Theme.of(context).textTheme.headlineMedium,
-      ),
+    return Column(
+      children: [
+        
+        Expanded(
+          child: Center(
+            child: Text('Account Screen', style: Theme.of(context).textTheme.headlineMedium),
+          ),
+        ),
+      ],
     );
   }
 }
