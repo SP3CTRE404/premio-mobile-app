@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/about_section.dart';
-import '../widgets/account_section.dart';
 import '../widgets/data_section.dart';
 import '../widgets/look_and_feel_section.dart';
 import '../widgets/settings_section_header.dart';
@@ -22,10 +21,6 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: const [
-          SettingsSectionHeader(title: 'Account'),
-          AccountSection(),
-          SizedBox(height: 12),
-
           SettingsSectionHeader(title: 'Look and Feel'),
           LookAndFeelSection(),
           SizedBox(height: 12),
