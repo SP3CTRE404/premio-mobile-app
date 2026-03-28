@@ -169,7 +169,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
           boxShadow: _isPill
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 5),
                   ),
@@ -225,12 +225,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected 
                     ? theme.primaryColor.withValues(alpha: 0.2) 
                     : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(28),
               ),
               child: Badge(
                 isLabelVisible: hasBadge,

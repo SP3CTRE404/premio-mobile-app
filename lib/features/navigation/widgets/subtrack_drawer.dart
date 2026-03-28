@@ -40,12 +40,7 @@ class SubTrackDrawer extends ConsumerWidget {
                   isSelected: currentIndex == 1,
                   onTap: () => _onNavTap(context, ref, 1),
                 ),
-                _DrawerTile(
-                  icon: Icons.history_rounded,
-                  label: 'Payment History',
-                  isSelected: currentIndex == 3,
-                  onTap: () => _onNavTap(context, ref, 3),
-                ),
+
                 const Divider(indent: 20, endIndent: 20),
                 _DrawerTile(
                   icon: Icons.house_outlined,

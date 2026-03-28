@@ -1,0 +1,11 @@
+Analyzing subtrack-mobile-app...                                
+
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/account/screens/account_screen.dart:94:51 • deprecated_member_use
+warning • Dead code • lib/features/account/screens/account_screen.dart:134:21 • dead_code
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/screens/dashboard_screen.dart:62:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/navigation/screens/main_scaffold.dart:172:41 • deprecated_member_use
+   info • The constant name 'MONTHLY' isn't a lowerCamelCase identifier • lib/features/subscriptions/models/subscription_model.dart:2:3 • constant_identifier_names
+   info • The constant name 'QUARTERLY' isn't a lowerCamelCase identifier • lib/features/subscriptions/models/subscription_model.dart:3:3 • constant_identifier_names
+   info • The constant name 'YEARLY' isn't a lowerCamelCase identifier • lib/features/subscriptions/models/subscription_model.dart:4:3 • constant_identifier_names
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/subscriptions/screens/subscription_detail_screen.dart:118:49 • deprecated_member_use
+
