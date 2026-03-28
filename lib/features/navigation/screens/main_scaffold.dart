@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../subscriptions/screens/due_screen.dart';
-import '../../subscriptions/screens/subscription_detail_screen.dart'; 
+import '../../subscriptions/screens/subscription_detail_screen.dart';
 import '../../account/screens/account_screen.dart';
 import '../../settings/screens/settings_screen.dart';
 
@@ -15,8 +15,9 @@ class NavigationIndexNotifier extends Notifier<int> {
   void setIndex(int index) => state = index;
 }
 
-final navigationIndexProvider =
-    NotifierProvider<NavigationIndexNotifier, int>(NavigationIndexNotifier.new);
+final navigationIndexProvider = NotifierProvider<NavigationIndexNotifier, int>(
+  NavigationIndexNotifier.new,
+);
 
 class MainScaffold extends ConsumerStatefulWidget {
   const MainScaffold({super.key});
@@ -29,14 +30,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
     with SingleTickerProviderStateMixin {
   bool _isPill = true;
   bool _isAtBottom = false;
-  
+
   // ── NEW: Track if the user has scrolled down from the top ──
-  bool _isScrolled = false; 
+  bool _isScrolled = false;
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification) {
       final metrics = notification.metrics;
-      
+
       // ── Toggle header glassmorphism based on scroll offset ──
       final scrolled = metrics.pixels > 10;
       if (scrolled != _isScrolled) {
@@ -83,21 +84,23 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
 
     return Scaffold(
       extendBody: true,
-      extendBodyBehindAppBar: true, 
-      
+      extendBodyBehindAppBar: true,
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        
+
         // ── Dynamic Frosted Glass Pill for the Title ──
         title: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200), // Smooth fade transition
+              duration: const Duration(
+                milliseconds: 200,
+              ), // Smooth fade transition
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 // Fades in the surface color when scrolled
@@ -105,15 +108,20 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   // Fades in the border when scrolled
-                  color: onSurfaceColor.withValues(alpha: _isScrolled ? 0.1 : 0.0),
+                  color: onSurfaceColor.withValues(
+                    alpha: _isScrolled ? 0.1 : 0.0,
+                  ),
                   width: 1,
                 ),
               ),
-              child: const Text('SubTrack', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+              child: const Text(
+                'SubTrack',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
             ),
           ),
         ),
-        
+
         actions: [
           // ── Dynamic Frosted Glass Pill for the Settings Button ──
           Padding(
@@ -125,10 +133,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   decoration: BoxDecoration(
-                    color: surfaceColor.withValues(alpha: _isScrolled ? 0.75 : 0.0),
+                    color: surfaceColor.withValues(
+                      alpha: _isScrolled ? 0.75 : 0.0,
+                    ),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: onSurfaceColor.withValues(alpha: _isScrolled ? 0.1 : 0.0),
+                      color: onSurfaceColor.withValues(
+                        alpha: _isScrolled ? 0.1 : 0.0,
+                      ),
                       width: 1,
                     ),
                   ),
@@ -138,7 +150,9 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
                       );
                     },
                   ),
@@ -148,12 +162,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
           ),
         ],
       ),
-      
+
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
         child: screens[currentIndex],
       ),
-      
+
       floatingActionButton: null,
 
       bottomNavigationBar: AnimatedContainer(
@@ -182,10 +196,38 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
               : EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           child: Row(
             children: [
-              _buildNavItem(context, Icons.home_outlined, Icons.home, 0, currentIndex, ref),
-              _buildNavItem(context, Icons.notifications_none, Icons.notifications, 1, currentIndex, ref),
-              _buildNavItem(context, Icons.view_list_outlined, Icons.view_list_rounded, 2, currentIndex, ref),
-              _buildNavItem(context, Icons.person_outline, Icons.person, 3, currentIndex, ref),
+              _buildNavItem(
+                context,
+                Icons.dashboard_outlined,
+                Icons.dashboard,
+                0,
+                currentIndex,
+                ref,
+              ),
+              _buildNavItem(
+                context,
+                Icons.payment_outlined,
+                Icons.payment,
+                1,
+                currentIndex,
+                ref,
+              ),
+              _buildNavItem(
+                context,
+                Icons.receipt_long_outlined,
+                Icons.receipt_long,
+                2,
+                currentIndex,
+                ref,
+              ),
+              _buildNavItem(
+                context,
+                Icons.person_outline,
+                Icons.person,
+                3,
+                currentIndex,
+                ref,
+              ),
             ],
           ),
         ),
@@ -225,10 +267,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 7),
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? theme.primaryColor.withValues(alpha: 0.2) 
+                color: isSelected
+                    ? theme.primaryColor.withValues(alpha: 0.2)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(28),
               ),
@@ -238,8 +280,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold>
                 backgroundColor: Colors.redAccent,
                 child: Icon(
                   isSelected ? filledIcon : outlinedIcon,
-                  color: isSelected 
-                      ? theme.primaryColor 
+                  color: isSelected
+                      ? theme.primaryColor
                       : colorScheme.onSurface.withValues(alpha: 0.5),
                   size: 26,
                 ),
