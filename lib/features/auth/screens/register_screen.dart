@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../../navigation/screens/main_scaffold.dart';
 import '../models/auth_request.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_background.dart';
+import '../widgets/auth_button.dart';
+import '../widgets/auth_divider.dart';
+import '../widgets/auth_header.dart';
+import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
-import '../../navigation/screens/main_scaffold.dart';
+import '../widgets/google_sign_in_button.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -43,7 +51,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),
         createHousehold: _createHousehold,
-        householdName: _createHousehold ? _householdNameController.text.trim() : '',
+        householdName:
+            _createHousehold ? _householdNameController.text.trim() : '',
       );
       ref.read(authProvider.notifier).register(request);
     }
@@ -55,125 +64,137 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     ref.listen<AuthStatus>(authProvider, (previous, next) {
       if (next == AuthStatus.authenticated) {
-        // Push and remove until root to prevent back button returning to auth flow
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const MainScaffold()),
           (Route<dynamic> route) => false,
         );
       } else if (next == AuthStatus.error) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration failed. Please try again.')),
+          const SnackBar(
+            content: Text('Registration failed. Please try again.'),
+          ),
         );
       }
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Create Account',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  AuthTextField(
-                    label: 'Full Name',
-                    hint: 'Enter your full name',
-                    controller: _fullNameController,
-                  ),
-                  const SizedBox(height: 16),
-                  AuthTextField(
-                    label: 'Email',
-                    hint: 'Enter your email',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 16),
-                  AuthTextField(
-                    label: 'Password',
-                    hint: 'Create a password',
-                    controller: _passwordController,
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
+      body: Stack(
+        children: [
+          const AuthBackground(),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Switch(
-                        value: _createHousehold,
-                        onChanged: (value) {
-                          setState(() {
-                            _createHousehold = value;
-                          });
-                        },
-                        activeThumbColor: Theme.of(context).primaryColor,
+                      const AuthHeader(
+                        title: 'Create Account',
+                        subtitle: 'Start managing your subscriptions today.',
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Create New Household',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(height: 32),
+                      AuthTextField(
+                        label: 'Full Name',
+                        hint: 'Enter your full name',
+                        controller: _fullNameController,
+                      ),
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        label: 'Email',
+                        hint: 'Enter your email',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        label: 'Password',
+                        hint: 'Create a password',
+                        controller: _passwordController,
+                        isPassword: true,
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Create New Household',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            Switch(
+                              value: _createHousehold,
+                              onChanged: (value) {
+                                setState(() {
+                                  _createHousehold = value;
+                                });
+                              },
+                              activeColor: AppColors.cobaltBlue,
+                            ),
+                          ],
                         ),
                       ),
+                      if (_createHousehold) ...[
+                        const SizedBox(height: 16),
+                        AuthTextField(
+                          label: 'Household Name',
+                          hint: 'Enter household name',
+                          controller: _householdNameController,
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      AuthButton(
+                        onPressed: _submit,
+                        label: 'Sign Up',
+                        isLoading: authState == AuthStatus.loading,
+                      ),
+                      const SizedBox(height: 32),
+                      const AuthDivider(),
+                      const SizedBox(height: 32),
+                      GoogleSignInButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Google Sign-In coming soon!'),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      AuthRedirect(
+                        text: 'Already have an account?',
+                        buttonText: 'Sign In',
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(height: 20),
                     ],
                   ),
-                  if (_createHousehold) ...[
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      label: 'Household Name',
-                      hint: 'Enter household name',
-                      controller: _householdNameController,
-                    ),
-                  ],
-                  const SizedBox(height: 48),
-                  ElevatedButton(
-                    onPressed: authState == AuthStatus.loading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: authState == AuthStatus.loading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Sign Up',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

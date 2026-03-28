@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../navigation/screens/main_scaffold.dart';
 import '../models/auth_request.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_background.dart';
+import '../widgets/auth_button.dart';
+import '../widgets/auth_divider.dart';
+import '../widgets/auth_header.dart';
+import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
+import '../widgets/google_sign_in_button.dart';
 import 'register_screen.dart';
-import '../../navigation/screens/main_scaffold.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -52,83 +59,72 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Welcome Back',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-                  AuthTextField(
-                    label: 'Email',
-                    hint: 'Enter your email',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 24),
-                  AuthTextField(
-                    label: 'Password',
-                    hint: 'Enter your password',
-                    controller: _passwordController,
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 48),
-                  ElevatedButton(
-                    onPressed: authState == AuthStatus.loading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+      body: Stack(
+        children: [
+          const AuthBackground(),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 28.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 24),
+                      const AuthHeader(
+                        title: 'Welcome',
+                        subtitle: 'Sign in to manage your subscriptions.',
                       ),
-                      elevation: 0,
-                    ),
-                    child: authState == AuthStatus.loading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Login',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                  ),
-                  const SizedBox(height: 24),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      );
-                    },
-                    child: Text(
-                      'Don\'t have an account? Sign up',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
+                      const SizedBox(height: 48),
+                      AuthTextField(
+                        label: 'Email',
+                        hint: 'Enter your email',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
                       ),
-                    ),
+                      const SizedBox(height: 20),
+                      AuthTextField(
+                        label: 'Password',
+                        hint: 'Enter your password',
+                        controller: _passwordController,
+                        isPassword: true,
+                      ),
+                      const SizedBox(height: 16),
+                      AuthButton(
+                        onPressed: _submit,
+                        label: 'Sign In',
+                        isLoading: authState == AuthStatus.loading,
+                      ),
+                      const SizedBox(height: 32),
+                      const AuthDivider(),
+                      const SizedBox(height: 32),
+                      GoogleSignInButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Google Sign-In coming soon!')),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                      AuthRedirect(
+                        text: 'Don\'t have an account?',
+                        buttonText: 'Sign Up',
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
