@@ -17,6 +17,7 @@ dependencies:
   flutter_secure_storage: ^10.0.0
   pdf: ^3.11.2
   printing: ^5.14.2
+  animations: ^2.1.2
 
 dev_dependencies:
   flutter_test:

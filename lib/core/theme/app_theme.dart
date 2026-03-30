@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:animations/animations.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -19,7 +20,7 @@ class AppTheme {
         centerTitle: true,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.pureWhite,
+        backgroundColor: AppColors.lightSurface,
         selectedItemColor: AppColors.cobaltBlue,
         unselectedItemColor: Colors.grey,
         elevation: 8,
@@ -32,7 +33,19 @@ class AppTheme {
         color: AppColors.lightSurface,
         elevation: 2,
         shadowColor: Color.fromRGBO(0, 0, 0, 0.05),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SharedAxisPageTransitionsBuilder(
+            transitionType: SharedAxisTransitionType.horizontal,
+          ),
+          TargetPlatform.iOS: SharedAxisPageTransitionsBuilder(
+            transitionType: SharedAxisTransitionType.horizontal,
+          ),
+        },
       ),
       useMaterial3: true,
     );
@@ -45,7 +58,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.trueBlack,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.cobaltBlue,
-        surface: AppColors.darkSurface,
+        surface: Color.fromARGB(251, 19, 19, 19),
         onSurface: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
@@ -55,19 +68,31 @@ class AppTheme {
         centerTitle: true,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.trueBlack,
+        backgroundColor: Color.fromARGB(255, 0, 0, 0),
         selectedItemColor: AppColors.cobaltBlue,
-        unselectedItemColor: Colors.grey,
-        elevation: 8,
+        unselectedItemColor: Colors.white70,
+        elevation: 10, // Remove elevation so shadows don't block the blur
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.cobaltBlue,
         foregroundColor: Colors.black,
       ),
       cardTheme: const CardThemeData(
-        color: AppColors.darkSurface,
+        color: Color.fromARGB(250, 24, 24, 24),
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+        ),
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: SharedAxisPageTransitionsBuilder(
+            transitionType: SharedAxisTransitionType.horizontal,
+          ),
+          TargetPlatform.iOS: SharedAxisPageTransitionsBuilder(
+            transitionType: SharedAxisTransitionType.horizontal,
+          ),
+        },
       ),
       useMaterial3: true,
     );

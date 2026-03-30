@@ -150,7 +150,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   _createHousehold = value;
                                 });
                               },
-                              activeColor: AppColors.cobaltBlue,
+                              activeThumbColor: AppColors.cobaltBlue,
                             ),
                           ],
                         ),

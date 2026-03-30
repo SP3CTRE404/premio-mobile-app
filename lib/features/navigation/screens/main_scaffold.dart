@@ -30,6 +30,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   bool _isPill = true;
   bool _isAtBottom = false;
   bool _isScrolled = false;
+  int _previousIndex = 0;
 
   bool _handleScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification) {
@@ -78,7 +79,10 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       'Account',
     ];
 
-    ref.listen(navigationIndexProvider, (_, _) {
+    ref.listen(navigationIndexProvider, (previous, next) {
+      if (previous != null) {
+        _previousIndex = previous;
+      }
       setState(() {
         _isScrolled = false;
         _isPill = true;
@@ -95,7 +99,34 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
-        child: screens[currentIndex],
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final childIndex = (child.key as ValueKey<int>).value;
+            final isForward = currentIndex >= _previousIndex;
+            
+            Offset beginOffset;
+            if (childIndex == currentIndex) {
+              beginOffset = Offset(isForward ? 1.0 : -1.0, 0.0);
+            } else {
+              beginOffset = Offset(isForward ? -1.0 : 1.0, 0.0);
+            }
+
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: beginOffset,
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+          child: SizedBox(
+            key: ValueKey<int>(currentIndex),
+            child: screens[currentIndex],
+          ),
+        ),
       ),
       bottomNavigationBar: BottomNavBar(isPill: _isPill),
     );

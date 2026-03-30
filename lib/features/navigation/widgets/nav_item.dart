@@ -34,23 +34,36 @@ class NavItem extends ConsumerWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
             decoration: BoxDecoration(
               color: isSelected
                   ? theme.primaryColor.withOpacity(0.2)
-                  : Colors.transparent,
+                  : const Color.fromARGB(0, 0, 0, 0),
               borderRadius: BorderRadius.circular(28),
             ),
             child: Badge(
               isLabelVisible: hasBadge,
               smallSize: 8,
               backgroundColor: Colors.redAccent,
-              child: Icon(
-                isSelected ? filledIcon : outlinedIcon,
-                color: isSelected
-                    ? theme.primaryColor
-                    : colorScheme.onSurface.withOpacity(0.5),
-                size: 26,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutBack,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) => ScaleTransition(
+                  scale: animation,
+                  child: FadeTransition(
+                    opacity: animation,
+                    child: child,
+                  ),
+                ),
+                child: Icon(
+                  isSelected ? filledIcon : outlinedIcon,
+                  key: ValueKey<bool>(isSelected),
+                  color: isSelected
+                      ? theme.primaryColor
+                      : theme.bottomNavigationBarTheme.unselectedItemColor,
+                  size: 26,
+                ),
               ),
             ),
           ),
