@@ -25,15 +25,15 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       centerTitle: false,
       title: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
             decoration: BoxDecoration(
               color: surfaceColor.withOpacity(isScrolled ? 0.75 : 0.0),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(28),
               border: Border.all(
                 color: onSurfaceColor.withOpacity(isScrolled ? 0.1 : 0.0),
                 width: 1,
@@ -56,7 +56,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Text(
                 title,
                 key: ValueKey<String>(title),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
               ),
             ),
           ),

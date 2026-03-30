@@ -22,7 +22,6 @@ class NavItem extends ConsumerWidget {
     final currentIndex = ref.watch(navigationIndexProvider);
     final isSelected = currentIndex == index;
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Expanded(
       child: GestureDetector(
