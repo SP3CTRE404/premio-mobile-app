@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
 import '../widgets/household_card.dart';
 import '../widgets/logout_button.dart';
 import '../widgets/profile_header.dart';
-import '../widgets/section_header.dart';
+import '../widgets/section_block.dart';
 import '../widgets/support_card.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -11,23 +10,27 @@ class AccountScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── Safe padding to account for the floating transparent AppBar ──
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
-    
-    // Placeholder logic for household status (In the future, check user.householdId != null)
+    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 30;
     const bool hasHousehold = false;
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ProfileHeader(),
-          SectionHeader(title: 'My Household'),
-          HouseholdCard(hasHousehold: hasHousehold),
-          SectionHeader(title: 'Support'),
-          SupportCard(),
-          LogoutButton(),
+          const ProfileHeader(),
+          const SizedBox(height: 28),
+          const SectionBlock(
+            title: 'My Household',
+            child: HouseholdCard(hasHousehold: hasHousehold),
+          ),
+          const SizedBox(height: 20),
+          const SectionBlock(
+            title: 'Support',
+            child: SupportCard(),
+          ),
+          const SizedBox(height: 32),
+          const LogoutButton(),
         ],
       ),
     );

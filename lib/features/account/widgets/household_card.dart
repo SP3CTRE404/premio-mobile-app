@@ -1,61 +1,56 @@
 import 'package:flutter/material.dart';
-
 import '../../../core/theme/app_colors.dart';
 
 class HouseholdCard extends StatelessWidget {
-  // In the future, this would likely take a Household object or similar
   final bool hasHousehold;
-
   const HouseholdCard({super.key, required this.hasHousehold});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      color: colorScheme.surface,
-      margin: const EdgeInsets.only(bottom: 24),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: hasHousehold
-            ? _buildActiveHouseholdUI(context, theme, colorScheme)
-            : _buildNoHouseholdUI(context, theme, colorScheme),
-      ),
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: hasHousehold
+          ? _ActiveHousehold()
+          : _NoHousehold(),
     );
   }
+}
 
-  /// UI displayed when the user is NOT part of a household
-  Widget _buildNoHouseholdUI(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+class _NoHousehold extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.cobaltBlue.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+                color: AppColors.cobaltBlue.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.add_home_rounded, color: AppColors.cobaltBlue),
+              child: const Icon(Icons.add_home_rounded,
+                  color: AppColors.cobaltBlue, size: 22),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'No Household Yet',
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('No Household Yet',
+                    style: theme.textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(
+                  'Share subscriptions with others',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
-                  Text(
-                    'Create or join a household to share subscriptions.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -64,35 +59,31 @@ class HouseholdCard extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Join Household flow coming soon!')),
-                  );
-                },
+                onPressed: () {},
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.cobaltBlue,
                   side: const BorderSide(color: AppColors.cobaltBlue),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Join', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Join',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Create Household flow coming soon!')),
-                  );
-                },
+                onPressed: () {},
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.cobaltBlue,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Create', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Create',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -100,59 +91,52 @@ class HouseholdCard extends StatelessWidget {
       ],
     );
   }
+}
 
-  /// UI displayed when the user IS part of a household
-  Widget _buildActiveHouseholdUI(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
-    return Column(
+class _ActiveHousehold extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.cobaltBlue.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.house_rounded, color: AppColors.cobaltBlue),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Family Track', // Placeholder for actual household name
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'You and 3 others',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Household management coming soon!')),
-              );
-            },
-            icon: const Icon(Icons.settings_outlined),
-            label: const Text('Manage Household'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.cobaltBlue,
-              side: const BorderSide(color: AppColors.cobaltBlue),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.cobaltBlue.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
           ),
+          child: const Icon(Icons.house_rounded,
+              color: AppColors.cobaltBlue, size: 22),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Family Track',
+                  style: theme.textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'You and 3 others',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
+                ),
+              ),
+            ],
+          ),
+        ),
+        TextButton(
+          onPressed: () {},
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.cobaltBlue,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+          ),
+          child: const Text('Manage',
+              style: TextStyle(fontWeight: FontWeight.w600)),
         ),
       ],
     );

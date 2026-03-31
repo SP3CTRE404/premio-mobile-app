@@ -33,7 +33,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   int _previousIndex = 0;
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (notification is ScrollUpdateNotification) {
+    if (notification is ScrollUpdateNotification &&
+        notification.metrics.axis == Axis.vertical) {
       final metrics = notification.metrics;
       final scrolled = metrics.pixels > 10;
       if (scrolled != _isScrolled) {
@@ -100,7 +101,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 600),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (child, animation) {

@@ -9,19 +9,21 @@ class SubscriptionFabMenu extends StatefulWidget {
     required this.onHistoryTap,
     required this.onAddSubscriptionTap,
     required this.onAddHouseholdTap,
+    this.onMenuToggle,
     this.isSingularUser = true,
   });
 
   final VoidCallback onHistoryTap;
   final VoidCallback onAddSubscriptionTap;
   final VoidCallback onAddHouseholdTap;
+  final Function(bool)? onMenuToggle;
   final bool isSingularUser;
 
   @override
-  State<SubscriptionFabMenu> createState() => _SubscriptionFabMenuState();
+  State<SubscriptionFabMenu> createState() => SubscriptionFabMenuState();
 }
 
-class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
+class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     with TickerProviderStateMixin {
   bool _isMainMenuOpen = false;
   bool _isAddMenuOpen = false;
@@ -85,6 +87,7 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
 
   void _toggleMainMenu() {
     setState(() => _isMainMenuOpen = !_isMainMenuOpen);
+    widget.onMenuToggle?.call(_isMainMenuOpen);
     if (_isMainMenuOpen) {
       _rowController.forward();
     } else {
@@ -103,11 +106,12 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     }
   }
 
-  void _closeAll() {
+  void closeAll() {
     setState(() {
       _isMainMenuOpen = false;
       _isAddMenuOpen = false;
     });
+    widget.onMenuToggle?.call(false);
     _rowController.reverse();
     _addMenuController.reverse();
   }
@@ -117,19 +121,19 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     const double smallFabSize = 40.0;
     const double spacing = 12.0;
 
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // ── History (travels furthest left) ──
+        // ── History (top item, travels furthest up) ──
         LaunchingItem(
           progress: _curve1,
-          originDx: 6.8,
+          originDy: 6.8,
           child: SubscriptionFabSmall(
             icon: Icons.history_rounded,
             label: 'History',
             onTap: () {
-              _closeAll();
+              closeAll();
               widget.onHistoryTap();
             },
             showLabel: false,
@@ -137,51 +141,53 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
         ),
         LaunchingItem(
           progress: _curve1,
-          originDx: 6.8,
-          child: const SizedBox(width: spacing),
+          originDy: 6.8,
+          child: const SizedBox(height: spacing),
         ),
 
-        // ── Add "+" with vertical sub-menu ──
+        // ── Add "+" with horizontal sub-menu ──
         LaunchingItem(
           progress: _curve2,
-          originDx: 4.5,
+          originDy: 4.5,
           child: Stack(
             alignment: Alignment.bottomRight,
             clipBehavior: Clip.none,
             children: [
-              // Vertical sub-menu
+              // Horizontal sub-menu (expands to the left)
               Positioned(
-                bottom: smallFabSize + 8,
-                right: 0,
-                child: Column(
+                bottom: 0,
+                right: smallFabSize + 8,
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (widget.isSingularUser) ...[
-                      // Travels furthest up — launches second
+                      // Travels furthest left — launches second
                       LaunchingItem(
                         progress: _subCurve2,
-                        originDy: 3.5,
+                        originDx: 3.5,
                         child: SubscriptionFabSmall(
                           icon: Icons.add_home_rounded,
                           label: 'Add/Join Household',
+                          isVertical: false,
                           onTap: () {
-                            _closeAll();
+                            closeAll();
                             widget.onAddHouseholdTap();
                           },
                         ),
                       ),
-                      const SizedBox(height: spacing),
+                      const SizedBox(width: spacing),
                     ],
-                    // Closest — launches first
+                    // Closest left — launches first
                     LaunchingItem(
                       progress: _subCurve1,
-                      originDy: 1.8,
+                      originDx: 1.8,
                       child: SubscriptionFabSmall(
                         icon: Icons.post_add_rounded,
                         label: 'Add Subscription',
+                        isVertical: false,
                         onTap: () {
-                          _closeAll();
+                          closeAll();
                           widget.onAddSubscriptionTap();
                         },
                       ),
@@ -196,7 +202,7 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
                   if (widget.isSingularUser) {
                     _toggleAddMenu();
                   } else {
-                    _closeAll();
+                    closeAll();
                     widget.onAddSubscriptionTap();
                   }
                 },
@@ -220,14 +226,14 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
         ),
         LaunchingItem(
           progress: _curve2,
-          originDx: 4.5,
-          child: const SizedBox(width: spacing),
+          originDy: 4.5,
+          child: const SizedBox(height: spacing),
         ),
 
-        // ── Search (closest, travels least) ──
+        // ── Search (closest to Main, travels least) ──
         LaunchingItem(
           progress: _curve3,
-          originDx: 2.3,
+          originDy: 2.3,
           child: SubscriptionFabSmall(
             icon: Icons.search_rounded,
             label: 'Search',
@@ -239,8 +245,8 @@ class _SubscriptionFabMenuState extends State<SubscriptionFabMenu>
         ),
         LaunchingItem(
           progress: _curve3,
-          originDx: 2.3,
-          child: const SizedBox(width: spacing),
+          originDy: 2.3,
+          child: const SizedBox(height: spacing),
         ),
 
         // ── Main Controller FAB ──

@@ -18,10 +18,10 @@ class BottomNavBar extends StatelessWidget {
       margin: isPill
           ? const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0)
           : EdgeInsets.zero,
-      height: isPill ? 64 : 64 + MediaQuery.of(context).padding.bottom,
+      height: isPill ? 64 : 60 + MediaQuery.of(context).padding.bottom,
       decoration: BoxDecoration(
         color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-        borderRadius: isPill ? BorderRadius.circular(32) : BorderRadius.zero,
+        borderRadius: isPill ? BorderRadius.circular(42) : BorderRadius.zero,
         boxShadow: isPill
             ? [
                 BoxShadow(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../core/theme/app_colors.dart';
 import '../providers/account_provider.dart';
 
@@ -14,9 +13,9 @@ class ProfileHeader extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
 
     return userAsync.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: CircularProgressIndicator(),
+      loading: () => const SizedBox(
+        height: 120,
+        child: Center(child: CircularProgressIndicator()),
       ),
       error: (err, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
@@ -34,66 +33,61 @@ class ProfileHeader extends ConsumerWidget {
             .join();
 
         return Container(
-          margin: const EdgeInsets.only(bottom: 32, top: 12, right: 8),
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.bottomCenter,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 16, 90, 16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(28),
+              // Avatar
+              CircleAvatar(
+                radius: 36,
+                backgroundColor: AppColors.cobaltBlue,
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
+              ),
+              const SizedBox(width: 16),
+              // Name + email
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       user.fullName,
-                      style: theme.textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.3,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       user.email,
-                      style: theme.textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              Positioned(
-                right: -12,
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: theme.scaffoldBackgroundColor,
-                      width: 4,
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 56,
-                    backgroundColor: AppColors.cobaltBlue,
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+              // Edit button
+              IconButton(
+                onPressed: () {}, // TODO: edit profile
+                icon: Icon(
+                  Icons.edit_outlined,
+                  color: colorScheme.onSurface.withValues(alpha: 0.4),
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
