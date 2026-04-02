@@ -37,7 +37,7 @@ class SubscriptionCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: isExpanded
-            ? BorderSide(color: colorScheme.primary.withOpacity(0.3), width: 1)
+            ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.3), width: 1)
             : BorderSide.none,
       ),
       child: InkWell(
@@ -96,7 +96,7 @@ class SubscriptionCard extends StatelessWidget {
                           Text(
                             subscription.category,
                             style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withOpacity(0.5),
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
                               fontSize: 12,
                             ),
                           ),
@@ -107,7 +107,7 @@ class SubscriptionCard extends StatelessWidget {
                         isExpanded
                             ? Icons.keyboard_arrow_up
                             : Icons.keyboard_arrow_down,
-                        color: colorScheme.onSurface.withOpacity(0.54),
+                        color: colorScheme.onSurface.withValues(alpha: 0.54),
                         size: 20,
                       ),
                     ],
@@ -124,7 +124,7 @@ class SubscriptionCard extends StatelessWidget {
                     child: Column(
                       children: [
                         Divider(
-                          color: colorScheme.onSurface.withOpacity(0.12),
+                          color: colorScheme.onSurface.withValues(alpha: 0.12),
                           height: 24,
                         ),
                         Padding(

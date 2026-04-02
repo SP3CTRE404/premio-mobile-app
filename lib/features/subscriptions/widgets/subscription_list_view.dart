@@ -10,7 +10,6 @@ class SubscriptionListView extends StatelessWidget {
   final Function(String) onToggleCard;
   final String tabPrefix;
   final bool showMadeBy;
-  final bool isSingularUser;
 
   const SubscriptionListView({
     super.key,
@@ -20,7 +19,6 @@ class SubscriptionListView extends StatelessWidget {
     required this.onToggleCard,
     required this.tabPrefix,
     required this.showMadeBy,
-    required this.isSingularUser,
   });
 
   @override

@@ -1,13 +1,13 @@
 enum BillingCycle {
-  MONTHLY,
-  QUARTERLY,
-  YEARLY;
+  monthly,
+  quarterly,
+  yearly;
 
   /// Convert from backend string (e.g. "MONTHLY") to enum.
   static BillingCycle fromString(String value) {
     return BillingCycle.values.firstWhere(
-      (e) => e.name == value.toUpperCase(),
-      orElse: () => BillingCycle.MONTHLY,
+      (e) => e.name.toUpperCase() == value.toUpperCase(),
+      orElse: () => BillingCycle.monthly,
     );
   }
 }

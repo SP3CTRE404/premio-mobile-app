@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../models/user_role.dart';
+import '../providers/user_role_provider.dart';
 import '../widgets/subscription_fab_menu.dart';
 import '../widgets/subscription_list_view.dart';
 import './add_subscription_screen.dart';
@@ -18,7 +20,6 @@ class SubscriptionDetailScreen extends ConsumerStatefulWidget {
 }
 class _SubscriptionDetailScreenState
     extends ConsumerState<SubscriptionDetailScreen> {
-  final bool _isSingularUser = false; // Toggle this to switch between modes
   bool _isPillVisible = true;
   bool _isFabMenuOpen = false;
 
@@ -42,17 +43,17 @@ class _SubscriptionDetailScreenState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final currencySymbol = ref.watch(currencySymbolProvider);
+    final userRole = ref.watch(userRoleProvider);
 
     Widget content;
-    if (_isSingularUser) {
+    if (userRole != UserRole.admin) {
       content = SubscriptionListView(
-        subscriptions: mockSubs,
+        subscriptions: mockSubs.where((s) => s.madeBy == 'Me').toList(),
         currencySymbol: currencySymbol,
         expandedCards: _expandedCards,
         onToggleCard: _toggleCard,
         tabPrefix: 'single',
         showMadeBy: false,
-        isSingularUser: true,
       );
     } else {
       content = DefaultTabController(
@@ -89,7 +90,6 @@ class _SubscriptionDetailScreenState
                     onToggleCard: _toggleCard,
                     tabPrefix: 'mine',
                     showMadeBy: false,
-                    isSingularUser: false,
                   ),
                   SubscriptionListView(
                     subscriptions:
@@ -99,7 +99,6 @@ class _SubscriptionDetailScreenState
                     onToggleCard: _toggleCard,
                     tabPrefix: 'household',
                     showMadeBy: true,
-                    isSingularUser: false,
                   ),
                 ],
               ),
@@ -118,10 +117,10 @@ class _SubscriptionDetailScreenState
                     height: 60, // Slightly taller for 2-row text
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: colorScheme.surface.withOpacity(0.9),
+                      color: colorScheme.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(32),
                       border: Border.all(
-                        color: colorScheme.onSurface.withOpacity(0.08),
+                        color: colorScheme.onSurface.withValues(alpha: 0.08),
                         width: 1.5,
                       ),
                     ),
@@ -134,7 +133,7 @@ class _SubscriptionDetailScreenState
                         color: colorScheme.primary,
                       ),
                       labelColor: colorScheme.onPrimary,
-                      unselectedLabelColor: colorScheme.onSurface.withOpacity(0.54),
+                      unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.54),
                       labelStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
@@ -176,7 +175,7 @@ class _SubscriptionDetailScreenState
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -189,7 +188,7 @@ class _SubscriptionDetailScreenState
         padding: const EdgeInsets.only(bottom: 80.0),
         child: SubscriptionFabMenu(
           key: _fabKey,
-          isSingularUser: _isSingularUser,
+          userRole: userRole,
           onMenuToggle: (isOpen) => setState(() => _isFabMenuOpen = isOpen),
           onHistoryTap: () {
             Navigator.push(

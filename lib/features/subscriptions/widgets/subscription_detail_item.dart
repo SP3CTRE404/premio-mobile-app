@@ -34,7 +34,7 @@ class SubscriptionDetailItem extends StatelessWidget {
               child: Text(
                 label,
                 style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.54),
+                  color: colorScheme.onSurface.withValues(alpha: 0.54),
                   fontSize: 11,
                 ),
                 overflow: TextOverflow.ellipsis,

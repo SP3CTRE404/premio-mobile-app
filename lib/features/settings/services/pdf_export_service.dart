@@ -107,11 +107,11 @@ class PdfExportService {
 
   static String _formatCycle(BillingCycle cycle) {
     switch (cycle) {
-      case BillingCycle.MONTHLY:
+      case BillingCycle.monthly:
         return 'Monthly';
-      case BillingCycle.QUARTERLY:
+      case BillingCycle.quarterly:
         return 'Quarterly';
-      case BillingCycle.YEARLY:
+      case BillingCycle.yearly:
         return 'Yearly';
     }
   }

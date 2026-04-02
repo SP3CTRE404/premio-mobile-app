@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../models/user_role.dart';
 import './launching_item.dart';
 import './subscription_fab_small.dart';
 
@@ -10,14 +11,14 @@ class SubscriptionFabMenu extends StatefulWidget {
     required this.onAddSubscriptionTap,
     required this.onAddHouseholdTap,
     this.onMenuToggle,
-    this.isSingularUser = true,
+    this.userRole = UserRole.single,
   });
 
   final VoidCallback onHistoryTap;
   final VoidCallback onAddSubscriptionTap;
   final VoidCallback onAddHouseholdTap;
   final Function(bool)? onMenuToggle;
-  final bool isSingularUser;
+  final UserRole userRole;
 
   @override
   State<SubscriptionFabMenu> createState() => SubscriptionFabMenuState();
@@ -121,51 +122,54 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     const double smallFabSize = 40.0;
     const double spacing = 12.0;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // ── History (top item, travels furthest up) ──
-        LaunchingItem(
-          progress: _curve1,
-          originDy: 6.8,
-          child: SubscriptionFabSmall(
-            icon: Icons.history_rounded,
-            label: 'History',
-            onTap: () {
-              closeAll();
-              widget.onHistoryTap();
-            },
-            showLabel: false,
+    return SizedBox(
+      width: 300, // Wide enough to capture taps on horizontal sub-menus
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // ── History (top item, travels furthest up) ──
+          LaunchingItem(
+            progress: _curve1,
+            originDy: 4.1,
+            child: SubscriptionFabSmall(
+              icon: Icons.history_rounded,
+              label: 'History',
+              onTap: () {
+                closeAll();
+                widget.onHistoryTap();
+              },
+              showLabel: false,
+            ),
           ),
-        ),
-        LaunchingItem(
-          progress: _curve1,
-          originDy: 6.8,
-          child: const SizedBox(height: spacing),
-        ),
+          LaunchingItem(
+            progress: _curve1,
+            originDy: 11.5,
+            child: const SizedBox(height: spacing),
+          ),
 
-        // ── Add "+" with horizontal sub-menu ──
         LaunchingItem(
           progress: _curve2,
-          originDy: 4.5,
-          child: Stack(
-            alignment: Alignment.bottomRight,
-            clipBehavior: Clip.none,
-            children: [
-              // Horizontal sub-menu (expands to the left)
-              Positioned(
-                bottom: 0,
-                right: smallFabSize + 8,
-                child: Row(
+          originDy: 2.8,
+          child: SizedBox(
+            width: 300, // Encompass the horizontal sub-menu for hit testing
+            child: Stack(
+              alignment: Alignment.bottomRight,
+              clipBehavior: Clip.none,
+              children: [
+                // Horizontal sub-menu (expands to the left)
+                Positioned(
+                  bottom: 0,
+                  right: smallFabSize + 8,
+                  child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (widget.isSingularUser) ...[
+                    if (widget.userRole == UserRole.single) ...[
                       // Travels furthest left — launches second
                       LaunchingItem(
                         progress: _subCurve2,
-                        originDx: 3.5,
+                        originDx: 1.7,
                         child: SubscriptionFabSmall(
                           icon: Icons.add_home_rounded,
                           label: 'Add/Join Household',
@@ -181,7 +185,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
                     // Closest left — launches first
                     LaunchingItem(
                       progress: _subCurve1,
-                      originDx: 1.8,
+                      originDx: 0.7,
                       child: SubscriptionFabSmall(
                         icon: Icons.post_add_rounded,
                         label: 'Add Subscription',
@@ -199,7 +203,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
               FloatingActionButton.small(
                 heroTag: 'horizontal_add_fab',
                 onPressed: () {
-                  if (widget.isSingularUser) {
+                  if (widget.userRole == UserRole.single) {
                     _toggleAddMenu();
                   } else {
                     closeAll();
@@ -221,19 +225,20 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
         LaunchingItem(
           progress: _curve2,
-          originDy: 4.5,
+          originDy: 7.1,
           child: const SizedBox(height: spacing),
         ),
 
         // ── Search (closest to Main, travels least) ──
         LaunchingItem(
           progress: _curve3,
-          originDy: 2.3,
+          originDy: 1.5,
           child: SubscriptionFabSmall(
             icon: Icons.search_rounded,
             label: 'Search',
@@ -245,7 +250,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
         ),
         LaunchingItem(
           progress: _curve3,
-          originDy: 2.3,
+          originDy: 2.8,
           child: const SizedBox(height: spacing),
         ),
 
@@ -269,6 +274,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }

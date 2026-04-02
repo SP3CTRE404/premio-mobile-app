@@ -36,7 +36,7 @@ class NavItem extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
             decoration: BoxDecoration(
               color: isSelected
-                  ? theme.primaryColor.withOpacity(0.2)
+                  ? theme.primaryColor.withValues(alpha: 0.2)
                   : const Color.fromARGB(0, 0, 0, 0),
               borderRadius: BorderRadius.circular(28),
             ),

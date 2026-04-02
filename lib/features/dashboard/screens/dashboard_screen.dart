@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../../subscriptions/models/user_role.dart';
+import '../../subscriptions/providers/user_role_provider.dart';
 import '../models/mock_data.dart';
 import '../widgets/action_card_list.dart';
-import '../widgets/calendar_strip.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/financial_hero_card.dart';
 
@@ -19,9 +20,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _selectedCategory = 'All';
   final Set<String> _paidItems = {};
 
+  List<MockSub> get _roleBaseSubs {
+    final userRole = ref.watch(userRoleProvider);
+    if (userRole == UserRole.admin) return mockSubs;
+    return mockSubs.where((s) => s.madeBy == 'Me').toList();
+  }
+
   List<MockSub> get _filteredSubs {
-    if (_selectedCategory == 'All') return mockSubs;
-    return mockSubs.where((s) => s.category == _selectedCategory).toList();
+    final base = _roleBaseSubs;
+    if (_selectedCategory == 'All') return base;
+    return base.where((s) => s.category == _selectedCategory).toList();
   }
 
   @override
@@ -59,7 +67,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.6),
+                              .withValues(alpha: 0.6),
                         ),
                   ),
                 ],
@@ -70,12 +78,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
 
           // ── Financial Insights Hero ──
-          FinancialHeroCard(
-            monthly: 4250.00,
-            upToDate: 5,
-            dueSoon: 2,
-            overdue: 1,
-            currencySymbol: currencySymbol,
+          Builder(
+            builder: (context) {
+              final subs = _roleBaseSubs;
+              final monthly = subs.fold<double>(0, (sum, item) => sum + item.price);
+              final upToDate = subs.where((s) => s.due == 'Paid').length;
+              final dueSoon = subs.where((s) => s.due.contains('Due in')).length;
+              final overdue = subs.where((s) => s.due.contains('Overdue')).length;
+
+              return FinancialHeroCard(
+                monthly: monthly,
+                upToDate: upToDate,
+                dueSoon: dueSoon,
+                overdue: overdue,
+                currencySymbol: currencySymbol,
+              );
+            },
           ),
 
           const SizedBox(height: 28),
@@ -94,7 +112,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           // ── Action Needed Section ──
           _sectionTitle(context, 'Action Needed'),
           const SizedBox(height: 12),
-          const CalendarStrip(),
           const SizedBox(height: 16),
           ActionCardList(
             subscriptions: _filteredSubs,

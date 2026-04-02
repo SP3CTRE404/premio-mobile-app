@@ -32,10 +32,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: surfaceColor.withOpacity(isScrolled ? 0.75 : 0.0),
+              color: surfaceColor.withValues(alpha: isScrolled ? 0.75 : 0.0),
               borderRadius: BorderRadius.circular(32),
               border: Border.all(
-                color: onSurfaceColor.withOpacity(isScrolled ? 0.1 : 0.0),
+                color: onSurfaceColor.withValues(alpha: isScrolled ? 0.1 : 0.0),
                 width: 1,
               ),
             ),
@@ -72,10 +72,10 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: surfaceColor.withOpacity(isScrolled ? 0.75 : 0.0),
+                  color: surfaceColor.withValues(alpha: isScrolled ? 0.75 : 0.0),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: onSurfaceColor.withOpacity(isScrolled ? 0.1 : 0.0),
+                    color: onSurfaceColor.withValues(alpha: isScrolled ? 0.1 : 0.0),
                     width: 1,
                   ),
                 ),
