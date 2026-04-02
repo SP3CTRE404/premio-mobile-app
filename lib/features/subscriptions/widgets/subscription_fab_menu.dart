@@ -32,14 +32,12 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
   late final AnimationController _rowController;
   late final AnimationController _addMenuController;
 
-  // Staggered curves — each button departs the main FAB slightly after the previous.
   late final Animation<double> _curve1; // History
   late final Animation<double> _curve2; // Add "+"
   late final Animation<double> _curve3; // Search
 
-  // Sub-menu curves — items launch upward from the "+" FAB
-  late final Animation<double> _subCurve1; // Add Subscription (closest)
-  late final Animation<double> _subCurve2; // Add/Join Household (further up)
+  late final Animation<double> _subCurve1; // Add Subscription
+  late final Animation<double> _subCurve2; // Add/Join Household
 
   @override
   void initState() {
@@ -55,7 +53,6 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
       duration: const Duration(milliseconds: 320),
     );
 
-    // Stagger: closest button departs first, furthest last
     _curve3 = CurvedAnimation(
       parent: _rowController,
       curve: const Interval(0.00, 0.65, curve: Curves.easeOutCubic),
@@ -119,162 +116,175 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
 
   @override
   Widget build(BuildContext context) {
-    const double smallFabSize = 40.0;
     const double spacing = 12.0;
 
     return SizedBox(
-      width: 300, // Wide enough to capture taps on horizontal sub-menus
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      width: 340,
+      height: 400, // Large enough to contain the unfolded menu
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        clipBehavior: Clip.none,
         children: [
-          // ── History (top item, travels furthest up) ──
-          LaunchingItem(
-            progress: _curve1,
-            originDy: 4.1,
-            child: SubscriptionFabSmall(
-              icon: Icons.history_rounded,
-              label: 'History',
-              onTap: () {
-                closeAll();
-                widget.onHistoryTap();
-              },
-              showLabel: false,
+          // Main Controller FAB
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: FloatingActionButton(
+              heroTag: 'main_menu_fab',
+              onPressed: _toggleMainMenu,
+              backgroundColor: AppColors.cobaltBlue,
+              shape: const CircleBorder(),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, anim) => RotationTransition(
+                  turns: Tween(begin: 0.875, end: 1.0).animate(anim),
+                  child: ScaleTransition(scale: anim, child: child),
+                ),
+                child: Icon(
+                  _isMainMenuOpen ? Icons.close : Icons.menu_rounded,
+                  size: 30,
+                  key: ValueKey(_isMainMenuOpen),
+                ),
+              ),
             ),
           ),
-          LaunchingItem(
-            progress: _curve1,
-            originDy: 11.5,
-            child: const SizedBox(height: spacing),
+
+          // Search Button
+          Positioned(
+            bottom: 56 + spacing,
+            right: 0,
+            child: LaunchingItem(
+              progress: _curve3,
+              originDy: 1.5,
+              child: SubscriptionFabSmall(
+                icon: Icons.search_rounded,
+                label: 'Search',
+                onTap: () {},
+                showLabel: false,
+              ),
+            ),
           ),
 
-        LaunchingItem(
-          progress: _curve2,
-          originDy: 2.8,
-          child: SizedBox(
-            width: 300, // Encompass the horizontal sub-menu for hit testing
-            child: Stack(
-              alignment: Alignment.bottomRight,
-              clipBehavior: Clip.none,
-              children: [
-                // Horizontal sub-menu (expands to the left)
-                Positioned(
-                  bottom: 0,
-                  right: smallFabSize + 8,
-                  child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          // Add "+" with horizontal sub-menu
+          Positioned(
+            bottom: (56 + spacing) * 2,
+            right: 0,
+            child: LaunchingItem(
+              progress: _curve2,
+              originDy: 1.6, // Adjusted for taller Row height (from 56 to ~88)
+              child: SizedBox(
+                width: 340,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    if (widget.userRole == UserRole.single) ...[
-                      // Travels furthest left — launches second
-                      LaunchingItem(
-                        progress: _subCurve2,
-                        originDx: 1.7,
-                        child: SubscriptionFabSmall(
-                          icon: Icons.add_home_rounded,
-                          label: 'Add/Join Household',
-                          isVertical: false,
-                          onTap: () {
-                            closeAll();
-                            widget.onAddHouseholdTap();
-                          },
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (widget.userRole == UserRole.single) ...[
+                          LaunchingItem(
+                            progress: _subCurve2,
+                            originDx: 1.7,
+                            child: SubscriptionFabSmall(
+                              icon: Icons.add_home_rounded,
+                              label: 'Add/Join Household',
+                              isVertical: false,
+                              onTap: () {
+                                closeAll();
+                                widget.onAddHouseholdTap();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: spacing),
+                        ],
+                        LaunchingItem(
+                          progress: _subCurve1,
+                          originDx: 0.7,
+                          child: SubscriptionFabSmall(
+                            icon: Icons.post_add_rounded,
+                            label: 'Add Subscription',
+                            isVertical: false,
+                            onTap: () {
+                              closeAll();
+                              widget.onAddSubscriptionTap();
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: spacing),
-                    ],
-                    // Closest left — launches first
-                    LaunchingItem(
-                      progress: _subCurve1,
-                      originDx: 0.7,
-                      child: SubscriptionFabSmall(
-                        icon: Icons.post_add_rounded,
-                        label: 'Add Subscription',
-                        isVertical: false,
-                        onTap: () {
-                          closeAll();
-                          widget.onAddSubscriptionTap();
-                        },
-                      ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Sub-menu trigger with expanded hit area
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            if (widget.userRole == UserRole.single) {
+                              _toggleAddMenu();
+                            } else {
+                              closeAll();
+                              widget.onAddSubscriptionTap();
+                            }
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: const SizedBox(width: 56, height: 56),
+                        ),
+                        FloatingActionButton.small(
+                          heroTag: 'horizontal_add_fab',
+                          onPressed: () {
+                            if (widget.userRole == UserRole.single) {
+                              _toggleAddMenu();
+                            } else {
+                              closeAll();
+                              widget.onAddSubscriptionTap();
+                            }
+                          },
+                          backgroundColor: AppColors.cobaltBlue,
+                          shape: const CircleBorder(),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (child, anim) => RotationTransition(
+                              turns: Tween(begin: 0.875, end: 1.0).animate(anim),
+                              child: ScaleTransition(scale: anim, child: child),
+                            ),
+                            child: Icon(
+                              _isAddMenuOpen ? Icons.close : Icons.add,
+                              color: Colors.white,
+                              key: ValueKey(_isAddMenuOpen),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
 
-              FloatingActionButton.small(
-                heroTag: 'horizontal_add_fab',
-                onPressed: () {
-                  if (widget.userRole == UserRole.single) {
-                    _toggleAddMenu();
-                  } else {
-                    closeAll();
-                    widget.onAddSubscriptionTap();
-                  }
+          // History Button
+          Positioned(
+            bottom: (56 + spacing) * 3,
+            right: 0,
+            child: LaunchingItem(
+              progress: _curve1,
+              originDy: 4.1,
+              child: SubscriptionFabSmall(
+                icon: Icons.history_rounded,
+                label: 'History',
+                onTap: () {
+                  closeAll();
+                  widget.onHistoryTap();
                 },
-                backgroundColor: AppColors.cobaltBlue,
-                shape: const CircleBorder(),
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, anim) => RotationTransition(
-                    turns: Tween(begin: 0.875, end: 1.0).animate(anim),
-                    child: ScaleTransition(scale: anim, child: child),
-                  ),
-                  child: Icon(
-                    _isAddMenuOpen ? Icons.close : Icons.add,
-                    color: Colors.white,
-                    key: ValueKey(_isAddMenuOpen),
-                  ),
-                ),
+                showLabel: false,
               ),
-              ],
             ),
           ),
-        ),
-        LaunchingItem(
-          progress: _curve2,
-          originDy: 7.1,
-          child: const SizedBox(height: spacing),
-        ),
+        ],
+      ),
+    );
 
-        // ── Search (closest to Main, travels least) ──
-        LaunchingItem(
-          progress: _curve3,
-          originDy: 1.5,
-          child: SubscriptionFabSmall(
-            icon: Icons.search_rounded,
-            label: 'Search',
-            onTap: () {
-              // Trigger search filter logic
-            },
-            showLabel: false,
-          ),
-        ),
-        LaunchingItem(
-          progress: _curve3,
-          originDy: 2.8,
-          child: const SizedBox(height: spacing),
-        ),
-
-        // ── Main Controller FAB ──
-        FloatingActionButton(
-          heroTag: 'main_menu_fab',
-          onPressed: _toggleMainMenu,
-          backgroundColor: AppColors.cobaltBlue,
-          shape: const CircleBorder(),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            transitionBuilder: (child, anim) => RotationTransition(
-              turns: Tween(begin: 0.875, end: 1.0).animate(anim),
-              child: ScaleTransition(scale: anim, child: child),
-            ),
-            child: Icon(
-              _isMainMenuOpen ? Icons.close : Icons.menu_rounded,
-              size: 30,
-              key: ValueKey(_isMainMenuOpen),
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
+  }
 }
