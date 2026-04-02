@@ -44,13 +44,13 @@ class BottomNavBar extends StatelessWidget {
               index: 0,
             ),
             NavItem(
-              outlinedIcon: Icons.payment_outlined,
-              filledIcon: Icons.payment,
+              outlinedIcon: Icons.receipt_long_outlined,
+              filledIcon: Icons.receipt_long,
               index: 1,
             ),
             NavItem(
-              outlinedIcon: Icons.receipt_long_outlined,
-              filledIcon: Icons.receipt_long,
+              outlinedIcon: Icons.history,
+              filledIcon: Icons.history,
               index: 2,
             ),
             NavItem(

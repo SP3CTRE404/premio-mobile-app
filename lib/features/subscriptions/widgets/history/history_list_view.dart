@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../dashboard/models/mock_data.dart';
-import './subscription_card.dart';
+import '../../../dashboard/models/mock_data.dart';
+import 'history_card.dart';
 
-class SubscriptionListView extends StatelessWidget {
+class HistoryListView extends StatelessWidget {
   final List<MockSub> subscriptions;
   final String currencySymbol;
   final Set<String> expandedCards;
@@ -11,7 +11,7 @@ class SubscriptionListView extends StatelessWidget {
   final String tabPrefix;
   final bool showMadeBy;
 
-  const SubscriptionListView({
+  const HistoryListView({
     super.key,
     required this.subscriptions,
     required this.currencySymbol,
@@ -38,7 +38,7 @@ class SubscriptionListView extends StatelessWidget {
         final cardKey = '${tabPrefix}_$index';
         final isExpanded = expandedCards.contains(cardKey);
 
-        return SubscriptionCard(
+        return HistoryCard(
           subscription: sub,
           currencySymbol: currencySymbol,
           isExpanded: isExpanded,

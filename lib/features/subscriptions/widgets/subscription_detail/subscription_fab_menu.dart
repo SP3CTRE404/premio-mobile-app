@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../models/user_role.dart';
-import './launching_item.dart';
-import './subscription_fab_small.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../models/user_role.dart';
+import 'launching_item.dart';
+import 'subscription_fab_small.dart';
 
 class SubscriptionFabMenu extends StatefulWidget {
   const SubscriptionFabMenu({
@@ -32,7 +32,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
   late final AnimationController _rowController;
   late final AnimationController _addMenuController;
 
-  late final Animation<double> _curve1; // History
+// History
   late final Animation<double> _curve2; // Add "+"
   late final Animation<double> _curve3; // Search
 
@@ -60,10 +60,6 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     _curve2 = CurvedAnimation(
       parent: _rowController,
       curve: const Interval(0.12, 0.76, curve: Curves.easeOutCubic),
-    );
-    _curve1 = CurvedAnimation(
-      parent: _rowController,
-      curve: const Interval(0.24, 0.88, curve: Curves.easeOutCubic),
     );
 
     _subCurve1 = CurvedAnimation(
@@ -260,25 +256,6 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-
-          // History Button
-          Positioned(
-            bottom: (56 + spacing) * 3,
-            right: 0,
-            child: LaunchingItem(
-              progress: _curve1,
-              originDy: 4.1,
-              child: SubscriptionFabSmall(
-                icon: Icons.history_rounded,
-                label: 'History',
-                onTap: () {
-                  closeAll();
-                  widget.onHistoryTap();
-                },
-                showLabel: false,
               ),
             ),
           ),

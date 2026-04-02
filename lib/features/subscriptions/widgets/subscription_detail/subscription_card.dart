@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/utils/currency_formatter.dart';
-import '../../dashboard/models/mock_data.dart';
-import './subscription_detail_item.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../dashboard/models/mock_data.dart';
+import 'subscription_detail_item.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final MockSub subscription;
@@ -217,9 +217,24 @@ class SubscriptionCard extends StatelessWidget {
 
   Color _getStatusColor(String due) {
     final status = due.toLowerCase();
+
     if (status.contains('paid')) return Colors.greenAccent;
     if (status.contains('overdue')) return Colors.redAccent;
-    if (status.contains('due')) return Colors.orangeAccent;
-    return Colors.white54;
+
+    if (status.contains('due')) {
+      if (status.contains('today') || status.contains('tomorrow')) {
+        return Colors.yellow;
+      }
+
+      final match = RegExp(r'due in (\d+) day').firstMatch(status);
+      if (match != null) {
+        final days = int.tryParse(match.group(1) ?? '');
+        if (days != null && days <= 3) {
+          return Colors.yellow;
+        }
+      }
+    }
+
+    return Colors.white;
   }
 }

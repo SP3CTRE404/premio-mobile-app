@@ -6,8 +6,8 @@ import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../models/user_role.dart';
 import '../providers/user_role_provider.dart';
-import '../widgets/subscription_fab_menu.dart';
-import '../widgets/subscription_list_view.dart';
+import '../widgets/subscription_detail/subscription_fab_menu.dart';
+import '../widgets/subscription_detail/subscription_list_view.dart';
 import './add_subscription_screen.dart';
 import './history_screen.dart';
 

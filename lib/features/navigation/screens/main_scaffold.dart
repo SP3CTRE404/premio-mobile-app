@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtrack/features/subscriptions/screens/history_screen.dart';
 
 import '../../dashboard/screens/dashboard_screen.dart';
-import '../../subscriptions/screens/due_screen.dart';
 import '../../subscriptions/screens/subscription_detail_screen.dart';
 import '../../account/screens/account_screen.dart';
 import '../widgets/custom_app_bar.dart';
@@ -68,15 +68,15 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
     final List<Widget> screens = [
       const DashboardScreen(),
-      const DueScreen(),
       const SubscriptionDetailScreen(),
+      const HistoryScreen(),
       const AccountScreen(),
     ];
 
     final List<String> titles = [
       'SubTrack',
-      'Due Subscriptions',
-      'All Subscriptions',
+      'Ongoing Subscriptions',
+      'History',
       'Account',
     ];
 
