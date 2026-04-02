@@ -10,6 +10,7 @@ import '../widgets/subscription_detail/subscription_fab_menu.dart';
 import '../widgets/subscription_detail/subscription_list_view.dart';
 import './add_subscription_screen.dart';
 import './history_screen.dart';
+import './subscription_search_screen.dart';
 
 class SubscriptionDetailScreen extends ConsumerStatefulWidget {
   const SubscriptionDetailScreen({super.key});
@@ -18,6 +19,7 @@ class SubscriptionDetailScreen extends ConsumerStatefulWidget {
   ConsumerState<SubscriptionDetailScreen> createState() =>
       _SubscriptionDetailScreenState();
 }
+
 class _SubscriptionDetailScreenState
     extends ConsumerState<SubscriptionDetailScreen> {
   bool _isPillVisible = true;
@@ -190,6 +192,12 @@ class _SubscriptionDetailScreenState
           key: _fabKey,
           userRole: userRole,
           onMenuToggle: (isOpen) => setState(() => _isFabMenuOpen = isOpen),
+          onSearchTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SubscriptionSearchScreen()),
+            );
+          },
           onHistoryTap: () {
             Navigator.push(
               context,

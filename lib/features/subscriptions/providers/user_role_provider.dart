@@ -6,7 +6,7 @@ import '../models/user_role.dart';
 class UserRoleNotifier extends Notifier<UserRole> {
   @override
   UserRole build() {
-    return UserRole.member;
+    return UserRole.single;
   }
 
   void setRole(UserRole role) {

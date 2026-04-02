@@ -10,6 +10,7 @@ class SubscriptionFabMenu extends StatefulWidget {
     required this.onHistoryTap,
     required this.onAddSubscriptionTap,
     required this.onAddHouseholdTap,
+    required this.onSearchTap,
     this.onMenuToggle,
     this.userRole = UserRole.single,
   });
@@ -17,6 +18,7 @@ class SubscriptionFabMenu extends StatefulWidget {
   final VoidCallback onHistoryTap;
   final VoidCallback onAddSubscriptionTap;
   final VoidCallback onAddHouseholdTap;
+  final VoidCallback onSearchTap;
   final Function(bool)? onMenuToggle;
   final UserRole userRole;
 
@@ -32,12 +34,11 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
   late final AnimationController _rowController;
   late final AnimationController _addMenuController;
 
-// History
-  late final Animation<double> _curve2; // Add "+"
-  late final Animation<double> _curve3; // Search
+  late final Animation<double> _curve2;
+  late final Animation<double> _curve3;
 
-  late final Animation<double> _subCurve1; // Add Subscription
-  late final Animation<double> _subCurve2; // Add/Join Household
+  late final Animation<double> _subCurve1;
+  late final Animation<double> _subCurve2;
 
   @override
   void initState() {
@@ -116,7 +117,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
 
     return SizedBox(
       width: 340,
-      height: 400, // Large enough to contain the unfolded menu
+      height: 400,
       child: Stack(
         alignment: Alignment.bottomRight,
         clipBehavior: Clip.none,
@@ -145,7 +146,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
             ),
           ),
 
-          // Search Button
+          // Search Button (Navigation Trigger)
           Positioned(
             bottom: 56 + spacing,
             right: 0,
@@ -155,7 +156,10 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
               child: SubscriptionFabSmall(
                 icon: Icons.search_rounded,
                 label: 'Search',
-                onTap: () {},
+                onTap: () {
+                  closeAll();
+                  widget.onSearchTap();
+                },
                 showLabel: false,
               ),
             ),
@@ -167,7 +171,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
             right: 0,
             child: LaunchingItem(
               progress: _curve2,
-              originDy: 1.6, // Adjusted for taller Row height (from 56 to ~88)
+              originDy: 1.6,
               child: SizedBox(
                 width: 340,
                 child: Row(
@@ -211,7 +215,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
                     ),
                     const SizedBox(width: 8),
 
-                    // Sub-menu trigger with expanded hit area
+                    // Sub-menu trigger
                     Stack(
                       alignment: Alignment.center,
                       children: [
@@ -262,6 +266,5 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
         ],
       ),
     );
-
   }
 }
