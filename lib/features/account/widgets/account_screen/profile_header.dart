@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
-import '../providers/account_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../providers/account_provider.dart';
+import '../../screens/edit_profile_screen.dart';
 
 class ProfileHeader extends ConsumerWidget {
   const ProfileHeader({super.key});
@@ -79,7 +80,13 @@ class ProfileHeader extends ConsumerWidget {
               ),
               // Edit button
               IconButton(
-                onPressed: () {}, // TODO: edit profile
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfileScreen(),
+                    ),
+                  );
+                },
                 icon: Icon(
                   Icons.edit_outlined,
                   color: colorScheme.onSurface.withValues(alpha: 0.4),

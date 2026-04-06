@@ -14,10 +14,11 @@ class UserNotifier extends AsyncNotifier<User?> {
     final id = await storage.getUserId();
     final email = await storage.getUserEmail();
     final name = await storage.getUserName();
+    final phone = await storage.getUserPhoneNumber();
 
     if (id == null || email == null || name == null) return null;
 
-    return User(id: id, email: email, fullName: name);
+    return User(id: id, email: email, fullName: name, phoneNumber: phone);
   }
 
   /// Re-reads user info from secure storage (e.g. after login).
@@ -30,7 +31,18 @@ class UserNotifier extends AsyncNotifier<User?> {
   void clear() {
     state = const AsyncData(null);
   }
+
+  /// Updates the user's full name in storage and refreshes the state.
+  Future<void> updateProfile({required String fullName, String? phoneNumber}) async {
+    final storage = ref.read(secureStorageServiceProvider);
+    await storage.saveUserName(fullName);
+    if (phoneNumber != null) {
+      await storage.saveUserPhoneNumber(phoneNumber);
+    }
+    await refresh();
+  }
 }
+
 
 final userProvider = AsyncNotifierProvider<UserNotifier, User?>(
   UserNotifier.new,

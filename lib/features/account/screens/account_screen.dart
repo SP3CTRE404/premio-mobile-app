@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../widgets/household_card.dart';
-import '../widgets/logout_button.dart';
-import '../widgets/profile_header.dart';
-import '../widgets/section_block.dart';
-import '../widgets/support_card.dart';
+import '../widgets/account_screen/household_card.dart';
+import '../widgets/account_screen/logout_button.dart';
+import '../widgets/account_screen/profile_header.dart';
+import '../widgets/account_screen/section_block.dart';
+import '../widgets/account_screen/support_card.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});

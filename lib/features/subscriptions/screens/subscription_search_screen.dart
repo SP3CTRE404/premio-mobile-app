@@ -17,8 +17,25 @@ class SubscriptionSearchScreen extends ConsumerStatefulWidget {
 class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScreen> 
     with TickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   String _query = '';
   final Set<String> _expandedCards = {}; 
+  bool _isScrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.hasClients) {
+        final isScrolled = _scrollController.offset > 10;
+        if (isScrolled != _isScrolled) {
+          setState(() {
+            _isScrolled = isScrolled;
+          });
+        }
+      }
+    });
+  }
 
   void _toggleCard(String cardKey) {
     setState(() {
@@ -33,6 +50,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -50,9 +68,44 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
       extendBodyBehindAppBar: true,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Search Subscriptions', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          'Search Subscriptions', 
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                color: theme.colorScheme.surface.withValues(alpha: 0.8),
+                offset: const Offset(0, 1),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        flexibleSpace: AnimatedOpacity(
+          opacity: _isScrolled ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.surface.withValues(alpha: 0.3),
+                      theme.colorScheme.surface.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -63,6 +116,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
           filtered.isEmpty && _query.isNotEmpty
               ? const Center(child: Text('No subscriptions found.'))
               : ListView.builder(
+                  controller: _scrollController,
                   padding: EdgeInsets.fromLTRB(16, 120, 16, 120 + bottomInset),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {

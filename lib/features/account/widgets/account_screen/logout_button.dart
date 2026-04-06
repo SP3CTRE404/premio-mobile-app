@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/providers/auth_provider.dart';
-import '../../auth/screens/login_screen.dart';
+import '../../../auth/providers/auth_provider.dart';
+import '../../../auth/screens/login_screen.dart';
 
 class LogoutButton extends ConsumerWidget {
   const LogoutButton({super.key});

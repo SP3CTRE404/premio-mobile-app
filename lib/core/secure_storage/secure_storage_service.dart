@@ -16,6 +16,7 @@ class SecureStorageService {
   static const _keyUserId = 'user_id';
   static const _keyUserEmail = 'user_email';
   static const _keyUserName = 'user_full_name';
+  static const _keyUserPhone = 'user_phone_number';
 
   // Settings keys
   static const _keyCurrency = 'currency_symbol';
@@ -49,6 +50,11 @@ class SecureStorageService {
       _storage.write(key: _keyUserName, value: name);
 
   Future<String?> getUserName() => _storage.read(key: _keyUserName);
+
+  Future<void> saveUserPhoneNumber(String? phone) =>
+      _storage.write(key: _keyUserPhone, value: phone);
+
+  Future<String?> getUserPhoneNumber() => _storage.read(key: _keyUserPhone);
 
   // ── Settings: Currency ──
   Future<void> saveCurrency(String symbol) =>
