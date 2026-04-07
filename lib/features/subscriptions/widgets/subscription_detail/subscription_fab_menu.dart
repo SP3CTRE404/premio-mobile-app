@@ -1,26 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../models/user_role.dart';
 import 'launching_item.dart';
 import 'subscription_fab_small.dart';
 
 class SubscriptionFabMenu extends StatefulWidget {
   const SubscriptionFabMenu({
     super.key,
-    required this.onHistoryTap,
     required this.onAddSubscriptionTap,
-    required this.onAddHouseholdTap,
     required this.onSearchTap,
     this.onMenuToggle,
-    this.userRole = UserRole.single,
   });
 
-  final VoidCallback onHistoryTap;
   final VoidCallback onAddSubscriptionTap;
-  final VoidCallback onAddHouseholdTap;
   final VoidCallback onSearchTap;
   final Function(bool)? onMenuToggle;
-  final UserRole userRole;
 
   @override
   State<SubscriptionFabMenu> createState() => SubscriptionFabMenuState();
@@ -29,16 +22,11 @@ class SubscriptionFabMenu extends StatefulWidget {
 class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
     with TickerProviderStateMixin {
   bool _isMainMenuOpen = false;
-  bool _isAddMenuOpen = false;
 
   late final AnimationController _rowController;
-  late final AnimationController _addMenuController;
 
-  late final Animation<double> _curve2;
+  late final Animation<double> _curve1;
   late final Animation<double> _curve3;
-
-  late final Animation<double> _subCurve1;
-  late final Animation<double> _subCurve2;
 
   @override
   void initState() {
@@ -49,34 +37,19 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
       duration: const Duration(milliseconds: 400),
     );
 
-    _addMenuController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 320),
-    );
-
     _curve3 = CurvedAnimation(
       parent: _rowController,
-      curve: const Interval(0.00, 0.65, curve: Curves.easeOutCubic),
+      curve: const Interval(0.00, 0.70, curve: Curves.easeOutCubic),
     );
-    _curve2 = CurvedAnimation(
+    _curve1 = CurvedAnimation(
       parent: _rowController,
-      curve: const Interval(0.12, 0.76, curve: Curves.easeOutCubic),
-    );
-
-    _subCurve1 = CurvedAnimation(
-      parent: _addMenuController,
-      curve: const Interval(0.00, 0.65, curve: Curves.easeOutCubic),
-    );
-    _subCurve2 = CurvedAnimation(
-      parent: _addMenuController,
-      curve: const Interval(0.18, 0.82, curve: Curves.easeOutCubic),
+      curve: const Interval(0.20, 0.90, curve: Curves.easeOutCubic),
     );
   }
 
   @override
   void dispose() {
     _rowController.dispose();
-    _addMenuController.dispose();
     super.dispose();
   }
 
@@ -87,28 +60,15 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
       _rowController.forward();
     } else {
       _rowController.reverse();
-      _isAddMenuOpen = false;
-      _addMenuController.reverse();
-    }
-  }
-
-  void _toggleAddMenu() {
-    setState(() => _isAddMenuOpen = !_isAddMenuOpen);
-    if (_isAddMenuOpen) {
-      _addMenuController.forward();
-    } else {
-      _addMenuController.reverse();
     }
   }
 
   void closeAll() {
     setState(() {
       _isMainMenuOpen = false;
-      _isAddMenuOpen = false;
     });
     widget.onMenuToggle?.call(false);
     _rowController.reverse();
-    _addMenuController.reverse();
   }
 
   @override
@@ -146,7 +106,7 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
             ),
           ),
 
-          // Search Button (Navigation Trigger)
+          // Search Button 
           Positioned(
             bottom: 56 + spacing,
             right: 0,
@@ -165,101 +125,21 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
             ),
           ),
 
-          // Add "+" with horizontal sub-menu
+          // Add Task Button
           Positioned(
-            bottom: (56 + spacing) * 2,
+            bottom: (56 * 2) + (spacing * 2),
             right: 0,
             child: LaunchingItem(
-              progress: _curve2,
+              progress: _curve1,
               originDy: 1.6,
-              child: SizedBox(
-                width: 340,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (widget.userRole == UserRole.single) ...[
-                          LaunchingItem(
-                            progress: _subCurve2,
-                            originDx: 1.7,
-                            child: SubscriptionFabSmall(
-                              icon: Icons.add_home_rounded,
-                              label: 'Add/Join Household',
-                              isVertical: false,
-                              onTap: () {
-                                closeAll();
-                                widget.onAddHouseholdTap();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: spacing),
-                        ],
-                        LaunchingItem(
-                          progress: _subCurve1,
-                          originDx: 0.7,
-                          child: SubscriptionFabSmall(
-                            icon: Icons.post_add_rounded,
-                            label: 'Add Subscription',
-                            isVertical: false,
-                            onTap: () {
-                              closeAll();
-                              widget.onAddSubscriptionTap();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Sub-menu trigger
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            if (widget.userRole == UserRole.single) {
-                              _toggleAddMenu();
-                            } else {
-                              closeAll();
-                              widget.onAddSubscriptionTap();
-                            }
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: const SizedBox(width: 56, height: 56),
-                        ),
-                        FloatingActionButton.small(
-                          heroTag: 'horizontal_add_fab',
-                          onPressed: () {
-                            if (widget.userRole == UserRole.single) {
-                              _toggleAddMenu();
-                            } else {
-                              closeAll();
-                              widget.onAddSubscriptionTap();
-                            }
-                          },
-                          backgroundColor: AppColors.cobaltBlue,
-                          shape: const CircleBorder(),
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            transitionBuilder: (child, anim) => RotationTransition(
-                              turns: Tween(begin: 0.875, end: 1.0).animate(anim),
-                              child: ScaleTransition(scale: anim, child: child),
-                            ),
-                            child: Icon(
-                              _isAddMenuOpen ? Icons.close : Icons.add,
-                              color: Colors.white,
-                              key: ValueKey(_isAddMenuOpen),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              child: SubscriptionFabSmall(
+                icon: Icons.add,
+                label: 'Add Task',
+                onTap: () {
+                  closeAll();
+                  widget.onAddSubscriptionTap();
+                },
+                showLabel: false,
               ),
             ),
           ),

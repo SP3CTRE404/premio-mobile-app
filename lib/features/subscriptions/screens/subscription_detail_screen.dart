@@ -9,7 +9,6 @@ import '../providers/user_role_provider.dart';
 import '../widgets/subscription_detail/subscription_fab_menu.dart';
 import '../widgets/subscription_detail/subscription_list_view.dart';
 import './add_subscription_screen.dart';
-import './history_screen.dart';
 import './subscription_search_screen.dart';
 
 class SubscriptionDetailScreen extends ConsumerStatefulWidget {
@@ -190,7 +189,6 @@ class _SubscriptionDetailScreenState
         padding: const EdgeInsets.only(bottom: 80.0),
         child: SubscriptionFabMenu(
           key: _fabKey,
-          userRole: userRole,
           onMenuToggle: (isOpen) => setState(() => _isFabMenuOpen = isOpen),
           onSearchTap: () {
             Navigator.push(
@@ -198,20 +196,11 @@ class _SubscriptionDetailScreenState
               MaterialPageRoute(builder: (_) => const SubscriptionSearchScreen()),
             );
           },
-          onHistoryTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const HistoryScreen()),
-            );
-          },
           onAddSubscriptionTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AddSubscriptionScreen()),
             );
-          },
-          onAddHouseholdTap: () {
-            // Placeholder for household logic
           },
         ),
       ),

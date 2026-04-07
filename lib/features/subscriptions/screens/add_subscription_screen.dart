@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/widgets/auth_background.dart';
+import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
@@ -15,7 +16,8 @@ import '../widgets/add_subscription/save_subscription_button.dart';
 import '../widgets/add_subscription/service_name_field.dart';
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
-  const AddSubscriptionScreen({super.key});
+  final MockSub? initialData;
+  const AddSubscriptionScreen({super.key, this.initialData});
 
   @override
   ConsumerState<AddSubscriptionScreen> createState() =>
@@ -24,13 +26,37 @@ class AddSubscriptionScreen extends ConsumerStatefulWidget {
 
 class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _amountController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _amountController;
 
   BillingCycle? _selectedCycle;
   bool? _isAutoPay;
   DateTime? _selectedDate;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.initialData?.name);
+    _amountController = TextEditingController(text: widget.initialData?.price.toString());
+    
+    _isAutoPay = widget.initialData != null ? true : null;
+
+    if (widget.initialData != null) {
+      // Find matching cycle based on name (mock logic)
+      _selectedCycle = BillingCycle.values.firstWhere(
+        (e) => e.name.toLowerCase() == 'monthly', 
+        orElse: () => BillingCycle.monthly
+      );
+      
+      // Parse mock date string "2024-01-20"
+      try {
+        _selectedDate = DateTime.parse(widget.initialData!.purchaseDate);
+      } catch (_) {
+        _selectedDate = DateTime.now();
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -75,7 +101,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('New Subscription', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          widget.initialData != null ? 'Edit Subscription' : 'New Subscription',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -129,6 +158,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     const SizedBox(height: 48),
 
                     SaveSubscriptionButton(
+                      text: widget.initialData != null ? 'Save Changes' : null,
                       onPressed: _submit,
                       isLoading: _isLoading,
                     ),
