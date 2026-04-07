@@ -12,7 +12,7 @@ import '../widgets/bottom_nav_bar.dart';
 
 class NavigationIndexNotifier extends Notifier<int> {
   @override
-  int build() => 0;
+  int build() => 2;
 
   void setIndex(int index) => state = index;
 }
@@ -69,17 +69,17 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final currentIndex = ref.watch(navigationIndexProvider);
 
     final List<Widget> screens = [
-      const DashboardScreen(),
-      const SubscriptionDetailScreen(),
       const HouseholdScreen(),
+      const SubscriptionDetailScreen(),
+      const DashboardScreen(),
       const HistoryScreen(),
       const AccountScreen(),
     ];
 
     final List<String> titles = [
-      'SubTrack',
-      'Ongoing Subscriptions',
       'Household',
+      'Ongoing Subscriptions',
+      'SubTrack',
       'History',
       'Account',
     ];

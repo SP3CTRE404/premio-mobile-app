@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../auth/widgets/auth_background.dart';
 import '../../auth/widgets/auth_header.dart';
 import '../../subscriptions/models/user_role.dart';
@@ -11,6 +12,7 @@ import '../widgets/household_screen/household_hero_card.dart';
 import '../widgets/household_screen/member_list_item.dart';
 import '../widgets/household_screen/invite_bottom_sheet.dart';
 import '../widgets/household_screen/household_actions.dart';
+import '../widgets/household_screen/leave_household_dialog.dart';
 import '../widgets/shared/selection_card.dart';
 
 class HouseholdScreen extends ConsumerWidget {
@@ -106,21 +108,42 @@ class HouseholdScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const MemberListItem(name: 'You', role: 'Admin', isYou: true),
-          const MemberListItem(name: 'Jane Doe', role: 'Member', isYou: false),
-          const MemberListItem(name: 'John Smith', role: 'Member', isYou: false),
-          const MemberListItem(name: 'Alice Joy', role: 'Member', isYou: false),
+          MemberListItem(
+            name: 'You',
+            role: isAdmin ? 'Admin' : 'Member',
+            isYou: true,
+            showArrow: isAdmin,
+          ),
+          MemberListItem(name: 'Jane Doe', role: 'Member', isYou: false, showArrow: isAdmin),
+          MemberListItem(name: 'John Smith', role: 'Member', isYou: false, showArrow: isAdmin),
+          MemberListItem(name: 'Alice Joy', role: 'Member', isYou: false, showArrow: isAdmin),
           const SizedBox(height: 40),
           HouseholdActions(
             isAdmin: isAdmin,
-            onLeave: () {
-              // TODO: Leave household logic
-            },
+            onLeave: () => _confirmLeave(context),
             onDelete: () {
               // TODO: Delete household logic
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _confirmLeave(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => LeaveHouseholdDialog(
+        householdName: 'Family Track',
+        onConfirm: () {
+          // TODO: Actually leave household logic
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('You have left the household.'),
+              backgroundColor: AppColors.neonRed,
+            ),
+          );
+        },
       ),
     );
   }

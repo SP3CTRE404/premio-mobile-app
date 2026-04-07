@@ -5,12 +5,14 @@ class MemberListItem extends StatelessWidget {
   final String name;
   final String role;
   final bool isYou;
+  final bool showArrow;
 
   const MemberListItem({
     super.key,
     required this.name,
     required this.role,
     required this.isYou,
+    this.showArrow = true,
   });
 
   @override
@@ -131,10 +133,11 @@ class MemberListItem extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-            ),
+            if (showArrow)
+              Icon(
+                Icons.chevron_right_rounded,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
+              ),
           ],
         ),
       ),

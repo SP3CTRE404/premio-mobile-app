@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import '../../auth/widgets/auth_button.dart';
 import '../widgets/shared/household_form_layout.dart';
+import 'qr_scanner_screen.dart';
 
 class JoinHouseholdScreen extends StatefulWidget {
   const JoinHouseholdScreen({super.key});
@@ -34,11 +35,51 @@ class _JoinHouseholdScreenState extends State<JoinHouseholdScreen> {
           ),
           const SizedBox(height: 32),
           AuthButton(
-            label: 'Join',
+            label: 'Join with Code',
             onPressed: () { 
               // TODO: Logic to call backend
               Navigator.pop(context);
             },
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text('OR', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(child: Divider(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2))),
+            ],
+          ),
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: () async {
+              final result = await Navigator.push<String>(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const QrScannerScreen(),
+                ),
+              );
+
+              if (result != null && result.isNotEmpty && context.mounted) {
+                setState(() {
+                  _codeController.text = result;
+                });
+                
+                // Optionally show a quick visual confirmation
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('QR Code Scanned Successfully!')),
+                );
+              }
+            },
+            icon: Icon(Icons.qr_code_scanner, color: Theme.of(context).colorScheme.onSurface),
+            label: Text('Scan QR Code', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              side: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2), width: 1.5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            ),
           ),
         ],
       ),

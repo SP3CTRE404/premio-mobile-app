@@ -20,7 +20,7 @@ class BottomNavBar extends ConsumerWidget {
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
       margin: isPill
-          ? const EdgeInsets.symmetric(horizontal: 28.0, vertical: 16.0)
+          ? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0)
           : EdgeInsets.zero,
       height: isPill ? 64 : 60 + MediaQuery.of(context).padding.bottom,
       decoration: BoxDecoration(
@@ -38,35 +38,42 @@ class BottomNavBar extends ConsumerWidget {
       ),
       child: Padding(
         padding: isPill
-            ? EdgeInsets.zero
+            ? const EdgeInsets.all(12.0)
             : EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            NavItem(
-              outlinedIcon: Icons.grid_view_outlined,
-              filledIcon: Icons.grid_view_rounded,
-              index: 0,
-            ),
-            NavItem(
-              outlinedIcon: Icons.receipt_long_outlined,
-              filledIcon: Icons.receipt_long_rounded,
-              index: 1,
-            ),
             NavItem(
               outlinedIcon: isSingle
                   ? Icons.add_home_work_outlined
                   : Icons.home_outlined,
               filledIcon: isSingle ? Icons.add_home_work_rounded : Icons.home_rounded,
+              label: 'Household',
+              index: 0,
+            ),
+            NavItem(
+              outlinedIcon: Icons.receipt_long_outlined,
+              filledIcon: Icons.receipt_long_rounded,
+              label: 'Subs',
+              index: 1,
+            ),
+            NavItem(
+              outlinedIcon: Icons.grid_view_outlined,
+              filledIcon: Icons.grid_view_rounded,
+              label: 'Dashboard',
               index: 2,
+              isProminent: true,
             ),
             NavItem(
               outlinedIcon: Icons.history_rounded,
               filledIcon: Icons.history_rounded,
+              label: 'History',
               index: 3,
             ),
             NavItem(
               outlinedIcon: Icons.person_outline_rounded,
               filledIcon: Icons.person_rounded,
+              label: 'Account',
               index: 4,
             ),
           ],

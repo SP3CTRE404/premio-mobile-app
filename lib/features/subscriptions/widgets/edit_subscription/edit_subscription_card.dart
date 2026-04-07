@@ -69,12 +69,24 @@ class EditSubscriptionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.cancel_outlined, size: 20),
+          TextButton(
             onPressed: onEnd,
-            style: IconButton.styleFrom(
+            style: TextButton.styleFrom(
               backgroundColor: AppColors.neonRed.withValues(alpha: 0.1),
               foregroundColor: AppColors.neonRed,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'End',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],

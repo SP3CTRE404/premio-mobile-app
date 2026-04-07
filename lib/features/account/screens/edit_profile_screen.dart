@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../auth/widgets/auth_background.dart';
 import '../providers/account_provider.dart';
@@ -19,6 +21,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  File? _pickedImage;
   bool _isLoading = false;
 
   @override
@@ -40,12 +43,39 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 1000,
+        maxHeight: 1000,
+        imageQuality: 85,
+      );
+      
+      if (image != null) {
+        setState(() {
+          _pickedImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
     
     setState(() => _isLoading = true);
 
     try {
+      // NOTE: In a real app, you'd upload the _pickedImage to a storage service (S3/Firebase) 
+      // first, then update the profile with the URL. 
+      // For now, we update the text fields.
       await ref.read(userProvider.notifier).updateProfile(
         fullName: _nameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
@@ -91,9 +121,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   ProfileAvatarEditor(
                     initial: _nameController.text,
-                    onEdit: () {
-                      // Future: Image picker logic
-                    },
+                    imageWidget: _pickedImage != null 
+                        ? ClipOval(
+                            child: Image.file(
+                              _pickedImage!,
+                              fit: BoxFit.cover,
+                              width: 128,
+                              height: 128,
+                            ),
+                          )
+                        : null,
+                    onImageSourceSelected: _pickImage,
                   ),
                   const SizedBox(height: 40),
 
