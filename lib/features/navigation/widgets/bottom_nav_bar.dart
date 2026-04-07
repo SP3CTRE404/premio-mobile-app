@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../subscriptions/models/user_role.dart';
+import '../../subscriptions/providers/user_role_provider.dart';
 import 'nav_item.dart';
 
-class BottomNavBar extends StatelessWidget {
+class BottomNavBar extends ConsumerWidget {
   final bool isPill;
 
   const BottomNavBar({
@@ -11,7 +13,9 @@ class BottomNavBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userRole = ref.watch(userRoleProvider);
+    final isSingle = userRole == UserRole.single;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
@@ -36,27 +40,34 @@ class BottomNavBar extends StatelessWidget {
         padding: isPill
             ? EdgeInsets.zero
             : EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        child: const Row(
+        child: Row(
           children: [
             NavItem(
-              outlinedIcon: Icons.dashboard_outlined,
-              filledIcon: Icons.dashboard,
+              outlinedIcon: Icons.grid_view_outlined,
+              filledIcon: Icons.grid_view_rounded,
               index: 0,
             ),
             NavItem(
               outlinedIcon: Icons.receipt_long_outlined,
-              filledIcon: Icons.receipt_long,
+              filledIcon: Icons.receipt_long_rounded,
               index: 1,
             ),
             NavItem(
-              outlinedIcon: Icons.history,
-              filledIcon: Icons.history,
+              outlinedIcon: isSingle
+                  ? Icons.add_home_work_outlined
+                  : Icons.home_outlined,
+              filledIcon: isSingle ? Icons.add_home_work_rounded : Icons.home_rounded,
               index: 2,
             ),
             NavItem(
-              outlinedIcon: Icons.person_outline,
-              filledIcon: Icons.person,
+              outlinedIcon: Icons.history_rounded,
+              filledIcon: Icons.history_rounded,
               index: 3,
+            ),
+            NavItem(
+              outlinedIcon: Icons.person_outline_rounded,
+              filledIcon: Icons.person_rounded,
+              index: 4,
             ),
           ],
         ),

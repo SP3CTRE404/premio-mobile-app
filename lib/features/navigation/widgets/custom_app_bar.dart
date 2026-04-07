@@ -5,11 +5,13 @@ import '../../settings/screens/settings_screen.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isScrolled;
   final String title;
+  final Widget? trailingAction;
 
   const CustomAppBar({
     super.key,
     required this.isScrolled,
     required this.title,
+    this.trailingAction,
   });
 
   @override
@@ -79,18 +81,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 1,
                   ),
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  tooltip: 'Settings',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
+                child: trailingAction ??
+                    IconButton(
+                      icon: const Icon(Icons.settings_outlined),
+                      tooltip: 'Settings',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
               ),
             ),
           ),

@@ -11,4 +11,7 @@ class AppColors {
   // Light Mode Colors
   static const Color pureWhite = Color.fromARGB(255, 255, 255, 255); // True white for max contrast
   static const Color lightSurface = Color.fromARGB(255, 244, 246, 248); // Crisp, cool-toned very light grey
+
+  // Neon Red for destructive actions
+  static const Color neonRed = Color(0xFFFF3131);
 }

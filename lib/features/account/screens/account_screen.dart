@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../widgets/account_screen/household_card.dart';
 import '../widgets/account_screen/logout_button.dart';
 import '../widgets/account_screen/profile_header.dart';
 import '../widgets/account_screen/section_block.dart';
@@ -12,8 +11,6 @@ class AccountScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Dynamically calculate padding to prevent overlap with the transparent AppBar
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 30;
-    const bool hasHousehold = false;
-
     return SizedBox.expand(
       // Forces the screen to take up the full height, preventing layout jumps
       child: SingleChildScrollView(
@@ -28,11 +25,6 @@ class AccountScreen extends StatelessWidget {
               children: [
                 const ProfileHeader(),
                 const SizedBox(height: 28),
-                const SectionBlock(
-                  title: 'My Household',
-                  child: HouseholdCard(hasHousehold: hasHousehold),
-                ),
-                const SizedBox(height: 20),
                 const SectionBlock(
                   title: 'Support',
                   child: SupportCard(),

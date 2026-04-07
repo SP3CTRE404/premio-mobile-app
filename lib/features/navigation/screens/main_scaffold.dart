@@ -4,7 +4,9 @@ import 'package:subtrack/features/subscriptions/screens/history_screen.dart';
 
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../subscriptions/screens/subscription_detail_screen.dart';
+import '../../subscriptions/screens/edit_subscriptions_screen.dart';
 import '../../account/screens/account_screen.dart';
+import '../../household/screens/household_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/bottom_nav_bar.dart';
 
@@ -69,6 +71,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final List<Widget> screens = [
       const DashboardScreen(),
       const SubscriptionDetailScreen(),
+      const HouseholdScreen(),
       const HistoryScreen(),
       const AccountScreen(),
     ];
@@ -76,6 +79,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final List<String> titles = [
       'SubTrack',
       'Ongoing Subscriptions',
+      'Household',
       'History',
       'Account',
     ];
@@ -97,6 +101,21 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       appBar: CustomAppBar(
         isScrolled: _isScrolled,
         title: titles[currentIndex],
+        trailingAction: currentIndex == 1
+            ? IconButton(
+                icon: const Icon(Icons.edit_note_rounded),
+                tooltip: 'Manage Subscriptions',
+                onPressed: () {
+                  // Navigate to EditSubscriptionsScreen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditSubscriptionsScreen(),
+                    ),
+                  );
+                },
+              )
+            : null,
       ),
       body: NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification,
