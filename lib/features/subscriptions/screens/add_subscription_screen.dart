@@ -20,6 +20,12 @@ class AddSubscriptionScreen extends ConsumerStatefulWidget {
   final MockSub? initialData;
   const AddSubscriptionScreen({super.key, this.initialData});
 
+  // TODO: Add Logic for Admin context:
+  // When an admin accesses this screen from a Member Detail page, the app should
+  // automatically assume the new subscription belongs to that member.
+  // If accessed normally (e.g., from Dashboard), it defaults to the admin's own task.
+
+
   @override
   ConsumerState<AddSubscriptionScreen> createState() =>
       _AddSubscriptionScreenState();

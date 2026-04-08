@@ -52,7 +52,11 @@ class BottomNavBar extends ConsumerWidget {
               color: isPill ? baseColor : baseColor.withValues(alpha: 0.65),
               border: Border(
                 top: BorderSide(
-                  color: isPill ? Colors.transparent : Colors.white.withValues(alpha: 0.12),
+                  color: isPill 
+                      ? Colors.transparent 
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.black.withValues(alpha: 0.05)),
                   width: isPill ? 0.0 : 0.8,
                 ),
               ),

@@ -122,16 +122,23 @@ class _SubscriptionDetailScreenState
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(32),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.12),
                           width: 0.8,
                         ),
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withValues(alpha: 0.03),
-                            Colors.white.withValues(alpha: 0.005),
-                          ],
+                          colors: Theme.of(context).brightness == Brightness.dark
+                              ? [
+                                  Colors.black.withValues(alpha: 0.3),
+                                  Colors.black.withValues(alpha: 0.15),
+                                ]
+                              : [
+                                  Colors.black.withValues(alpha: 0.08),
+                                  Colors.black.withValues(alpha: 0.04),
+                                ],
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -155,7 +162,9 @@ class _SubscriptionDetailScreenState
                                 gradient: LinearGradient(
                                   colors: [
                                     Colors.white.withValues(alpha: 0.0),
-                                    Colors.white.withValues(alpha: 0.1),
+                                    Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.05),
                                     Colors.white.withValues(alpha: 0.0),
                                   ],
                                 ),
@@ -172,7 +181,7 @@ class _SubscriptionDetailScreenState
                                   .withValues(alpha: 0.8),
                             ),
                             labelColor: Colors.white.withValues(alpha: 0.9),
-                            unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
+                            unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                             labelStyle: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 11,

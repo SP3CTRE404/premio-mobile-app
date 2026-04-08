@@ -36,16 +36,23 @@ class SubscriptionSearchBar extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(25),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.black.withValues(alpha: 0.1),
                 width: 0.8,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withValues(alpha: 0.05),
-                  Colors.white.withValues(alpha: 0.01),
-                ],
+                colors: Theme.of(context).brightness == Brightness.dark
+                    ? [
+                        Colors.white.withValues(alpha: 0.05),
+                        Colors.white.withValues(alpha: 0.01),
+                      ]
+                    : [
+                        Colors.black.withValues(alpha: 0.05),
+                        Colors.black.withValues(alpha: 0.02),
+                      ],
               ),
               boxShadow: [
                 BoxShadow(
@@ -68,7 +75,9 @@ class SubscriptionSearchBar extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           Colors.white.withValues(alpha: 0.0),
-                          Colors.white.withValues(alpha: 0.4),
+                          Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.4)
+                              : Colors.black.withValues(alpha: 0.05),
                           Colors.white.withValues(alpha: 0.0),
                         ],
                       ),

@@ -246,6 +246,9 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
   }
 
   Widget _buildAdminPill(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return ClipRRect(
       borderRadius: BorderRadius.circular(25),
       child: BackdropFilter(
@@ -256,16 +259,23 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.15)
+                  : Colors.black.withValues(alpha: 0.1),
               width: 0.8,
             ),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.1),
-                Colors.white.withValues(alpha: 0.02),
-              ],
+              colors: isDark
+                  ? [
+                      Colors.white.withValues(alpha: 0.1),
+                      Colors.white.withValues(alpha: 0.02),
+                    ]
+                  : [
+                      Colors.black.withValues(alpha: 0.08),
+                      Colors.black.withValues(alpha: 0.04),
+                    ],
             ),
             boxShadow: [
               BoxShadow(
@@ -290,13 +300,17 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
               Container(
                 width: 0.8,
                 height: 20,
-                color: Colors.white.withValues(alpha: 0.1),
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.1) 
+                    : Colors.black.withValues(alpha: 0.1),
               ),
               _buildPillButton(
                 context,
                 icon: Icons.add_rounded,
                 onTap: () => Navigator.push(
                   context,
+                  // TODO: Pass member context here so AddSubscriptionScreen knows 
+                  // to assign the sub to widget.memberName (for Admin logic).
                   MaterialPageRoute(builder: (_) => const AddSubscriptionScreen()),
                 ),
               ),
@@ -312,16 +326,23 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        splashColor: Colors.white.withValues(alpha: 0.1),
-        highlightColor: Colors.white.withValues(alpha: 0.05),
+        splashColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+        highlightColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(28),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(icon, color: Colors.white, size: 24),
+          child: Icon(
+            icon, 
+            color: isDark ? Colors.white : theme.colorScheme.onSurface, 
+            size: 24
+          ),
         ),
       ),
     );
