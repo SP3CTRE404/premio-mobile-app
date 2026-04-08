@@ -251,8 +251,6 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     
     return ClipRRect(
       borderRadius: BorderRadius.circular(25),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           height: 46,
           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -264,19 +262,7 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                   : Colors.black.withValues(alpha: 0.1),
               width: 0.8,
             ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      Colors.white.withValues(alpha: 0.1),
-                      Colors.white.withValues(alpha: 0.02),
-                    ]
-                  : [
-                      Colors.black.withValues(alpha: 0.08),
-                      Colors.black.withValues(alpha: 0.04),
-                    ],
-            ),
+            color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? Colors.black,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.1),
@@ -317,8 +303,7 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildPillButton(

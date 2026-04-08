@@ -111,95 +111,54 @@ class _SubscriptionDetailScreenState
               right: 0,
               bottom: _isPillVisible ? 86 : -100,
               child: Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                    child: Container(
-                      width: 220, // Smaller fixed width to center it
-                      height: 60, // Slightly taller for 2-row text
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : Colors.black.withValues(alpha: 0.12),
-                          width: 0.8,
-                        ),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: Theme.of(context).brightness == Brightness.dark
-                              ? [
-                                  Colors.black.withValues(alpha: 0.3),
-                                  Colors.black.withValues(alpha: 0.15),
-                                ]
-                              : [
-                                  Colors.black.withValues(alpha: 0.08),
-                                  Colors.black.withValues(alpha: 0.04),
-                                ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 20,
-                            spreadRadius: -10,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          // Top highlight matching search bar - toned down
-                          Positioned(
-                            top: 1,
-                            left: 16,
-                            right: 16,
-                            child: Container(
-                              height: 1.2,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white.withValues(alpha: 0.0),
-                                    Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.05),
-                                    Colors.white.withValues(alpha: 0.0),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          TabBar(
-                            overlayColor: WidgetStateProperty.all(Colors.transparent),
-                            indicatorSize: TabBarIndicatorSize.tab,
-                            dividerColor: Colors.transparent,
-                            indicator: BoxDecoration(
-                              borderRadius: BorderRadius.circular(28),
-                              color: Color.lerp(AppColors.cobaltBlue, Colors.black, 0.3)!
-                                  .withValues(alpha: 0.8),
-                            ),
-                            labelColor: Colors.white.withValues(alpha: 0.9),
-                            unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                            labelStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
-                              height: 1.1,
-                            ),
-                            tabs: const [
-                              Tab(
-                                child: Text(
-                                  "My\nSubscriptions",
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Tab(text: "Household"),
-                            ],
-                          ),
-                        ],
-                      ),
+                child: Container(
+                  width: 220,
+                  height: 60,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.black.withValues(alpha: 0.12),
+                      width: 0.8,
                     ),
+                    color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? Colors.black,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        spreadRadius: -10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: TabBar(
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      color: AppColors.cobaltBlue,
+                    ),
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.6)
+                        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                      height: 1.1,
+                    ),
+                    tabs: const [
+                      Tab(
+                        child: Text(
+                          "My\nSubscriptions",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Tab(text: "Household"),
+                    ],
                   ),
                 ),
               ),

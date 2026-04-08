@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:animations/animations.dart';
 import 'app_colors.dart';
 
@@ -18,6 +19,11 @@ class AppTheme {
         foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark, // Dark icons for light theme
+          statusBarBrightness: Brightness.light,    // For iOS
+        ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
@@ -30,11 +36,12 @@ class AppTheme {
         foregroundColor: Colors.black, // High contrast for neon
       ),
       cardTheme: const CardThemeData(
-        color: AppColors.lightSurface,
-        elevation: 2,
-        shadowColor: Color.fromRGBO(0, 0, 0, 0.05),
+        color: AppColors.pureWhite, // Brighter card surface
+        elevation: 0,
+        shadowColor: Color.fromRGBO(0, 0, 0, 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: Color.fromRGBO(0, 0, 0, 0.05), width: 1), // Subtle border
         ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
@@ -66,6 +73,11 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // White icons for dark theme
+          statusBarBrightness: Brightness.dark,      // For iOS
+        ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Color.fromARGB(255, 0, 0, 0),

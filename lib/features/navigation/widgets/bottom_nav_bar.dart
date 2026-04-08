@@ -8,19 +8,17 @@ import 'nav_item.dart';
 class BottomNavBar extends ConsumerWidget {
   final bool isPill;
 
-  const BottomNavBar({
-    super.key,
-    required this.isPill,
-  });
+  const BottomNavBar({super.key, required this.isPill});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final userRole = ref.watch(userRoleProvider);
     final isSingle = userRole == UserRole.single;
-    
+
     final radius = isPill ? BorderRadius.circular(42) : BorderRadius.zero;
-    final baseColor = theme.bottomNavigationBarTheme.backgroundColor ?? Colors.black;
+    final baseColor =
+        theme.bottomNavigationBarTheme.backgroundColor ?? Colors.black;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
@@ -52,11 +50,9 @@ class BottomNavBar extends ConsumerWidget {
               color: isPill ? baseColor : baseColor.withValues(alpha: 0.65),
               border: Border(
                 top: BorderSide(
-                  color: isPill 
-                      ? Colors.transparent 
-                      : (Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.12)
-                          : Colors.black.withValues(alpha: 0.05)),
+                  color: isPill
+                      ? Colors.transparent
+                      : Colors.white.withValues(alpha: 0.12),
                   width: isPill ? 0.0 : 0.8,
                 ),
               ),
@@ -64,7 +60,12 @@ class BottomNavBar extends ConsumerWidget {
             child: Padding(
               padding: isPill
                   ? const EdgeInsets.all(12.0)
-                  : EdgeInsets.fromLTRB(16.0, 0, 16.0, MediaQuery.of(context).padding.bottom),
+                  : EdgeInsets.fromLTRB(
+                      16.0,
+                      0,
+                      16.0,
+                      MediaQuery.of(context).padding.bottom,
+                    ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

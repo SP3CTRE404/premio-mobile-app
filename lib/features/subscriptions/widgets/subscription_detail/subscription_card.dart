@@ -36,9 +36,14 @@ class SubscriptionCard extends StatelessWidget {
       elevation: isExpanded ? 8 : 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: isExpanded
-            ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.3), width: 1)
-            : BorderSide.none,
+        side: BorderSide(
+          color: isExpanded
+              ? colorScheme.primary.withValues(alpha: 0.5)
+              : (theme.brightness == Brightness.light 
+                  ? Colors.black.withValues(alpha: 0.08) 
+                  : Colors.transparent),
+          width: isExpanded ? 1.5 : 0.8,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -71,7 +76,7 @@ class SubscriptionCard extends StatelessWidget {
                     child: Text(
                       subscription.due,
                       style: textTheme.bodySmall?.copyWith(
-                        color: _getStatusColor(subscription.due),
+                        color: _getStatusColor(context, subscription.due),
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
                       ),
@@ -215,26 +220,27 @@ class SubscriptionCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String due) {
+  Color _getStatusColor(BuildContext context, String due) {
     final status = due.toLowerCase();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (status.contains('paid')) return Colors.greenAccent;
-    if (status.contains('overdue')) return Colors.redAccent;
+    if (status.contains('paid')) return isDark ? Colors.greenAccent : Colors.green.shade700;
+    if (status.contains('overdue')) return isDark ? Colors.redAccent : Colors.red.shade700;
 
     if (status.contains('due')) {
       if (status.contains('today') || status.contains('tomorrow')) {
-        return Colors.yellow;
+        return isDark ? Colors.yellowAccent : Colors.orange.shade800;
       }
 
       final match = RegExp(r'due in (\d+) day').firstMatch(status);
       if (match != null) {
         final days = int.tryParse(match.group(1) ?? '');
         if (days != null && days <= 3) {
-          return Colors.yellow;
+          return isDark ? Colors.yellowAccent : Colors.orange.shade800;
         }
       }
     }
 
-    return Colors.white;
+    return isDark ? Colors.white70 : Colors.black54;
   }
 }
