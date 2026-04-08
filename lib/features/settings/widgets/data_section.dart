@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
 import '../providers/currency_provider.dart';
 import '../services/pdf_export_service.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 /// Data Portability section: Export to PDF tile.
 class DataSection extends ConsumerWidget {
@@ -35,20 +36,14 @@ class DataSection extends ConsumerWidget {
 
     subsAsync.when(
       loading: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Loading subscriptions…')),
-        );
+        CustomToast.show(context: context, message: 'Loading subscriptions…', isError: false);
       },
       error: (err, _) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $err')),
-        );
+        CustomToast.show(context: context, message: 'Error: $err', isError: true);
       },
       data: (subscriptions) async {
         if (subscriptions.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No subscriptions to export.')),
-          );
+          CustomToast.show(context: context, message: 'No subscriptions to export.', isError: false);
           return;
         }
 
@@ -60,9 +55,7 @@ class DataSection extends ConsumerWidget {
           );
         } catch (e) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('PDF export failed: $e')),
-            );
+            CustomToast.show(context: context, message: 'PDF export failed: $e', isError: false);
           }
         }
       },

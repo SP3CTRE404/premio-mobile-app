@@ -12,6 +12,7 @@ import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
 import 'register_screen.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -52,9 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           MaterialPageRoute(builder: (_) => const MainScaffold()),
         );
       } else if (next == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please check your credentials.')),
-        );
+        CustomToast.show(context: context, message: 'Login failed. Please check your credentials.', isError: false);
       }
     });
 
@@ -102,9 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 32),
                       GoogleSignInButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Google Sign-In coming soon!')),
-                          );
+                          CustomToast.show(context: context, message: 'Google Sign-In coming soon!', isError: false);
                         },
                       ),
                       const SizedBox(height: 32),

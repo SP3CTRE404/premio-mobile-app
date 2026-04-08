@@ -12,6 +12,7 @@ import '../widgets/auth_header.dart';
 import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -40,9 +41,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   void _submit() {
     if (_formKey.currentState!.validate()) {
       if (_createHousehold && _householdNameController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a household name')),
-        );
+        CustomToast.show(context: context, message: 'Please enter a household name', isError: false);
         return;
       }
 
@@ -69,11 +68,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           (Route<dynamic> route) => false,
         );
       } else if (next == AuthStatus.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration failed. Please try again.'),
-          ),
-        );
+        CustomToast.show(context: context, message: 'Registration failed. Please try again.', isError: false);
       }
     });
 
@@ -174,11 +169,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: 32),
                       GoogleSignInButton(
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Google Sign-In coming soon!'),
-                            ),
-                          );
+                          CustomToast.show(context: context, message: 'Google Sign-In coming soon!', isError: false);
                         },
                       ),
                       const SizedBox(height: 32),

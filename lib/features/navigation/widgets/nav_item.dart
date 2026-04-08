@@ -10,6 +10,7 @@ class NavItem extends ConsumerWidget {
   final int index;
   final bool hasBadge;
   final bool isProminent;
+  final bool isPill;
 
   const NavItem({
     super.key,
@@ -19,6 +20,7 @@ class NavItem extends ConsumerWidget {
     required this.index,
     this.hasBadge = false,
     this.isProminent = false,
+    this.isPill = true,
   });
 
   @override
@@ -51,7 +53,7 @@ class NavItem extends ConsumerWidget {
           ),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(isPill ? 28 : 12),
             boxShadow: isProminent && isSelected
                 ? [
                     BoxShadow(

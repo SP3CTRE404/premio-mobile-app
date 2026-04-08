@@ -8,6 +8,7 @@ import '../providers/account_provider.dart';
 import '../widgets/edit_profile_screen/edit_profile_form.dart';
 import '../widgets/edit_profile_screen/profile_avatar_editor.dart';
 import '../widgets/edit_profile_screen/save_button.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -60,9 +61,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        CustomToast.show(context: context, message: 'Error picking image: $e', isError: true);
       }
     }
   }
@@ -83,15 +82,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully')),
-        );
+        CustomToast.show(context: context, message: 'Profile updated successfully', isError: false);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: $e')),
-        );
+        CustomToast.show(context: context, message: 'Failed to update profile: $e', isError: false);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

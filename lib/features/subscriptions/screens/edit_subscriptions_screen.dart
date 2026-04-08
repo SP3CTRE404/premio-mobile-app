@@ -1,16 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../dashboard/models/mock_data.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../auth/widgets/auth_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'add_subscription_screen.dart';
 import '../widgets/edit_subscription/edit_subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
 import '../widgets/edit_subscription/end_subscription_dialog.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class EditSubscriptionsScreen extends ConsumerStatefulWidget {
-  const EditSubscriptionsScreen({super.key});
+  final String? memberName;
+  const EditSubscriptionsScreen({super.key, this.memberName});
 
   @override
   ConsumerState<EditSubscriptionsScreen> createState() => _EditSubscriptionsScreenState();
@@ -50,12 +51,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
       builder: (context) => EndSubscriptionDialog(
         sub: sub,
         onConfirm: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Subscription to ${sub.name} ended.'),
-              backgroundColor: AppColors.neonRed,
-            ),
-          );
+          CustomToast.show(context: context, message: 'Subscription to ${sub.name} ended.', isError: true);
         },
       ),
     );
@@ -67,7 +63,10 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final filteredSubs = mockSubs.where((sub) {
-      return sub.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesSearch = sub.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final String targetUser = widget.memberName ?? 'Me';
+      final matchesUser = sub.madeBy == targetUser;
+      return matchesSearch && matchesUser;
     }).toList();
 
     return Scaffold(
@@ -75,7 +74,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(
-          'Manage Subscriptions', 
+          widget.memberName != null ? 'Edit ${widget.memberName}\'s Subs' : 'Manage Subscriptions', 
           style: TextStyle(
             fontWeight: FontWeight.bold,
             shadows: [

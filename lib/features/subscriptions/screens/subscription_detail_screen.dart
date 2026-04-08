@@ -10,6 +10,7 @@ import '../widgets/subscription_detail/subscription_fab_menu.dart';
 import '../widgets/subscription_detail/subscription_list_view.dart';
 import './add_subscription_screen.dart';
 import './subscription_search_screen.dart';
+import '../../../core/theme/app_colors.dart';
 
 class SubscriptionDetailScreen extends ConsumerStatefulWidget {
   const SubscriptionDetailScreen({super.key});
@@ -41,8 +42,7 @@ class _SubscriptionDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    Theme.of(context);
     final currencySymbol = ref.watch(currencySymbolProvider);
     final userRole = ref.watch(userRoleProvider);
 
@@ -113,42 +113,83 @@ class _SubscriptionDetailScreenState
               child: Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(32),
-                  child: Container(
-                    width: 220, // Smaller fixed width to center it
-                    height: 60, // Slightly taller for 2-row text
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(32),
-                      border: Border.all(
-                        color: colorScheme.onSurface.withValues(alpha: 0.08),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: TabBar(
-                      overlayColor: WidgetStateProperty.all(Colors.transparent),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      indicator: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
-                        color: colorScheme.primary,
-                      ),
-                      labelColor: colorScheme.onPrimary,
-                      unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.54),
-                      labelStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        height: 1.1,
-                      ),
-                      tabs: const [
-                        Tab(
-                          child: Text(
-                            "My\nSubscriptions",
-                            textAlign: TextAlign.center,
-                          ),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                    child: Container(
+                      width: 220, // Smaller fixed width to center it
+                      height: 60, // Slightly taller for 2-row text
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          width: 0.8,
                         ),
-                        Tab(text: "Household"),
-                      ],
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withValues(alpha: 0.03),
+                            Colors.white.withValues(alpha: 0.005),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 20,
+                            spreadRadius: -10,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        children: [
+                          // Top highlight matching search bar - toned down
+                          Positioned(
+                            top: 1,
+                            left: 16,
+                            right: 16,
+                            child: Container(
+                              height: 1.2,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.white.withValues(alpha: 0.0),
+                                    Colors.white.withValues(alpha: 0.1),
+                                    Colors.white.withValues(alpha: 0.0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          TabBar(
+                            overlayColor: WidgetStateProperty.all(Colors.transparent),
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            dividerColor: Colors.transparent,
+                            indicator: BoxDecoration(
+                              borderRadius: BorderRadius.circular(28),
+                              color: Color.lerp(AppColors.cobaltBlue, Colors.black, 0.3)!
+                                  .withValues(alpha: 0.8),
+                            ),
+                            labelColor: Colors.white.withValues(alpha: 0.9),
+                            unselectedLabelColor: Colors.white.withValues(alpha: 0.4),
+                            labelStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              height: 1.1,
+                            ),
+                            tabs: const [
+                              Tab(
+                                child: Text(
+                                  "My\nSubscriptions",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              Tab(text: "Household"),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

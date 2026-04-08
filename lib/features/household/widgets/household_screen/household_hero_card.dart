@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import 'edit_household_name_dialog.dart';
+import '../../../../core/widgets/custom_toast.dart';
 
 class HouseholdHeroCard extends StatelessWidget {
   final String householdName;
@@ -69,7 +72,16 @@ class HouseholdHeroCard extends StatelessWidget {
                           IconButton(
                             icon: const Icon(Icons.edit_rounded, size: 20),
                             onPressed: () {
-                              // TODO: Edit household name
+                              showDialog(
+                                context: context,
+                                builder: (context) => EditHouseholdNameDialog(
+                                  currentName: householdName,
+                                  onSave: (newName) {
+                                    // TODO: Update household name logic
+                                    CustomToast.show(context: context, message: 'Household name updated to "$newName"', isError: false);
+                                  },
+                                ),
+                              );
                             },
                             color: AppColors.cobaltBlue,
                             padding: EdgeInsets.zero,
@@ -90,8 +102,15 @@ class HouseholdHeroCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                onTap: isAdmin ? () {
-                  // TODO: Open photo picker
+                onTap: isAdmin ? () async {
+                  final ImagePicker picker = ImagePicker();
+                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    // TODO: Upload image logic
+                    if (context.mounted) {
+                      CustomToast.show(context: context, message: 'Image selected. Upload coming soon!', isError: false);
+                    }
+                  }
                 } : null,
                 child: Stack(
                   children: [
@@ -125,7 +144,7 @@ class HouseholdHeroCard extends StatelessWidget {
                             ),
                           ),
                           child: const Icon(
-                            Icons.camera_alt_rounded,
+                            Icons.edit_rounded,
                             color: Colors.white,
                             size: 14,
                           ),

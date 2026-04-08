@@ -6,6 +6,7 @@ class MemberListItem extends StatelessWidget {
   final String role;
   final bool isYou;
   final bool showArrow;
+  final VoidCallback? onTap;
 
   const MemberListItem({
     super.key,
@@ -13,6 +14,7 @@ class MemberListItem extends StatelessWidget {
     required this.role,
     required this.isYou,
     this.showArrow = true,
+    this.onTap,
   });
 
   @override
@@ -32,13 +34,8 @@ class MemberListItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Container(
-        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: theme.cardTheme.color,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -47,7 +44,21 @@ class MemberListItem extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Material(
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                ),
+              ),
+              child: Row(
           children: [
             Container(
               width: 50,
@@ -139,6 +150,9 @@ class MemberListItem extends StatelessWidget {
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
               ),
           ],
+        ),
+            ),
+          ),
         ),
       ),
     );

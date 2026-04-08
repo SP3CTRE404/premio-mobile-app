@@ -3,6 +3,7 @@ import '../../auth/widgets/auth_text_field.dart';
 import '../../auth/widgets/auth_button.dart';
 import '../widgets/shared/household_form_layout.dart';
 import 'qr_scanner_screen.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class JoinHouseholdScreen extends StatefulWidget {
   const JoinHouseholdScreen({super.key});
@@ -68,9 +69,7 @@ class _JoinHouseholdScreenState extends State<JoinHouseholdScreen> {
                 });
                 
                 // Optionally show a quick visual confirmation
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('QR Code Scanned Successfully!')),
-                );
+                CustomToast.show(context: context, message: 'QR Code Scanned Successfully!', isError: false);
               }
             },
             icon: Icon(Icons.qr_code_scanner, color: Theme.of(context).colorScheme.onSurface),

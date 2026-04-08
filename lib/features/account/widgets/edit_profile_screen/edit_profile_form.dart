@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/custom_toast.dart';
 
 class EditProfileForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -56,9 +57,7 @@ class EditProfileForm extends StatelessWidget {
           _buildLabel('Password', theme),
           GestureDetector(
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Change Password screen coming soon!')),
-              );
+              CustomToast.show(context: context, message: 'Change Password screen coming soon!', isError: false);
             },
             child: AbsorbPointer(
               child: TextFormField(

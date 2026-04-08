@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../auth/widgets/auth_background.dart';
 import '../../auth/widgets/auth_header.dart';
 import '../../subscriptions/models/user_role.dart';
@@ -8,12 +7,16 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../../settings/providers/currency_provider.dart';
 import 'create_household_screen.dart';
 import 'join_household_screen.dart';
+import 'member_details_screen.dart';
 import '../widgets/household_screen/household_hero_card.dart';
 import '../widgets/household_screen/member_list_item.dart';
 import '../widgets/household_screen/invite_bottom_sheet.dart';
 import '../widgets/household_screen/household_actions.dart';
 import '../widgets/household_screen/leave_household_dialog.dart';
+import '../widgets/household_screen/transfer_admin_dialog.dart';
+import '../widgets/household_screen/delete_household_dialog.dart';
 import '../widgets/shared/selection_card.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class HouseholdScreen extends ConsumerWidget {
   const HouseholdScreen({super.key});
@@ -112,36 +115,91 @@ class HouseholdScreen extends ConsumerWidget {
             name: 'You',
             role: isAdmin ? 'Admin' : 'Member',
             isYou: true,
-            showArrow: isAdmin,
+            showArrow: false,
           ),
-          MemberListItem(name: 'Jane Doe', role: 'Member', isYou: false, showArrow: isAdmin),
-          MemberListItem(name: 'John Smith', role: 'Member', isYou: false, showArrow: isAdmin),
-          MemberListItem(name: 'Alice Joy', role: 'Member', isYou: false, showArrow: isAdmin),
+          MemberListItem(
+            name: 'Jane Doe', 
+            role: 'Member', 
+            isYou: false, 
+            showArrow: isAdmin,
+            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'Jane Doe', role: 'Member'))) : null,
+          ),
+          MemberListItem(
+            name: 'John Smith', 
+            role: 'Member', 
+            isYou: false, 
+            showArrow: isAdmin,
+            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'John Smith', role: 'Member'))) : null,
+          ),
+          MemberListItem(
+            name: 'Alice Joy', 
+            role: 'Member', 
+            isYou: false, 
+            showArrow: isAdmin,
+            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'Alice Joy', role: 'Member'))) : null,
+          ),
           const SizedBox(height: 40),
           HouseholdActions(
             isAdmin: isAdmin,
-            onLeave: () => _confirmLeave(context),
-            onDelete: () {
-              // TODO: Delete household logic
-            },
+            onLeave: () => _confirmLeave(context, isAdmin),
+            onDelete: () => _confirmDelete(context),
           ),
         ],
       ),
     );
   }
 
-  void _confirmLeave(BuildContext context) {
+  void _confirmLeave(BuildContext context, bool isAdmin) {
     showDialog(
       context: context,
       builder: (context) => LeaveHouseholdDialog(
         householdName: 'Family Track',
         onConfirm: () {
-          // TODO: Actually leave household logic
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('You have left the household.'),
-              backgroundColor: AppColors.neonRed,
-            ),
+          if (isAdmin) {
+            _showTransferAdmin(context);
+          } else {
+            // TODO: Actually leave household logic
+            CustomToast.show(
+              context: context,
+              message: 'You have left the household.',
+              isError: true,
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  void _showTransferAdmin(BuildContext context) {
+    // Mock members list aside from 'You'
+    final members = ['Jane Doe', 'John Smith', 'Alice Joy'];
+
+    showDialog(
+      context: context,
+      builder: (context) => TransferAdminDialog(
+        members: members,
+        onTransferAndLeave: (newAdminName) {
+          // TODO: Actually transfer admin and leave
+          CustomToast.show(
+            context: context,
+            message: '$newAdminName is now the Admin. You have left.',
+          );
+        },
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DeleteHouseholdDialog(
+        householdName: 'Family Track',
+        onConfirm: () {
+          // TODO: Actually delete household logic
+          CustomToast.show(
+            context: context,
+            message: 'Household "Family Track" has been deleted.',
+            isError: true,
           );
         },
       ),

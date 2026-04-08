@@ -14,6 +14,7 @@ import '../widgets/add_subscription/form_label.dart';
 import '../widgets/add_subscription/payment_type_field.dart';
 import '../widgets/add_subscription/save_subscription_button.dart';
 import '../widgets/add_subscription/service_name_field.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
   final MockSub? initialData;
@@ -189,7 +190,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
       await ref.read(subscriptionProvider.notifier).add(request);
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) CustomToast.show(context: context, message: 'Error: $e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

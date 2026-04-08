@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../core/widgets/custom_toast.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});
@@ -50,9 +51,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
           Navigator.pop(context, barcode.rawValue);
         }
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No QR code found in the selected image.')),
-        );
+        CustomToast.show(context: context, message: 'No QR code found in the selected image.', isError: false);
       }
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/custom_toast.dart';
 
 class InviteBottomSheet extends StatelessWidget {
   final String householdName;
@@ -99,9 +100,7 @@ class InviteBottomSheet extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.copy_rounded, size: 20),
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Link copied to clipboard')),
-                    );
+                    CustomToast.show(context: context, message: 'Link copied to clipboard', isError: false);
                   },
                 ),
                 IconButton(
@@ -159,9 +158,7 @@ class InviteBottomSheet extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Code copied to clipboard')),
-                    );
+                    CustomToast.show(context: context, message: 'Code copied to clipboard', isError: false);
                   },
                   icon: const Icon(Icons.copy_rounded, size: 22),
                   color: AppColors.cobaltBlue,
