@@ -26,6 +26,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _householdNameController = TextEditingController();
   bool _createHousehold = true;
 
@@ -34,12 +35,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _fullNameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _householdNameController.dispose();
     super.dispose();
   }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      if (_passwordController.text != _confirmPasswordController.text) {
+        CustomToast.show(context: context, message: 'Passwords do not match', isError: true);
+        return;
+      }
+
       if (_createHousehold && _householdNameController.text.trim().isEmpty) {
         CustomToast.show(context: context, message: 'Please enter a household name', isError: false);
         return;
@@ -114,6 +121,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         label: 'Password',
                         hint: 'Create a password',
                         controller: _passwordController,
+                        isPassword: true,
+                      ),
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        label: 'Confirm Password',
+                        hint: 'Re-enter your password',
+                        controller: _confirmPasswordController,
                         isPassword: true,
                       ),
                       const SizedBox(height: 24),
