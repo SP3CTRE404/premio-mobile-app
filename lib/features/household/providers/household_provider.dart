@@ -4,8 +4,13 @@ import '../services/household_repository.dart';
 
 class HouseholdNotifier extends AsyncNotifier<Map<String, dynamic>?> {
   @override
-  FutureOr<Map<String, dynamic>?> build() {
-    return null;
+  FutureOr<Map<String, dynamic>?> build() async {
+    final repo = ref.read(householdRepositoryProvider);
+    try {
+      return await repo.getMyHousehold();
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> createHousehold(String name) async {

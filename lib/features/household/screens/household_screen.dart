@@ -4,6 +4,8 @@ import '../../auth/widgets/auth_background.dart';
 import '../../auth/widgets/auth_header.dart';
 import '../../subscriptions/models/user_role.dart';
 import '../../subscriptions/providers/user_role_provider.dart';
+import '../../subscriptions/providers/subscription_provider.dart';
+import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
 import 'create_household_screen.dart';
 import 'join_household_screen.dart';
@@ -26,12 +28,17 @@ class HouseholdScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Dynamically calculate padding to prevent overlap with the transparent AppBar
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 30;
+    final householdAsync = ref.watch(householdProvider);
     final userRole = ref.watch(userRoleProvider);
 
     if (userRole == UserRole.single) {
       return _buildNoHousehold(context, topPadding);
     } else {
-      return _buildActiveHousehold(context, ref, topPadding, userRole);
+      return householdAsync.when(
+        data: (household) => _buildActiveHousehold(context, ref, topPadding, userRole, household),
+        loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (err, stack) => _buildNoHousehold(context, topPadding),
+      );
     }
   }
 
@@ -76,15 +83,22 @@ class HouseholdScreen extends ConsumerWidget {
   }
 
   Widget _buildActiveHousehold(
-      BuildContext context, WidgetRef ref, double topPadding, UserRole userRole) {
+      BuildContext context, WidgetRef ref, double topPadding, UserRole userRole, Map<String, dynamic>? household) {
+    if (household == null) return _buildNoHousehold(context, topPadding);
+
     final theme = Theme.of(context);
     final isAdmin = userRole == UserRole.admin;
+    final householdName = household['name'] ?? 'Shared Space';
+    final members = household['members'] as List<dynamic>? ?? [];
+    final currentUser = ref.watch(userProvider).value;
 
-    // Mocked data for modern view
-    const int totalMembers = 4;
-    const int sharedSubs = 12;
-    const double totalValue = 450.0;
+    final subscriptions = ref.watch(subscriptionProvider).value ?? [];
     final currencySymbol = ref.watch(currencySymbolProvider);
+
+    // Calculate totals
+    final int totalMembers = members.length;
+    final int sharedSubsCount = subscriptions.length;
+    final double totalValue = subscriptions.fold(0.0, (sum, sub) => sum + sub.amount);
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
@@ -92,12 +106,12 @@ class HouseholdScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           HouseholdHeroCard(
-            householdName: 'Family Track',
+            householdName: householdName,
             isAdmin: isAdmin,
-            sharedSubs: sharedSubs.toString(),
+            sharedSubs: sharedSubsCount.toString(),
             totalValue: totalValue,
             currencySymbol: currencySymbol,
-            onInviteTap: () => _showInviteBottomSheet(context),
+            onInviteTap: () => _showInviteBottomSheet(context, householdName),
           ),
           const SizedBox(height: 36),
           Row(
@@ -112,49 +126,44 @@ class HouseholdScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          MemberListItem(
-            name: 'You',
-            role: isAdmin ? 'Admin' : 'Member',
-            isYou: true,
-            showArrow: false,
-          ),
-          MemberListItem(
-            name: 'Jane Doe', 
-            role: 'Member', 
-            isYou: false, 
-            showArrow: isAdmin,
-            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'Jane Doe', role: 'Member'))) : null,
-          ),
-          MemberListItem(
-            name: 'John Smith', 
-            role: 'Member', 
-            isYou: false, 
-            showArrow: isAdmin,
-            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'John Smith', role: 'Member'))) : null,
-          ),
-          MemberListItem(
-            name: 'Alice Joy', 
-            role: 'Member', 
-            isYou: false, 
-            showArrow: isAdmin,
-            onTap: isAdmin ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemberDetailsScreen(memberName: 'Alice Joy', role: 'Member'))) : null,
-          ),
+          ...members.map((member) {
+            final isYou = member['id'] == currentUser?.id;
+            final name = isYou ? 'You' : (member['fullName'] ?? 'Member');
+            final role = member['role'] == 'ADMIN' || member['role'] == 'Admin' ? 'Admin' : 'Member';
+            
+            return MemberListItem(
+              name: name,
+              role: role,
+              isYou: isYou,
+              showArrow: isAdmin && !isYou,
+              onTap: (isAdmin && !isYou) ? () => Navigator.push(
+                context, 
+                MaterialPageRoute(
+                  builder: (_) => MemberDetailsScreen(
+                    memberName: member['fullName'] ?? 'Member', 
+                    role: role,
+                    householdId: household['id'],
+                  )
+                )
+              ) : null,
+            );
+          }),
           const SizedBox(height: 40),
           HouseholdActions(
             isAdmin: isAdmin,
-            onLeave: () => _confirmLeave(context, ref, isAdmin),
-            onDelete: () => _confirmDelete(context, ref),
+            onLeave: () => _confirmLeave(context, ref, isAdmin, householdName),
+            onDelete: () => _confirmDelete(context, ref, householdName),
           ),
         ],
       ),
     );
   }
 
-  void _confirmLeave(BuildContext context, WidgetRef ref, bool isAdmin) {
+  void _confirmLeave(BuildContext context, WidgetRef ref, bool isAdmin, String householdName) {
     showDialog(
       context: context,
       builder: (context) => LeaveHouseholdDialog(
-        householdName: 'Family Track',
+        householdName: householdName,
         onConfirm: () async {
           if (isAdmin) {
             _showTransferAdmin(context, ref);
@@ -178,8 +187,12 @@ class HouseholdScreen extends ConsumerWidget {
   }
 
   void _showTransferAdmin(BuildContext context, WidgetRef ref) {
-    // Mock members list aside from 'You'
-    final members = ['Jane Doe', 'John Smith', 'Alice Joy'];
+    final household = ref.read(householdProvider).value;
+    final currentUser = ref.read(userProvider).value;
+    final members = (household?['members'] as List<dynamic>? ?? [])
+        .where((m) => m['id'] != currentUser?.id)
+        .map((m) => m['fullName'] as String? ?? 'Member')
+        .toList();
 
     showDialog(
       context: context,
@@ -187,9 +200,12 @@ class HouseholdScreen extends ConsumerWidget {
         members: members,
         onTransferAndLeave: (newAdminName) async {
           try {
-            // In a real app, you'd get the actual member ID. 
-            // For now, using a dummy ID as placeholder.
-            await ref.read(householdProvider.notifier).transferAdmin(99); 
+            // Find member ID by name (simplified for mock, but in real app we'd pass ID)
+            final household = ref.read(householdProvider).value;
+            final targetMember = (household?['members'] as List<dynamic>?)?.firstWhere((m) => m['fullName'] == newAdminName);
+            final targetId = targetMember?['id'] ?? 0;
+            
+            await ref.read(householdProvider.notifier).transferAdmin(targetId); 
             await ref.read(householdProvider.notifier).leave();
             
             if (context.mounted) {
@@ -206,18 +222,18 @@ class HouseholdScreen extends ConsumerWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
+  void _confirmDelete(BuildContext context, WidgetRef ref, String householdName) {
     showDialog(
       context: context,
       builder: (context) => DeleteHouseholdDialog(
-        householdName: 'Family Track',
+        householdName: householdName,
         onConfirm: () async {
           try {
             await ref.read(householdProvider.notifier).delete();
             if (context.mounted) {
               CustomToast.show(
                 context: context,
-                message: 'Household "Family Track" has been deleted.',
+                message: 'Household "$householdName" has been deleted.',
                 isError: true,
               );
             }
@@ -229,12 +245,12 @@ class HouseholdScreen extends ConsumerWidget {
     );
   }
 
-  void _showInviteBottomSheet(BuildContext context) {
+  void _showInviteBottomSheet(BuildContext context, String householdName) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const InviteBottomSheet(householdName: 'Family Track'),
+      builder: (context) => InviteBottomSheet(householdName: householdName),
     );
   }
 }

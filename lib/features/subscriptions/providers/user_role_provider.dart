@@ -1,16 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../account/providers/account_provider.dart';
 import '../models/user_role.dart';
 
-/// Managed state for the current app preview role.
-/// In a real app, this would be derived from the user's account data.
 class UserRoleNotifier extends Notifier<UserRole> {
   @override
   UserRole build() {
-    return UserRole.admin;
-  }
+    final user = ref.watch(userProvider).value;
 
-  void setRole(UserRole role) {
-    state = role;
+    if (user == null || user.householdId == null) {
+      return UserRole.single;
+    }
+
+    if (user.isHouseholdAdmin) {
+      return UserRole.admin;
+    }
+
+    return UserRole.member;
   }
 }
 

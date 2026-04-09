@@ -8,15 +8,22 @@ import '../../../core/widgets/custom_toast.dart';
 import '../providers/household_provider.dart';
 
 class JoinHouseholdScreen extends ConsumerStatefulWidget {
-  const JoinHouseholdScreen({super.key});
+  final String? initialCode;
+  const JoinHouseholdScreen({super.key, this.initialCode});
 
   @override
   ConsumerState<JoinHouseholdScreen> createState() => _JoinHouseholdScreenState();
 }
 
 class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
-  final _codeController = TextEditingController();
+  late final TextEditingController _codeController;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController = TextEditingController(text: widget.initialCode);
+  }
 
   @override
   void dispose() {
@@ -34,7 +41,7 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
         children: [
           AuthTextField(
             label: 'Invite Code',
-            hint: 'Enter 6-digit code',
+            hint: 'Enter 8-digit code',
             controller: _codeController,
           ),
           const SizedBox(height: 32),
@@ -79,11 +86,34 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
               );
 
               if (result != null && result.isNotEmpty && context.mounted) {
+                // If the scanned result is a full link, extract the code
+                String code = result;
+                if (result.contains('/join/')) {
+                   code = result.split('/').last;
+                }
+
                 setState(() {
-                  _codeController.text = result;
+                  _codeController.text = code;
+                  _isLoading = true;
                 });
                 
-                CustomToast.show(context: context, message: 'QR Code Scanned Successfully!', isError: false);
+                try {
+                  await ref.read(householdProvider.notifier).joinHousehold(code);
+                  if (context.mounted) {
+                    CustomToast.show(context: context, message: 'Successfully joined household!', isError: false);
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                   String errorMessage = e.toString();
+                   if (errorMessage.toLowerCase().contains('already')) {
+                     errorMessage = 'You are already in a household. Leave your current one first.';
+                   } else if (errorMessage.toLowerCase().contains('invalid') || errorMessage.toLowerCase().contains('not found')) {
+                     errorMessage = 'This invite code is invalid or has expired.';
+                   }
+                  if (context.mounted) CustomToast.show(context: context, message: errorMessage, isError: true);
+                } finally {
+                  if (mounted) setState(() => _isLoading = false);
+                }
               }
             },
             icon: Icon(Icons.qr_code_scanner, color: Theme.of(context).colorScheme.onSurface),

@@ -7,6 +7,7 @@ import '../../subscriptions/models/user_role.dart';
 import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/screens/add_subscription_screen.dart';
 import '../../subscriptions/screens/edit_subscriptions_screen.dart';
+import '../../subscriptions/providers/subscription_provider.dart';
 import '../../subscriptions/utils/subscription_ui_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -68,27 +69,10 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final colorHash = widget.memberName.hashCode.abs() % avatarColors.length;
     final avatarColor = avatarColors[colorHash];
 
-    // Simulated subscriptions using real model type
-    final List<Subscription> memberSubs = [
-      Subscription(
-        id: 101,
-        serviceName: 'Netflix Family',
-        amount: 15.99,
-        billingCycle: BillingCycle.monthly,
-        nextBillingDate: DateTime.now().add(const Duration(days: 5)),
-        isAutoPay: true,
-        ownerName: widget.memberName,
-      ),
-      Subscription(
-        id: 102,
-        serviceName: 'Spotify Duo',
-        amount: 12.99,
-        billingCycle: BillingCycle.monthly,
-        nextBillingDate: DateTime.now().add(const Duration(days: 12)),
-        isAutoPay: true,
-        ownerName: widget.memberName,
-      ),
-    ];
+    final subscriptions = ref.watch(subscriptionProvider).value ?? [];
+    final List<Subscription> memberSubs = subscriptions
+        .where((s) => s.ownerName == widget.memberName)
+        .toList();
 
     return Scaffold(
       extendBodyBehindAppBar: true,

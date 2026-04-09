@@ -14,8 +14,8 @@ class UserNotifier extends AsyncNotifier<User?> {
   Future<User?> _fetchUserFromApi() async {
     try {
       final dio = ref.read(apiClientProvider).dio;
-      // Fetch latest from backend
-      final response = await dio.get('/api/profile');
+      // FIX: Changed from '/api/profile' to '/api/users/profile'
+      final response = await dio.get('/api/users/profile');
       final user = User.fromJson(response.data);
       
       // Keep local storage in sync for quick loads
@@ -59,8 +59,8 @@ class UserNotifier extends AsyncNotifier<User?> {
     state = await AsyncValue.guard(() async {
       final dio = ref.read(apiClientProvider).dio;
       
-      // Send PUT request to backend ProfileController
-      final response = await dio.put('/api/profile', data: {
+      // FIX: Changed from '/api/profile' to '/api/users/profile'
+      final response = await dio.put('/api/users/profile', data: {
         'fullName': fullName,
         'phoneNumber': phoneNumber,
         'profilePicture': profilePicture,

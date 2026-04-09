@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/custom_toast.dart';
+import '../../providers/household_provider.dart';
 
-class InviteBottomSheet extends StatelessWidget {
+class InviteBottomSheet extends ConsumerWidget {
   final String householdName;
 
   const InviteBottomSheet({
@@ -11,8 +16,12 @@ class InviteBottomSheet extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final household = ref.watch(householdProvider).value;
+    final inviteCode = household?['inviteCode'] ?? 'LOADING...';
+    final shareLink = 'https://subtrack.app/join/$inviteCode';
+
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).padding.bottom + 24,
@@ -62,7 +71,7 @@ class InviteBottomSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 32),
-          
+
           // Share Link Section
           Align(
             alignment: Alignment.centerLeft,
@@ -88,7 +97,7 @@ class InviteBottomSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'subtrack.app/join/x7a9b2',
+                    shareLink,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.cobaltBlue,
                       decoration: TextDecoration.underline,
@@ -99,20 +108,26 @@ class InviteBottomSheet extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.copy_rounded, size: 20),
-                  onPressed: () {
-                    CustomToast.show(context: context, message: 'Link copied to clipboard', isError: false);
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: shareLink));
+                    if (context.mounted) {
+                      CustomToast.show(context: context, message: 'Link copied to clipboard', isError: false);
+                    }
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.share_rounded, size: 20),
                   onPressed: () {
-                    // Native share logic
+                    Share.share(
+                      'Join my household on SubTrack! $shareLink',
+                      subject: 'Join my SubTrack Household',
+                    );
                   },
                 ),
               ],
             ),
           ),
-          
+
           const SizedBox(height: 24),
           Row(
             children: [
@@ -149,7 +164,7 @@ class InviteBottomSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'X7A9B2',
+                  inviteCode.toUpperCase(),
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: 8.0,
@@ -157,8 +172,11 @@ class InviteBottomSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    CustomToast.show(context: context, message: 'Code copied to clipboard', isError: false);
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: inviteCode));
+                    if (context.mounted) {
+                      CustomToast.show(context: context, message: 'Code copied to clipboard', isError: false);
+                    }
                   },
                   icon: const Icon(Icons.copy_rounded, size: 22),
                   color: AppColors.cobaltBlue,
@@ -172,11 +190,11 @@ class InviteBottomSheet extends StatelessWidget {
 
           const SizedBox(height: 28),
 
-          // Mocked QR Reveal
+          // QR Reveal
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () => _showQRDialog(context, theme),
+              onPressed: () => _showQRDialog(context, theme, shareLink),
               icon: const Icon(Icons.qr_code_scanner_rounded),
               label: const Text('Show QR Code'),
               style: FilledButton.styleFrom(
@@ -193,7 +211,7 @@ class InviteBottomSheet extends StatelessWidget {
     );
   }
 
-  void _showQRDialog(BuildContext context, ThemeData theme) {
+  void _showQRDialog(BuildContext context, ThemeData theme, String shareLink) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -208,15 +226,23 @@ class InviteBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
-                Icons.qr_code_2_rounded,
-                size: 180,
-                color: Colors.black,
+              child: QrImageView(
+                data: shareLink,
+                version: QrVersions.auto,
+                size: 200,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Colors.black,
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Colors.black,
+                ),
               ),
             ),
             const SizedBox(height: 24),

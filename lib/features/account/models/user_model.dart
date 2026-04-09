@@ -4,6 +4,7 @@ class User {
   final String fullName;
   final String? phoneNumber;
   final int? householdId;
+  final bool isHouseholdAdmin; // Matches backend's householdAdmin
   final String? profilePicture; // NEW: Added Profile Picture field
 
   User({
@@ -12,6 +13,7 @@ class User {
     required this.fullName,
     this.phoneNumber,
     this.householdId,
+    this.isHouseholdAdmin = false,
     this.profilePicture,
   });
 
@@ -29,6 +31,7 @@ class User {
       fullName: json['fullName'] as String,
       phoneNumber: json['phoneNumber'] as String?,
       householdId: parsedHouseholdId,
+      isHouseholdAdmin: json['householdAdmin'] as bool? ?? false,
       profilePicture: json['profilePicture'] as String?, // Map from backend
     );
   }
@@ -39,6 +42,7 @@ class User {
         'fullName': fullName,
         'phoneNumber': phoneNumber,
         'householdId': householdId,
+        'householdAdmin': isHouseholdAdmin,
         'profilePicture': profilePicture,
       };
 }

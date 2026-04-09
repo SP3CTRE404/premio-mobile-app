@@ -4,34 +4,17 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String register = '/auth/register';
 
-  // ── Subscriptions (protected, token auto-attached) ──
   static String monthlyTotal(int userId) => '/api/subscriptions/user/$userId/monthly-total';
-
   static String dueSubscriptions(int userId) => '/api/subscriptions/user/$userId/due';
-  
-  // NEW: Gap 7 - Get ALL subscriptions
   static String allSubscriptions(int userId) => '/api/subscriptions/user/$userId';
-
-  // NEW: Gap 10 - Household subscriptions
   static String householdSubscriptions(int householdId) => '/api/subscriptions/household/$householdId';
-
   static const String addSubscription = '/api/subscriptions/add';
-  
-  // NEW: Gap 6 - Update & Delete endpoints
   static String updateSubscription(int id) => '/api/subscriptions/$id';
   static String deleteSubscription(int id) => '/api/subscriptions/$id';
-
   static String expireSubscription(int id) => '/api/subscriptions/$id/expire';
-
   static String paySubscription(int id) => '/api/subscriptions/$id/pay';
-
-
   static String toggleAutoPay(int id) => '/api/subscriptions/$id/toggle-autopay';
-
   static String expiredSubscriptions(int userId) => '/api/subscriptions/user/$userId/expired';
-
-  // ── History ──
-
   static String userHistory(int userId) => '/api/subscriptions/user/$userId/history';
   static String subscriptionHistory(int subscriptionId) => '/api/subscriptions/$subscriptionId/history';
-}
+}
