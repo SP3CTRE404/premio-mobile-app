@@ -18,7 +18,9 @@ class BillingCycleField extends StatelessWidget {
         ? 'Monthly'
         : cycle == BillingCycle.quarterly
             ? 'Every 3 Months'
-            : 'Yearly';
+            : cycle == BillingCycle.yearly
+                ? 'Yearly'
+                : 'Custom Interval';
   }
 
   @override
@@ -47,6 +49,7 @@ class BillingCycleField extends StatelessWidget {
               BillingCycle.monthly: 'Monthly',
               BillingCycle.quarterly: 'Every 3 Months',
               BillingCycle.yearly: 'Yearly',
+              BillingCycle.custom: 'Custom Interval',
             }.entries.map((entry) {
               final isSelected = entry.key == selectedCycle;
               return PopupMenuItem<BillingCycle>(

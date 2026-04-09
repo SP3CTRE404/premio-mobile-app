@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../dashboard/models/mock_data.dart';
+
+import '../../models/subscription_model.dart';
+import '../../utils/subscription_ui_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 
 class EditSubscriptionCard extends StatelessWidget {
-  final MockSub sub;
+  final Subscription sub;
   final VoidCallback onEdit;
   final VoidCallback onEnd;
 
@@ -19,6 +21,9 @@ class EditSubscriptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    final IconData icon = SubscriptionUIHelper.getIcon(sub.serviceName);
+    final Color statusColor = SubscriptionUIHelper.getStatusColor(sub.nextBillingDate);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -35,10 +40,10 @@ class EditSubscriptionCard extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: sub.statusColor.withValues(alpha: 0.1),
+              color: statusColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(sub.icon, color: sub.statusColor, size: 24),
+            child: Icon(icon, color: statusColor, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -46,12 +51,12 @@ class EditSubscriptionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  sub.name,
+                  sub.serviceName,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  formatCurrency(sub.price, '₹'),
+                  formatCurrency(sub.amount, '₹'),
                   style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 14,
@@ -94,3 +99,4 @@ class EditSubscriptionCard extends StatelessWidget {
     );
   }
 }
+

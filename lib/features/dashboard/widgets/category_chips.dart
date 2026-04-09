@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
-import '../models/mock_data.dart';
+
+// ── Local Category Definitions ──
+class CategoryDef {
+  final String label;
+  final IconData icon;
+  const CategoryDef(this.label, this.icon);
+}
+
+const _defaultCategories = [
+  CategoryDef('All', Icons.grid_view_rounded),
+  CategoryDef('Entertainment', Icons.movie_outlined),
+  CategoryDef('Productivity', Icons.engineering_outlined),
+  CategoryDef('Cloud', Icons.cloud_outlined),
+  CategoryDef('Finance', Icons.account_balance_outlined),
+  CategoryDef('Utilities', Icons.power_outlined),
+];
 
 /// Horizontally scrollable category filter chips.
 class CategoryChips extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String> onCategorySelected;
+  final List<CategoryDef> categories; // Optional parameter if we make it dynamic later
 
   const CategoryChips({
     super.key,
     required this.selectedCategory,
     required this.onCategorySelected,
+    this.categories = _defaultCategories,
   });
 
   @override
@@ -82,3 +99,4 @@ class CategoryChips extends StatelessWidget {
     );
   }
 }
+

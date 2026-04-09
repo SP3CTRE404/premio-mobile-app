@@ -1,15 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../dashboard/models/mock_data.dart';
 import '../../auth/widgets/auth_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/subscription_provider.dart';
+import '../../account/providers/account_provider.dart';
 import 'add_subscription_screen.dart';
+import '../models/subscription_model.dart';
 import '../widgets/edit_subscription/edit_subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
 import '../widgets/edit_subscription/end_subscription_dialog.dart';
-import '../../../core/widgets/custom_toast.dart';
 
 class EditSubscriptionsScreen extends ConsumerStatefulWidget {
+
   final String? memberName;
   const EditSubscriptionsScreen({super.key, this.memberName});
 
@@ -45,29 +47,24 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     super.dispose();
   }
 
-  void _confirmEndSubscription(MockSub sub) {
+  void _confirmEndSubscription(Subscription sub) {
     showDialog(
       context: context,
       builder: (context) => EndSubscriptionDialog(
         sub: sub,
-        onConfirm: () {
-          CustomToast.show(context: context, message: 'Subscription to ${sub.name} ended.', isError: true);
-        },
+        onConfirm: () {}, // Handled internally by dialog now
       ),
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final userAsync = ref.watch(userProvider);
+    final subscriptionsAsync = ref.watch(subscriptionProvider);
     
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    final filteredSubs = mockSubs.where((sub) {
-      final matchesSearch = sub.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      final String targetUser = widget.memberName ?? 'Me';
-      final matchesUser = sub.madeBy == targetUser;
-      return matchesSearch && matchesUser;
-    }).toList();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -116,27 +113,44 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
         children: [
           const AuthBackground(),
           
-          filteredSubs.isEmpty && _searchQuery.isNotEmpty
-              ? const Center(child: Text('No subscriptions found.'))
-              : ListView.separated(
-                  controller: _scrollController,
-                  padding: EdgeInsets.fromLTRB(16, 120, 16, 140 + bottomInset),
-                  itemCount: filteredSubs.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final sub = filteredSubs[index];
-                    return EditSubscriptionCard(
-                      sub: sub,
-                      onEdit: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddSubscriptionScreen(initialData: sub),
-                        ),
+          subscriptionsAsync.when(
+            data: (allSubs) {
+              final userFullName = userAsync.value?.fullName ?? '';
+              final targetUser = widget.memberName ?? userFullName;
+              
+              final filteredSubs = allSubs.where((sub) {
+                final matchesSearch = sub.serviceName.toLowerCase().contains(_searchQuery.toLowerCase());
+                final matchesUser = sub.ownerName == targetUser;
+                return matchesSearch && matchesUser;
+              }).toList();
+
+              if (filteredSubs.isEmpty && _searchQuery.isNotEmpty) {
+                return const Center(child: Text('No subscriptions found.'));
+              }
+
+              return ListView.separated(
+                controller: _scrollController,
+                padding: EdgeInsets.fromLTRB(16, 120, 16, 140 + bottomInset),
+                itemCount: filteredSubs.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final sub = filteredSubs[index];
+                  return EditSubscriptionCard(
+                    sub: sub,
+                    onEdit: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddSubscriptionScreen(initialData: sub),
                       ),
-                      onEnd: () => _confirmEndSubscription(sub),
-                    );
-                  },
-                ),
+                    ),
+                    onEnd: () => _confirmEndSubscription(sub),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+          ),
 
           SubscriptionSearchBar(
             controller: _searchController,
@@ -148,3 +162,4 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     );
   }
 }
+

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../dashboard/models/mock_data.dart';
+import '../../models/subscription_model.dart';
 import 'subscription_card.dart';
 
 class SubscriptionListView extends StatelessWidget {
-  final List<MockSub> subscriptions;
+  final List<Subscription> subscriptions;
   final String currencySymbol;
   final Set<String> expandedCards;
   final Function(String) onToggleCard;

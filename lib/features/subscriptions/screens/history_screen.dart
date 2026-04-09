@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../providers/history_provider.dart';
 import '../widgets/history/history_list_view.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -28,14 +28,27 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final currencySymbol = ref.watch(currencySymbolProvider);
+    final historyAsync = ref.watch(userHistoryProvider);
 
-    return HistoryListView(
-      subscriptions: mockSubs.where((s) => s.madeBy == 'Me').toList(),
-      currencySymbol: currencySymbol,
-      expandedCards: _expandedCards,
-      onToggleCard: _toggleCard,
-      tabPrefix: 'history_personal',
-      showMadeBy: false,
+    return historyAsync.when(
+      data: (historyList) {
+        // Sort history by most recent "expiry" (nextBillingDate)
+        final sortedList = List.of(historyList)
+          ..sort((a, b) => b.nextBillingDate.compareTo(a.nextBillingDate));
+
+        return HistoryListView(
+          historyItems: sortedList,
+          currencySymbol: currencySymbol,
+          expandedCards: _expandedCards,
+          onToggleCard: _toggleCard,
+          tabPrefix: 'history_personal',
+        );
+      },
+
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error loading history: $err')),
     );
   }
 }
+
+

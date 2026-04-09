@@ -1,12 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/secure_storage/secure_storage_service.dart';
+import '../../../core/api/api_client.dart';
 import '../models/user_model.dart';
 
-/// Provides the current user's profile loaded from secure storage.
 class UserNotifier extends AsyncNotifier<User?> {
   @override
   Future<User?> build() async {
-    return _loadFromStorage();
+    return _fetchUserFromApi();
+  }
+
+  /// Attempts to fetch the freshest profile from the backend.
+  /// Falls back to secure storage if offline.
+  Future<User?> _fetchUserFromApi() async {
+    try {
+      final dio = ref.read(apiClientProvider).dio;
+      // Fetch latest from backend
+      final response = await dio.get('/api/profile');
+      final user = User.fromJson(response.data);
+      
+      // Keep local storage in sync for quick loads
+      final storage = ref.read(secureStorageServiceProvider);
+      await storage.saveUserName(user.fullName);
+      if (user.phoneNumber != null) await storage.saveUserPhoneNumber(user.phoneNumber!);
+      
+      return user;
+    } catch (e) {
+      return _loadFromStorage();
+    }
   }
 
   Future<User?> _loadFromStorage() async {
@@ -17,32 +37,48 @@ class UserNotifier extends AsyncNotifier<User?> {
     final phone = await storage.getUserPhoneNumber();
 
     if (id == null || email == null || name == null) return null;
-
     return User(id: id, email: email, fullName: name, phoneNumber: phone);
   }
 
-  /// Re-reads user info from secure storage (e.g. after login).
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_loadFromStorage);
+    state = await AsyncValue.guard(_fetchUserFromApi);
   }
 
-  /// Clears the cached user state (e.g. on logout).
   void clear() {
     state = const AsyncData(null);
   }
 
-  /// Updates the user's full name in storage and refreshes the state.
-  Future<void> updateProfile({required String fullName, String? phoneNumber}) async {
-    final storage = ref.read(secureStorageServiceProvider);
-    await storage.saveUserName(fullName);
-    if (phoneNumber != null) {
-      await storage.saveUserPhoneNumber(phoneNumber);
-    }
-    await refresh();
+  /// Sends updated profile data (including base64 image) to backend.
+  Future<void> updateProfile({
+    required String fullName, 
+    String? phoneNumber,
+    String? profilePicture, // NEW: Accept image string
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final dio = ref.read(apiClientProvider).dio;
+      
+      // Send PUT request to backend ProfileController
+      final response = await dio.put('/api/profile', data: {
+        'fullName': fullName,
+        'phoneNumber': phoneNumber,
+        'profilePicture': profilePicture,
+      });
+
+      final updatedUser = User.fromJson(response.data);
+      
+      // Update local storage names
+      final storage = ref.read(secureStorageServiceProvider);
+      await storage.saveUserName(updatedUser.fullName);
+      if (updatedUser.phoneNumber != null) {
+        await storage.saveUserPhoneNumber(updatedUser.phoneNumber!);
+      }
+
+      return updatedUser;
+    });
   }
 }
-
 
 final userProvider = AsyncNotifierProvider<UserNotifier, User?>(
   UserNotifier.new,

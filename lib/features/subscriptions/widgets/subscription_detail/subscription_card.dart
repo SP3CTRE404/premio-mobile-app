@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../dashboard/models/mock_data.dart';
+import '../../models/subscription_model.dart';
+import '../../utils/subscription_ui_helper.dart';
 import 'subscription_detail_item.dart';
 
 class SubscriptionCard extends StatelessWidget {
-  final MockSub subscription;
+  final Subscription subscription;
   final String currencySymbol;
   final bool isExpanded;
   final VoidCallback onTap;
@@ -26,9 +27,12 @@ class SubscriptionCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final bool isOverdue = subscription.due.toLowerCase().contains('overdue');
-    final String paymentType = isOverdue ? 'Manual' : 'Auto-pay';
-    const String billingCycle = 'Monthly';
+    final IconData icon = SubscriptionUIHelper.getIcon(subscription.serviceName);
+    final Color statusColor = SubscriptionUIHelper.getStatusColor(subscription.nextBillingDate);
+    final String dueStatus = SubscriptionUIHelper.getDueStatus(subscription.nextBillingDate);
+
+    final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';
+    final String billingCycle = subscription.billingCycle.name[0].toUpperCase() + subscription.billingCycle.name.substring(1);
 
     return Card(
       color: theme.cardTheme.color ?? colorScheme.surface,
@@ -59,12 +63,12 @@ class SubscriptionCard extends StatelessWidget {
                   leading: CircleAvatar(
                     backgroundColor: colorScheme.surfaceContainerHighest,
                     child: Icon(
-                      subscription.icon,
-                      color: subscription.statusColor,
+                      icon,
+                      color: statusColor,
                     ),
                   ),
                   title: Text(
-                    subscription.name,
+                    subscription.serviceName,
                     style: textTheme.titleMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -74,9 +78,9 @@ class SubscriptionCard extends StatelessWidget {
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
-                      subscription.due,
+                      dueStatus,
                       style: textTheme.bodySmall?.copyWith(
-                        color: _getStatusColor(context, subscription.due),
+                        color: statusColor,
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
                       ),
@@ -90,7 +94,7 @@ class SubscriptionCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            formatCurrency(subscription.price, currencySymbol),
+                            formatCurrency(subscription.amount, currencySymbol),
                             style: textTheme.bodyLarge?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w700,
@@ -99,7 +103,7 @@ class SubscriptionCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            subscription.category,
+                            subscription.householdName ?? 'Personal',
                             style: textTheme.labelSmall?.copyWith(
                               color: colorScheme.onSurface.withValues(alpha: 0.5),
                               fontSize: 12,
@@ -165,15 +169,15 @@ class SubscriptionCard extends StatelessWidget {
                                         Expanded(
                                           child: SubscriptionDetailItem(
                                             label: 'Date',
-                                            value: subscription.purchaseDate,
+                                            value: '${subscription.nextBillingDate.day}/${subscription.nextBillingDate.month}/${subscription.nextBillingDate.year}',
                                             icon:
                                                 Icons.event_available_outlined,
                                           ),
                                         ),
                                         Expanded(
                                           child: SubscriptionDetailItem(
-                                            label: 'Made By:',
-                                            value: subscription.madeBy,
+                                            label: 'Owner:',
+                                            value: subscription.ownerName ?? 'Unknown',
                                             icon: Icons.person_outline,
                                           ),
                                         ),
@@ -200,8 +204,8 @@ class SubscriptionCard extends StatelessWidget {
                                     ),
                                     Expanded(
                                       child: SubscriptionDetailItem(
-                                        label: 'Date',
-                                        value: subscription.purchaseDate,
+                                        label: 'Next Billing',
+                                        value: '${subscription.nextBillingDate.day}/${subscription.nextBillingDate.month}/${subscription.nextBillingDate.year}',
                                         icon: Icons.event_available_outlined,
                                       ),
                                     ),
@@ -219,28 +223,5 @@ class SubscriptionCard extends StatelessWidget {
       ),
     );
   }
-
-  Color _getStatusColor(BuildContext context, String due) {
-    final status = due.toLowerCase();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    if (status.contains('paid')) return isDark ? Colors.greenAccent : Colors.green.shade700;
-    if (status.contains('overdue')) return isDark ? Colors.redAccent : Colors.red.shade700;
-
-    if (status.contains('due')) {
-      if (status.contains('today') || status.contains('tomorrow')) {
-        return isDark ? Colors.yellowAccent : Colors.orange.shade800;
-      }
-
-      final match = RegExp(r'due in (\d+) day').firstMatch(status);
-      if (match != null) {
-        final days = int.tryParse(match.group(1) ?? '');
-        if (days != null && days <= 3) {
-          return isDark ? Colors.yellowAccent : Colors.orange.shade800;
-        }
-      }
-    }
-
-    return isDark ? Colors.white70 : Colors.black54;
-  }
 }
+

@@ -8,6 +8,7 @@ import '../../settings/providers/currency_provider.dart';
 import 'create_household_screen.dart';
 import 'join_household_screen.dart';
 import 'member_details_screen.dart';
+import '../providers/household_provider.dart';
 import '../widgets/household_screen/household_hero_card.dart';
 import '../widgets/household_screen/member_list_item.dart';
 import '../widgets/household_screen/invite_bottom_sheet.dart';
@@ -141,36 +142,42 @@ class HouseholdScreen extends ConsumerWidget {
           const SizedBox(height: 40),
           HouseholdActions(
             isAdmin: isAdmin,
-            onLeave: () => _confirmLeave(context, isAdmin),
-            onDelete: () => _confirmDelete(context),
+            onLeave: () => _confirmLeave(context, ref, isAdmin),
+            onDelete: () => _confirmDelete(context, ref),
           ),
         ],
       ),
     );
   }
 
-  void _confirmLeave(BuildContext context, bool isAdmin) {
+  void _confirmLeave(BuildContext context, WidgetRef ref, bool isAdmin) {
     showDialog(
       context: context,
       builder: (context) => LeaveHouseholdDialog(
         householdName: 'Family Track',
-        onConfirm: () {
+        onConfirm: () async {
           if (isAdmin) {
-            _showTransferAdmin(context);
+            _showTransferAdmin(context, ref);
           } else {
-            // TODO: Actually leave household logic
-            CustomToast.show(
-              context: context,
-              message: 'You have left the household.',
-              isError: true,
-            );
+            try {
+              await ref.read(householdProvider.notifier).leave();
+              if (context.mounted) {
+                CustomToast.show(
+                  context: context,
+                  message: 'You have left the household.',
+                  isError: true,
+                );
+              }
+            } catch (e) {
+              if (context.mounted) CustomToast.show(context: context, message: 'Error: $e', isError: true);
+            }
           }
         },
       ),
     );
   }
 
-  void _showTransferAdmin(BuildContext context) {
+  void _showTransferAdmin(BuildContext context, WidgetRef ref) {
     // Mock members list aside from 'You'
     final members = ['Jane Doe', 'John Smith', 'Alice Joy'];
 
@@ -178,29 +185,45 @@ class HouseholdScreen extends ConsumerWidget {
       context: context,
       builder: (context) => TransferAdminDialog(
         members: members,
-        onTransferAndLeave: (newAdminName) {
-          // TODO: Actually transfer admin and leave
-          CustomToast.show(
-            context: context,
-            message: '$newAdminName is now the Admin. You have left.',
-          );
+        onTransferAndLeave: (newAdminName) async {
+          try {
+            // In a real app, you'd get the actual member ID. 
+            // For now, using a dummy ID as placeholder.
+            await ref.read(householdProvider.notifier).transferAdmin(99); 
+            await ref.read(householdProvider.notifier).leave();
+            
+            if (context.mounted) {
+              CustomToast.show(
+                context: context,
+                message: '$newAdminName is now the Admin. You have left.',
+              );
+            }
+          } catch (e) {
+            if (context.mounted) CustomToast.show(context: context, message: 'Error: $e', isError: true);
+          }
         },
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context) {
+  void _confirmDelete(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => DeleteHouseholdDialog(
         householdName: 'Family Track',
-        onConfirm: () {
-          // TODO: Actually delete household logic
-          CustomToast.show(
-            context: context,
-            message: 'Household "Family Track" has been deleted.',
-            isError: true,
-          );
+        onConfirm: () async {
+          try {
+            await ref.read(householdProvider.notifier).delete();
+            if (context.mounted) {
+              CustomToast.show(
+                context: context,
+                message: 'Household "Family Track" has been deleted.',
+                isError: true,
+              );
+            }
+          } catch (e) {
+            if (context.mounted) CustomToast.show(context: context, message: 'Error: $e', isError: true);
+          }
         },
       ),
     );

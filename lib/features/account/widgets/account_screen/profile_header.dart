@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -20,8 +21,7 @@ class ProfileHeader extends ConsumerWidget {
       ),
       error: (err, _) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Text('Error loading profile: $err',
-            style: TextStyle(color: Colors.red.shade700)),
+        child: Text('Error loading profile: $err', style: TextStyle(color: Colors.red.shade700)),
       ),
       data: (user) {
         if (user == null) return const SizedBox.shrink();
@@ -33,6 +33,21 @@ class ProfileHeader extends ConsumerWidget {
             .map((w) => w[0].toUpperCase())
             .join();
 
+        // Safely parse Base64 image
+        ImageProvider? getAvatar() {
+          if (user.profilePicture != null && user.profilePicture!.isNotEmpty) {
+            try {
+              final base64String = user.profilePicture!.split(',').last;
+              return MemoryImage(base64Decode(base64String));
+            } catch (e) {
+              return null;
+            }
+          }
+          return null;
+        }
+
+        final avatarImage = getAvatar();
+
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -41,21 +56,23 @@ class ProfileHeader extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Avatar
+              // Dynamic Avatar
               CircleAvatar(
                 radius: 36,
                 backgroundColor: AppColors.cobaltBlue,
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                backgroundImage: avatarImage,
+                child: avatarImage == null
+                    ? Text(
+                        initials,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 16),
-              // Name + email
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,24 +95,14 @@ class ProfileHeader extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Edit button
               IconButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const EditProfileScreen(),
-                    ),
-                  );
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const EditProfileScreen()));
                 },
-                icon: Icon(
-                  Icons.edit_outlined,
-                  color: colorScheme.onSurface.withValues(alpha: 0.4),
-                ),
+                icon: Icon(Icons.edit_outlined, color: colorScheme.onSurface.withValues(alpha: 0.4)),
                 style: IconButton.styleFrom(
                   backgroundColor: colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],

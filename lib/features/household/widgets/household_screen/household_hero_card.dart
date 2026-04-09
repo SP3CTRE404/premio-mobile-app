@@ -1,12 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import 'edit_household_name_dialog.dart';
 import '../../../../core/widgets/custom_toast.dart';
+import '../../providers/household_provider.dart';
+import 'edit_household_name_dialog.dart';
 
-class HouseholdHeroCard extends StatelessWidget {
+// Changed to ConsumerWidget to access Riverpod ref
+class HouseholdHeroCard extends ConsumerWidget {
   final String householdName;
+  final String? imageUrl; // NEW
   final bool isAdmin;
   final String sharedSubs;
   final double totalValue;
@@ -16,6 +21,7 @@ class HouseholdHeroCard extends StatelessWidget {
   const HouseholdHeroCard({
     super.key,
     required this.householdName,
+    this.imageUrl, // NEW
     required this.isAdmin,
     required this.sharedSubs,
     required this.totalValue,
@@ -24,18 +30,29 @@ class HouseholdHeroCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Helper to safely display base64 image
+    ImageProvider? getImageProvider() {
+      if (imageUrl != null && imageUrl!.isNotEmpty) {
+        try {
+          final base64String = imageUrl!.split(',').last;
+          return MemoryImage(base64Decode(base64String));
+        } catch (e) {
+          return null; // fallback if image string is malformed
+        }
+      }
+      return null;
+    }
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-        ),
+        border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -71,21 +88,29 @@ class HouseholdHeroCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.edit_rounded, size: 20),
+                            color: AppColors.cobaltBlue,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                             onPressed: () {
                               showDialog(
                                 context: context,
                                 builder: (context) => EditHouseholdNameDialog(
                                   currentName: householdName,
-                                  onSave: (newName) {
-                                    // TODO: Update household name logic
-                                    CustomToast.show(context: context, message: 'Household name updated to "$newName"', isError: false);
+                                  onSave: (newName) async {
+                                    try {
+                                      await ref.read(householdProvider.notifier).updateHouseholdName(newName);
+                                      if (context.mounted) {
+                                        CustomToast.show(context: context, message: 'Household name updated!', isError: false);
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        CustomToast.show(context: context, message: 'Failed to update name', isError: true);
+                                      }
+                                    }
                                   },
                                 ),
                               );
                             },
-                            color: AppColors.cobaltBlue,
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ],
@@ -105,29 +130,34 @@ class HouseholdHeroCard extends StatelessWidget {
                 onTap: isAdmin ? () async {
                   final ImagePicker picker = ImagePicker();
                   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  
                   if (image != null) {
-                    // TODO: Upload image logic
-                    if (context.mounted) {
-                      CustomToast.show(context: context, message: 'Image selected. Upload coming soon!', isError: false);
+                    try {
+                      final bytes = await image.readAsBytes();
+                      final base64String = base64Encode(bytes);
+                      final imgData = 'data:image/png;base64,$base64String';
+                      
+                      await ref.read(householdProvider.notifier).updateHouseholdImage(imgData);
+                      
+                      if (context.mounted) {
+                        CustomToast.show(context: context, message: 'Image uploaded successfully!', isError: false);
+                      }
+                    } catch(e) {
+                      if (context.mounted) {
+                        CustomToast.show(context: context, message: 'Failed to upload image', isError: true);
+                      }
                     }
                   }
                 } : null,
                 child: Stack(
                   children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppColors.cobaltBlue.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.groups_rounded,
-                          color: AppColors.cobaltBlue,
-                          size: 32,
-                        ),
-                      ),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: AppColors.cobaltBlue.withValues(alpha: 0.15),
+                      backgroundImage: getImageProvider(),
+                      child: getImageProvider() == null 
+                          ? const Icon(Icons.groups_rounded, color: AppColors.cobaltBlue, size: 32)
+                          : null, // Only show icon if no image
                     ),
                     if (isAdmin)
                       Positioned(

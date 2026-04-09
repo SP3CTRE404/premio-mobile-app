@@ -4,7 +4,8 @@ import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../../subscriptions/models/user_role.dart';
 import '../../subscriptions/providers/user_role_provider.dart';
-import '../models/mock_data.dart';
+import '../../subscriptions/providers/subscription_provider.dart';
+import '../providers/dashboard_provider.dart';
 import '../widgets/action_card_list.dart';
 import '../widgets/category_chips.dart';
 import '../widgets/financial_hero_card.dart';
@@ -18,35 +19,23 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String _selectedCategory = 'All';
-  final Set<String> _paidItems = {};
-
-  List<MockSub> get _roleBaseSubs {
-    final userRole = ref.watch(userRoleProvider);
-    if (userRole == UserRole.admin) return mockSubs;
-    return mockSubs.where((s) => s.madeBy == 'Me').toList();
-  }
-
-  List<MockSub> get _filteredSubs {
-    final base = _roleBaseSubs;
-    if (_selectedCategory == 'All') return base;
-    return base.where((s) => s.category == _selectedCategory).toList();
-  }
+  final Set<int> _paidItems = {}; 
 
   @override
   Widget build(BuildContext context) {
     final currencySymbol = ref.watch(currencySymbolProvider);
     final userAsync = ref.watch(userProvider);
+    final subscriptionsAsync = ref.watch(subscriptionProvider);
+    final monthlyTotalAsync = ref.watch(monthlyTotalProvider);
+    final userRole = ref.watch(userRoleProvider);
     
-    // ── Dynamically calculate the safe top padding to account for the transparent AppBar ──
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 40;
 
     return SingleChildScrollView(
-      // ── Apply the calculated padding here ──
       padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Personalized Greeting ──
           userAsync.when(
             data: (user) => Padding(
               padding: const EdgeInsets.only(bottom: 24),
@@ -64,67 +53,87 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   Text(
                     'Here is your subscription overview.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                   ),
                 ],
               ),
             ),
             loading: () => const SizedBox(height: 60),
-            error: (_, _) => const SizedBox.shrink(),
+            error: (err, stack) => const SizedBox.shrink(),
           ),
 
-          // ── Financial Insights Hero ──
-          Builder(
-            builder: (context) {
-              final subs = _roleBaseSubs;
-              final monthly = subs.fold<double>(0, (sum, item) => sum + item.price);
-              final upToDate = subs.where((s) => s.due == 'Paid').length;
-              final dueSoon = subs.where((s) => s.due.contains('Due in')).length;
-              final overdue = subs.where((s) => s.due.contains('Overdue')).length;
+          subscriptionsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Text('Failed to load subscriptions: $err'),
+            data: (allSubs) {
+              final roleBasedSubs = userRole == UserRole.admin 
+                  ? allSubs 
+                  : allSubs.where((s) => s.ownerName == userAsync.value?.fullName).toList();
 
-              return FinancialHeroCard(
-                monthly: monthly,
-                upToDate: upToDate,
-                dueSoon: dueSoon,
-                overdue: overdue,
-                currencySymbol: currencySymbol,
+              final filteredSubs = _selectedCategory == 'All' 
+                  ? roleBasedSubs 
+                  : roleBasedSubs; 
+
+              final upToDate = roleBasedSubs.where((s) => _paidItems.contains(s.id)).length;
+              final dueSoon = roleBasedSubs.where((s) => s.nextBillingDate.difference(DateTime.now()).inDays <= 7 && s.nextBillingDate.difference(DateTime.now()).inDays >= 0).length;
+              final overdue = roleBasedSubs.where((s) => s.nextBillingDate.isBefore(DateTime.now())).length;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  monthlyTotalAsync.when(
+                    data: (monthly) {
+                      return FinancialHeroCard(
+                        monthly: monthly,
+                        upToDate: upToDate,
+                        dueSoon: dueSoon,
+                        overdue: overdue,
+                        currencySymbol: currencySymbol,
+                      );
+                    },
+
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (err, st) => const FinancialHeroCard(
+                      monthly: 0,
+                      upToDate: 0,
+                      dueSoon: 0,
+                      overdue: 0,
+                      currencySymbol: '\$',
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  _sectionTitle(context, 'Categories'),
+                  const SizedBox(height: 12),
+                  CategoryChips(
+                    selectedCategory: _selectedCategory,
+                    onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  _sectionTitle(context, 'Action Needed'),
+                  const SizedBox(height: 16),
+                  
+                  ActionCardList(
+                    subscriptions: filteredSubs, 
+                    paidItems: _paidItems.map((e) => e.toString()).toSet(), 
+                    currencySymbol: currencySymbol,
+                    onTogglePaid: (idString) {
+                      final id = int.parse(idString);
+                      setState(() {
+                        if (_paidItems.contains(id)) {
+                          _paidItems.remove(id);
+                        } else {
+                          _paidItems.add(id);
+                        }
+                      });
+                    },
+                  ),
+                ],
               );
-            },
-          ),
-
-          const SizedBox(height: 28),
-
-          // ── Category Section ──
-          _sectionTitle(context, 'Categories'),
-          const SizedBox(height: 12),
-          CategoryChips(
-            selectedCategory: _selectedCategory,
-            onCategorySelected: (cat) =>
-                setState(() => _selectedCategory = cat),
-          ),
-
-          const SizedBox(height: 28),
-
-          // ── Action Needed Section ──
-          _sectionTitle(context, 'Action Needed'),
-          const SizedBox(height: 12),
-          const SizedBox(height: 16),
-          ActionCardList(
-            subscriptions: _filteredSubs,
-            paidItems: _paidItems,
-            currencySymbol: currencySymbol,
-            onTogglePaid: (name) {
-              setState(() {
-                if (_paidItems.contains(name)) {
-                  _paidItems.remove(name);
-                } else {
-                  _paidItems.add(name);
-                }
-              });
             },
           ),
         ],

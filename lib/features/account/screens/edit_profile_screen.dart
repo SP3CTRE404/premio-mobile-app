@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,7 +29,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Read the current user data to pre-fill the form
     final user = ref.read(userProvider).value;
     
     _nameController = TextEditingController(text: user?.fullName ?? '');
@@ -60,9 +60,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        CustomToast.show(context: context, message: 'Error picking image: $e', isError: true);
-      }
+      if (mounted) CustomToast.show(context: context, message: 'Error picking image: $e', isError: true);
     }
   }
 
@@ -72,12 +70,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // NOTE: In a real app, you'd upload the _pickedImage to a storage service (S3/Firebase) 
-      // first, then update the profile with the URL. 
-      // For now, we update the text fields.
+      String? base64Image;
+      
+      // Encode picked image to base64 if a new one was selected
+      if (_pickedImage != null) {
+        final bytes = await _pickedImage!.readAsBytes();
+        base64Image = 'data:image/png;base64,${base64Encode(bytes)}';
+      }
+
       await ref.read(userProvider.notifier).updateProfile(
         fullName: _nameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
+        profilePicture: base64Image, // Will be null if no new image picked, leaving backend unchanged
       );
 
       if (mounted) {
@@ -85,12 +89,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         CustomToast.show(context: context, message: 'Profile updated successfully', isError: false);
       }
     } catch (e) {
-      if (mounted) {
-        CustomToast.show(context: context, message: 'Failed to update profile: $e', isError: false);
-      }
+      if (mounted) CustomToast.show(context: context, message: 'Failed to update profile: $e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  // Helper to figure out what image to show in the editor circle
+  Widget? _getDisplayImage() {
+    final user = ref.read(userProvider).value;
+    
+    if (_pickedImage != null) {
+      return ClipOval(child: Image.file(_pickedImage!, fit: BoxFit.cover, width: 128, height: 128));
+    } else if (user?.profilePicture != null && user!.profilePicture!.isNotEmpty) {
+      try {
+        final b64 = user.profilePicture!.split(',').last;
+        return ClipOval(child: Image.memory(base64Decode(b64), fit: BoxFit.cover, width: 128, height: 128));
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   @override
@@ -116,16 +135,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   ProfileAvatarEditor(
                     initial: _nameController.text,
-                    imageWidget: _pickedImage != null 
-                        ? ClipOval(
-                            child: Image.file(
-                              _pickedImage!,
-                              fit: BoxFit.cover,
-                              width: 128,
-                              height: 128,
-                            ),
-                          )
-                        : null,
+                    imageWidget: _getDisplayImage(), // Dynamically injected
                     onImageSourceSelected: _pickImage,
                   ),
                   const SizedBox(height: 40),

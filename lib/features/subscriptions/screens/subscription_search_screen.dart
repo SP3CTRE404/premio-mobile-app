@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/widgets/auth_background.dart';
-import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../providers/subscription_provider.dart';
 import '../widgets/subscription_detail/subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
 
@@ -57,9 +57,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
   @override
   Widget build(BuildContext context) {
     final currencySymbol = ref.watch(currencySymbolProvider);
-    final filtered = mockSubs
-        .where((s) => s.name.toLowerCase().contains(_query.toLowerCase()))
-        .toList();
+    final subscriptionsAsync = ref.watch(subscriptionProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -108,27 +106,39 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
         children: [
           const AuthBackground(),
           
-          filtered.isEmpty && _query.isNotEmpty
-              ? const Center(child: Text('No subscriptions found.'))
-              : ListView.builder(
-                  controller: _scrollController,
-                  padding: EdgeInsets.fromLTRB(16, 120, 16, 120 + MediaQuery.of(context).viewInsets.bottom),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final sub = filtered[index];
-                    final cardKey = 'search_$index';
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: SubscriptionCard(
-                        subscription: sub,
-                        currencySymbol: currencySymbol,
-                        isExpanded: _expandedCards.contains(cardKey),
-                        onTap: () => _toggleCard(cardKey),
-                        showMadeBy: true,
-                      ),
-                    );
-                  },
-                ),
+          subscriptionsAsync.when(
+            data: (allSubs) {
+              final filtered = allSubs
+                  .where((s) => s.serviceName.toLowerCase().contains(_query.toLowerCase()))
+                  .toList();
+
+              if (filtered.isEmpty && _query.isNotEmpty) {
+                return const Center(child: Text('No subscriptions found.'));
+              }
+
+              return ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.fromLTRB(16, 120, 16, 120 + MediaQuery.of(context).viewInsets.bottom),
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final sub = filtered[index];
+                  final cardKey = 'search_${sub.id}';
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: SubscriptionCard(
+                      subscription: sub,
+                      currencySymbol: currencySymbol,
+                      isExpanded: _expandedCards.contains(cardKey),
+                      onTap: () => _toggleCard(cardKey),
+                      showMadeBy: true,
+                    ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+          ),
           
           SubscriptionSearchBar(
             controller: _searchController,
@@ -141,3 +151,4 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
     );
   }
 }
+

@@ -2,20 +2,24 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/widgets/auth_background.dart';
+import '../../subscriptions/models/subscription_model.dart';
 import '../../subscriptions/models/user_role.dart';
 import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/screens/add_subscription_screen.dart';
 import '../../subscriptions/screens/edit_subscriptions_screen.dart';
+import '../../subscriptions/utils/subscription_ui_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class MemberDetailsScreen extends ConsumerStatefulWidget {
   final String memberName;
   final String role;
+  final int? householdId;
 
   const MemberDetailsScreen({
     super.key,
     required this.memberName,
     required this.role,
+    this.householdId,
   });
 
   @override
@@ -64,10 +68,26 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     final colorHash = widget.memberName.hashCode.abs() % avatarColors.length;
     final avatarColor = avatarColors[colorHash];
 
-    // Mock subscriptions
-    final List<Map<String, dynamic>> mockSubscriptions = [
-      {'name': 'Netflix Family', 'cost': 15.99, 'cycle': 'Monthly', 'icon': Icons.movie_rounded},
-      {'name': 'Spotify Duo', 'cost': 12.99, 'cycle': 'Monthly', 'icon': Icons.music_note_rounded},
+    // Simulated subscriptions using real model type
+    final List<Subscription> memberSubs = [
+      Subscription(
+        id: 101,
+        serviceName: 'Netflix Family',
+        amount: 15.99,
+        billingCycle: BillingCycle.monthly,
+        nextBillingDate: DateTime.now().add(const Duration(days: 5)),
+        isAutoPay: true,
+        ownerName: widget.memberName,
+      ),
+      Subscription(
+        id: 102,
+        serviceName: 'Spotify Duo',
+        amount: 12.99,
+        billingCycle: BillingCycle.monthly,
+        nextBillingDate: DateTime.now().add(const Duration(days: 12)),
+        isAutoPay: true,
+        ownerName: widget.memberName,
+      ),
     ];
 
     return Scaffold(
@@ -189,53 +209,58 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...mockSubscriptions.map((sub) => Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.cardTheme.color,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.cobaltBlue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
+                ...memberSubs.map((sub) {
+                  final icon = SubscriptionUIHelper.getIcon(sub.serviceName);
+                  final cycle = sub.billingCycle.name[0].toUpperCase() + sub.billingCycle.name.substring(1);
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.cardTheme.color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.cobaltBlue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(icon, color: AppColors.cobaltBlue),
                         ),
-                        child: Icon(sub['icon'] as IconData, color: AppColors.cobaltBlue),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sub['name'] as String,
-                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              sub['cycle'] as String,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.6)
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                sub.serviceName,
+                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text(
+                                cycle,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.6)
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        '\$${sub['cost']}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold, 
-                          color: AppColors.cobaltBlue
+                        Text(
+                          '\$${sub.amount}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold, 
+                            color: AppColors.cobaltBlue
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                )),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
           ),
@@ -295,9 +320,11 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                 icon: Icons.add_rounded,
                 onTap: () => Navigator.push(
                   context,
-                  // TODO: Pass member context here so AddSubscriptionScreen knows 
-                  // to assign the sub to widget.memberName (for Admin logic).
-                  MaterialPageRoute(builder: (_) => const AddSubscriptionScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => AddSubscriptionScreen(
+                      targetHouseholdId: widget.householdId ?? 1,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -333,3 +360,4 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     );
   }
 }
+

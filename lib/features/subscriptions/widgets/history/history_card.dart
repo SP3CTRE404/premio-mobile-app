@@ -1,23 +1,23 @@
+// In lib/features/subscriptions/widgets/history/history_card.dart
 import 'package:flutter/material.dart';
-
+import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../dashboard/models/mock_data.dart';
+import '../../models/subscription_model.dart';
+import '../../utils/subscription_ui_helper.dart';
 import 'history_detail_item.dart';
 
 class HistoryCard extends StatelessWidget {
-  final MockSub subscription;
+  final Subscription historyItem; // Now uses Subscription
   final String currencySymbol;
   final bool isExpanded;
   final VoidCallback onTap;
-  final bool showMadeBy;
 
   const HistoryCard({
     super.key,
-    required this.subscription,
+    required this.historyItem,
     required this.currencySymbol,
     required this.isExpanded,
     required this.onTap,
-    this.showMadeBy = false,
   });
 
   @override
@@ -26,19 +26,17 @@ class HistoryCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final bool isOverdue = subscription.due.toLowerCase().contains('overdue');
-    final String paymentType = isOverdue ? 'Manual' : 'Auto-pay';
-    const String billingCycle = 'Monthly';
+    final IconData icon = SubscriptionUIHelper.getIcon(historyItem.serviceName);
+    final String formattedDate = DateFormat('MMM dd, yyyy').format(historyItem.nextBillingDate);
+    final contentColor = colorScheme.onSurface.withValues(alpha: 0.6); // Grayed out
 
     return Card(
       color: theme.cardTheme.color ?? colorScheme.surface,
       surfaceTintColor: Colors.transparent,
-      elevation: isExpanded ? 8 : 4,
+      elevation: isExpanded ? 4 : 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: isExpanded
-            ? BorderSide(color: colorScheme.primary.withValues(alpha: 0.3), width: 1)
-            : BorderSide.none,
+        side: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.1), width: 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -52,30 +50,21 @@ class HistoryCard extends StatelessWidget {
               children: [
                 ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    child: Icon(
-                      subscription.icon,
-                      color: subscription.statusColor,
-                    ),
+                    backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    child: Icon(icon, color: contentColor),
                   ),
                   title: Text(
-                    subscription.name,
+                    historyItem.serviceName,
                     style: textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onSurface,
+                      color: contentColor,
                       fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.lineThrough, // Strikethrough effect!
                       fontSize: 16,
                     ),
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      formatCurrency(subscription.price, currencySymbol),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.54),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
-                    ),
+                    child: Text('Ended on $formattedDate', style: textTheme.bodySmall?.copyWith(color: contentColor.withValues(alpha: 0.7))),
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -85,30 +74,23 @@ class HistoryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'Expired',
+                            formatCurrency(historyItem.amount, currencySymbol),
                             style: textTheme.bodyLarge?.copyWith(
-                              color: colorScheme.error,
+                              color: contentColor,
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            subscription.category,
+                            'EXPIRED',
                             style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                              color: colorScheme.error.withValues(alpha: 0.8),
                               fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        isExpanded
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
-                        color: colorScheme.onSurface.withValues(alpha: 0.54),
-                        size: 20,
                       ),
                     ],
                   ),
@@ -116,92 +98,30 @@ class HistoryCard extends StatelessWidget {
                 if (isExpanded)
                   Padding(
                     padding: const EdgeInsets.only(
-                      left: 16.0,
-                      right: 16.0,
-                      bottom: 8.0,
-                      top: 4.0,
-                    ),
+                        left: 16.0, right: 16.0, bottom: 8.0, top: 4.0),
                     child: Column(
                       children: [
                         Divider(
-                          color: colorScheme.onSurface.withValues(alpha: 0.12),
-                          height: 24,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: showMadeBy
-                              ? Column(
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: HistoryDetailItem(
-                                            label: 'Billing Cycle',
-                                            value: billingCycle,
-                                            icon: Icons.calendar_month_outlined,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: HistoryDetailItem(
-                                            label: 'Payment Type',
-                                            value: paymentType,
-                                            icon: Icons.payment_outlined,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: HistoryDetailItem(
-                                            label: 'Date',
-                                            value: subscription.purchaseDate,
-                                            icon:
-                                                Icons.event_available_outlined,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: HistoryDetailItem(
-                                            label: 'Made By:',
-                                            value: subscription.madeBy,
-                                            icon: Icons.person_outline,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                )
-                              : Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      child: HistoryDetailItem(
-                                        label: 'Billing Cycle',
-                                        value: billingCycle,
-                                        icon: Icons.calendar_month_outlined,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: HistoryDetailItem(
-                                        label: 'Payment Type',
-                                        value: paymentType,
-                                        icon: Icons.payment_outlined,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: HistoryDetailItem(
-                                        label: 'Date',
-                                        value: subscription.purchaseDate,
-                                        icon: Icons.event_available_outlined,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            color: colorScheme.onSurface.withValues(alpha: 0.08),
+                            height: 24),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: HistoryDetailItem(
+                                label: 'Final Billing Cycle',
+                                value: historyItem.billingCycle.name.toUpperCase(),
+                                icon: Icons.calendar_month_outlined,
+                              ),
+                            ),
+                            Expanded(
+                              child: HistoryDetailItem(
+                                label: 'Subscription ID',
+                                value: '#${historyItem.id.toString().padLeft(6, '0')}',
+                                icon: Icons.tag,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                       ],
@@ -209,6 +129,7 @@ class HistoryCard extends StatelessWidget {
                   ),
               ],
             ),
+
           ),
         ),
       ),

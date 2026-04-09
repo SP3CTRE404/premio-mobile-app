@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
 import '../services/subscription_repository.dart';
+import 'history_provider.dart';
 
 /// Holds the list of due / active subscriptions.
 class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
@@ -42,7 +42,32 @@ class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
     await repo.toggleAutoPay(id);
     await refresh();
   }
+
+  /// Update an existing subscription.
+  Future<void> updateSubscription(int id, SubscriptionRequest request) async {
+    final repo = ref.read(subscriptionRepositoryProvider);
+    await repo.updateSubscription(id, request);
+    await refresh();
+  }
+
+  /// Delete a subscription.
+  Future<void> delete(int id) async {
+    final repo = ref.read(subscriptionRepositoryProvider);
+    await repo.deleteSubscription(id);
+    await refresh();
+  }
+
+  /// Expire a subscription (move to history).
+  Future<void> expire(int id) async {
+    final repo = ref.read(subscriptionRepositoryProvider);
+    await repo.expireSubscription(id);
+    await refresh();
+    // Invalidate the history provider so the History Tab refreshes immediately
+    ref.invalidate(userHistoryProvider);
+  }
 }
+
+
 
 final subscriptionProvider =
     AsyncNotifierProvider<SubscriptionNotifier, List<Subscription>>(

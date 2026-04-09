@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/widgets/auth_background.dart';
-import '../../dashboard/models/mock_data.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
@@ -14,17 +13,14 @@ import '../widgets/add_subscription/form_label.dart';
 import '../widgets/add_subscription/payment_type_field.dart';
 import '../widgets/add_subscription/save_subscription_button.dart';
 import '../widgets/add_subscription/service_name_field.dart';
+import '../../auth/widgets/auth_text_field.dart';
 import '../../../core/widgets/custom_toast.dart';
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
-  final MockSub? initialData;
-  const AddSubscriptionScreen({super.key, this.initialData});
+  final Subscription? initialData;
+  final int? targetHouseholdId;
 
-  // TODO: Add Logic for Admin context:
-  // When an admin accesses this screen from a Member Detail page, the app should
-  // automatically assume the new subscription belongs to that member.
-  // If accessed normally (e.g., from Dashboard), it defaults to the admin's own task.
-
+  const AddSubscriptionScreen({super.key, this.initialData, this.targetHouseholdId});
 
   @override
   ConsumerState<AddSubscriptionScreen> createState() =>
@@ -35,6 +31,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _amountController;
+  late final TextEditingController _customDaysController;
 
   BillingCycle? _selectedCycle;
   bool? _isAutoPay;
@@ -44,31 +41,22 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialData?.name);
-    _amountController = TextEditingController(text: widget.initialData?.price.toString());
+    _nameController = TextEditingController(text: widget.initialData?.serviceName);
+    _amountController = TextEditingController(text: widget.initialData?.amount.toString());
+    _customDaysController = TextEditingController(
+      text: widget.initialData?.customIntervalDays?.toString() ?? ''
+    );
     
-    _isAutoPay = widget.initialData != null ? true : null;
-
-    if (widget.initialData != null) {
-      // Find matching cycle based on name (mock logic)
-      _selectedCycle = BillingCycle.values.firstWhere(
-        (e) => e.name.toLowerCase() == 'monthly', 
-        orElse: () => BillingCycle.monthly
-      );
-      
-      // Parse mock date string "2024-01-20"
-      try {
-        _selectedDate = DateTime.parse(widget.initialData!.purchaseDate);
-      } catch (_) {
-        _selectedDate = DateTime.now();
-      }
-    }
+    _isAutoPay = widget.initialData?.isAutoPay;
+    _selectedCycle = widget.initialData?.billingCycle;
+    _selectedDate = widget.initialData?.nextBillingDate;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _amountController.dispose();
+    _customDaysController.dispose();
     super.dispose();
   }
 
@@ -147,6 +135,15 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                       selectedCycle: _selectedCycle,
                       onSelected: _onCycleSelected,
                     ),
+                    if (_selectedCycle == BillingCycle.custom) ...[
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        label: 'Custom Interval (Days)',
+                        hint: 'e.g. 14',
+                        controller: _customDaysController,
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     // ─── Payment Type Popup ───
@@ -184,16 +181,39 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedCycle == null) {
+      CustomToast.show(context: context, message: 'Please select a billing cycle', isError: true);
+      return;
+    }
+    if (_isAutoPay == null) {
+      CustomToast.show(context: context, message: 'Please select a payment type', isError: true);
+      return;
+    }
+    if (_selectedDate == null) {
+      CustomToast.show(context: context, message: 'Please select a billing date', isError: true);
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final request = SubscriptionRequest(
         serviceName: _nameController.text.trim(),
         amount: double.parse(_amountController.text.trim()),
         billingCycle: _selectedCycle!,
+        customIntervalDays: _selectedCycle == BillingCycle.custom 
+            ? int.tryParse(_customDaysController.text.trim()) 
+            : null,
         nextBillingDate: _selectedDate!,
         isAutoPay: _isAutoPay!,
+        householdId: widget.targetHouseholdId,
       );
-      await ref.read(subscriptionProvider.notifier).add(request);
+
+      if (widget.initialData != null) {
+        await ref.read(subscriptionProvider.notifier).updateSubscription(widget.initialData!.id, request);
+      } else {
+        await ref.read(subscriptionProvider.notifier).add(request);
+      }
+      
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) CustomToast.show(context: context, message: 'Error: $e', isError: true);
@@ -201,4 +221,4 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-}
+}

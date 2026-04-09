@@ -23,22 +23,19 @@ class FinancialHeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final yearly = monthly * 12;
-
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: Theme.of(context)
-              .colorScheme
-              .onSurface
-              .withValues(alpha: 0.05),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
         children: [
-          // Ring chart with center text
+          // ── Ring Chart ──
           SizedBox(
             height: 190,
             width: 190,
@@ -68,10 +65,7 @@ class FinancialHeroCard extends StatelessWidget {
                       '/ month',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.45),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.45),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -79,10 +73,7 @@ class FinancialHeroCard extends StatelessWidget {
                       '${formatCurrency(yearly, currencySymbol)} / year',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.3),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -94,7 +85,7 @@ class FinancialHeroCard extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Legend row
+          // ── Legend Row ──
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -103,28 +94,19 @@ class FinancialHeroCard extends StatelessWidget {
               _LegendItem(label: 'Overdue', color: Colors.redAccent, count: overdue),
             ],
           ),
-          
-          // Removed the SparklineSection from here
         ],
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────
-// Private sub-widgets
-// ─────────────────────────────────────────
 
 class _LegendItem extends StatelessWidget {
   final String label;
   final Color color;
   final int count;
 
-  const _LegendItem({
-    required this.label,
-    required this.color,
-    required this.count,
-  });
+  const _LegendItem({required this.label, required this.color, required this.count});
 
   @override
   Widget build(BuildContext context) {
@@ -139,22 +121,14 @@ class _LegendItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.5),
-                    blurRadius: 6,
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 6)],
               ),
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 13,
               ),
             ),
@@ -163,12 +137,9 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           count.toString(),
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
       ], 
     );
   }
-}
+}

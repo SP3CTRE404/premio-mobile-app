@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-
-import '../../../dashboard/models/mock_data.dart';
+import '../../models/subscription_model.dart';
 import 'history_card.dart';
 
 class HistoryListView extends StatelessWidget {
-  final List<MockSub> subscriptions;
+  final List<Subscription> historyItems;
   final String currencySymbol;
   final Set<String> expandedCards;
   final Function(String) onToggleCard;
   final String tabPrefix;
-  final bool showMadeBy;
 
   const HistoryListView({
     super.key,
-    required this.subscriptions,
+    required this.historyItems,
     required this.currencySymbol,
     required this.expandedCards,
     required this.onToggleCard,
     required this.tabPrefix,
-    required this.showMadeBy,
   });
+
 
   @override
   Widget build(BuildContext context) {
+    if (historyItems.isEmpty) {
+      return const Center(child: Text('No payment history found.'));
+    }
+
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(
@@ -31,21 +33,22 @@ class HistoryListView extends StatelessWidget {
         left: 16.0,
         right: 16.0,
       ),
-      itemCount: subscriptions.length,
+      itemCount: historyItems.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final sub = subscriptions[index];
-        final cardKey = '${tabPrefix}_$index';
+        final item = historyItems[index];
+        final cardKey = '${tabPrefix}_${item.id}';
         final isExpanded = expandedCards.contains(cardKey);
 
         return HistoryCard(
-          subscription: sub,
+          historyItem: item,
           currencySymbol: currencySymbol,
           isExpanded: isExpanded,
           onTap: () => onToggleCard(cardKey),
-          showMadeBy: showMadeBy,
         );
       },
     );
   }
 }
+
+

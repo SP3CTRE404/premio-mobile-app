@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import '../../auth/widgets/auth_button.dart';
 import '../widgets/shared/household_form_layout.dart';
 import 'qr_scanner_screen.dart';
 import '../../../core/widgets/custom_toast.dart';
+import '../providers/household_provider.dart';
 
-class JoinHouseholdScreen extends StatefulWidget {
+class JoinHouseholdScreen extends ConsumerStatefulWidget {
   const JoinHouseholdScreen({super.key});
 
   @override
-  State<JoinHouseholdScreen> createState() => _JoinHouseholdScreenState();
+  ConsumerState<JoinHouseholdScreen> createState() => _JoinHouseholdScreenState();
 }
 
-class _JoinHouseholdScreenState extends State<JoinHouseholdScreen> {
+class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
   final _codeController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,10 +39,22 @@ class _JoinHouseholdScreenState extends State<JoinHouseholdScreen> {
           ),
           const SizedBox(height: 32),
           AuthButton(
-            label: 'Join with Code',
-            onPressed: () { 
-              // TODO: Logic to call backend
-              Navigator.pop(context);
+            label: _isLoading ? 'Joining...' : 'Join with Code',
+            onPressed: _isLoading ? null : () async { 
+              if (_codeController.text.trim().isEmpty) return;
+              
+              setState(() => _isLoading = true);
+              try {
+                await ref.read(householdProvider.notifier).joinHousehold(_codeController.text.trim());
+                if (context.mounted) {
+                  CustomToast.show(context: context, message: 'Successfully joined household!');
+                  Navigator.pop(context);
+                }
+              } catch (e) {
+                if (context.mounted) CustomToast.show(context: context, message: e.toString(), isError: true);
+              } finally {
+                if (mounted) setState(() => _isLoading = false);
+              }
             },
           ),
           const SizedBox(height: 24),
@@ -68,7 +83,6 @@ class _JoinHouseholdScreenState extends State<JoinHouseholdScreen> {
                   _codeController.text = result;
                 });
                 
-                // Optionally show a quick visual confirmation
                 CustomToast.show(context: context, message: 'QR Code Scanned Successfully!', isError: false);
               }
             },
