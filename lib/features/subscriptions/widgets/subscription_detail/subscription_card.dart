@@ -34,22 +34,7 @@ class SubscriptionCard extends StatelessWidget {
     final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';
     final String billingCycle = subscription.billingCycle.name[0].toUpperCase() + subscription.billingCycle.name.substring(1);
 
-    DateTime subDate;
-    final next = subscription.nextBillingDate;
-    switch (subscription.billingCycle) {
-      case BillingCycle.monthly:
-        subDate = DateTime(next.year, next.month - 1, next.day);
-        break;
-      case BillingCycle.yearly:
-        subDate = DateTime(next.year - 1, next.month, next.day);
-        break;
-      case BillingCycle.custom:
-        subDate = next.subtract(Duration(days: subscription.customIntervalDays ?? 0));
-        break;
-      default:
-        subDate = next;
-    }
-    final String subDateFormatted = SubscriptionUIHelper.formatDate(subDate);
+    final String subDateFormatted = SubscriptionUIHelper.formatDate(subscription.purchaseDate);
 
     return Card(
       color: theme.cardTheme.color ?? colorScheme.surface,

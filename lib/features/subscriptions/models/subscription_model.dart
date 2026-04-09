@@ -20,6 +20,7 @@ class Subscription {
   final BillingCycle billingCycle;
   final int? customIntervalDays; // NEW: Gap 12
   final DateTime nextBillingDate;
+  final DateTime purchaseDate;
   final bool isAutoPay;
   final String? ownerName;
   final int? ownerId;
@@ -36,6 +37,7 @@ class Subscription {
     required this.billingCycle,
     this.customIntervalDays,
     required this.nextBillingDate,
+    required this.purchaseDate,
     required this.isAutoPay,
     this.ownerName,
     this.ownerId,
@@ -54,6 +56,9 @@ class Subscription {
       billingCycle: BillingCycle.fromString(json['billingCycle'] as String),
       customIntervalDays: json['customIntervalDays'] as int?,
       nextBillingDate: DateTime.parse(json['nextBillingDate'] as String),
+      purchaseDate: json['purchaseDate'] != null 
+          ? DateTime.parse(json['purchaseDate'] as String)
+          : DateTime.parse(json['nextBillingDate'] as String), // Fallback to nextBillingDate if null
       isAutoPay: json['isAutoPay'] as bool,
       ownerName: json['ownerName'] as String?,
       ownerId: json['ownerId'] as int?,
@@ -72,6 +77,7 @@ class Subscription {
         'billingCycle': billingCycle.name.toUpperCase(),
         'customIntervalDays': customIntervalDays,
         'nextBillingDate': nextBillingDate.toIso8601String(),
+        'purchaseDate': purchaseDate.toIso8601String(),
         'isAutoPay': isAutoPay,
         'ownerName': ownerName,
         'ownerId': ownerId,
@@ -90,6 +96,7 @@ class Subscription {
     BillingCycle? billingCycle,
     int? customIntervalDays,
     DateTime? nextBillingDate,
+    DateTime? purchaseDate,
     bool? isAutoPay,
     String? ownerName,
     int? ownerId,
@@ -106,6 +113,7 @@ class Subscription {
       billingCycle: billingCycle ?? this.billingCycle,
       customIntervalDays: customIntervalDays ?? this.customIntervalDays,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
       isAutoPay: isAutoPay ?? this.isAutoPay,
       ownerName: ownerName ?? this.ownerName,
       ownerId: ownerId ?? this.ownerId,

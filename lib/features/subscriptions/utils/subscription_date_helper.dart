@@ -21,25 +21,32 @@ class SubscriptionDateHelper {
 
     DateTime nextDate = normalizedPurchase;
 
-    // Safety counter to prevent infinite loops if something goes wrong
+    // Safety counter to prevent infinite loops
     int iterations = 0;
-    while (nextDate.isBefore(today) && iterations < 1000) {
-      iterations++;
+    while (iterations < 1000) {
+      DateTime candidate;
       switch (cycle) {
         case BillingCycle.monthly:
-          nextDate = _addMonths(nextDate, 1);
+          candidate = _addMonths(nextDate, 1);
           break;
         case BillingCycle.quarterly:
-          nextDate = _addMonths(nextDate, 3);
+          candidate = _addMonths(nextDate, 3);
           break;
         case BillingCycle.yearly:
-          nextDate = DateTime(nextDate.year + 1, nextDate.month, nextDate.day);
+          candidate = DateTime(nextDate.year + 1, nextDate.month, nextDate.day);
           break;
-
         case BillingCycle.custom:
-          nextDate = nextDate.add(Duration(days: customDays ?? 30));
+          candidate = nextDate.add(Duration(days: customDays ?? 30));
           break;
       }
+
+      // If the NEXT date is in the future, then the CURRENT nextDate is the one that's due (or was due most recently)
+      if (candidate.isAfter(today)) {
+        break;
+      }
+
+      nextDate = candidate;
+      iterations++;
     }
 
     return nextDate;

@@ -30,3 +30,4 @@ class SubTrackApp extends ConsumerWidget {
     );
   }
 }
+//i dont want the app to do the calculatoins for this, i want the app to sent the purchase date back to api and the backend can do the calculations and determine if upcoming or over due. 

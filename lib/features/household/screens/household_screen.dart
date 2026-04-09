@@ -52,13 +52,13 @@ class HouseholdScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const AuthHeader(
-                title: 'Get\nStarted',
+                title: 'Get Started',
                 subtitle: 'Manage your subscriptions with family or roommates in a shared space.',
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 50),
               SelectionCard(
-                title: 'Create Household',
-                description: 'Start a new group and invite others to join.',
+                title: 'Create a Household',
+                description: 'Start a new group and be the administrator.',
                 icon: Icons.add_home_work_rounded,
                 onTap: () => Navigator.push(
                   context,

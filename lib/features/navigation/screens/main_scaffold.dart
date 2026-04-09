@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/subscriptions/screens/history_screen.dart';
+import 'package:subtrack/features/subscriptions/models/user_role.dart';
+import 'package:subtrack/features/subscriptions/providers/user_role_provider.dart';
 
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../subscriptions/screens/subscription_detail_screen.dart';
@@ -67,6 +69,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationIndexProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final isSingle = userRole == UserRole.single;
 
     final List<Widget> screens = [
       const HouseholdScreen(),
@@ -77,7 +81,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     ];
 
     final List<String> titles = [
-      'Household',
+      isSingle ? 'Collaborate' : 'Household',
       'Ongoing Subscriptions',
       'SubTrack',
       'History',

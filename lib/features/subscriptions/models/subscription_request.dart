@@ -7,6 +7,7 @@ class SubscriptionRequest {
   final BillingCycle billingCycle;
   final int? customIntervalDays; // NEW
   final DateTime nextBillingDate;
+  final DateTime purchaseDate;
   final bool isAutoPay;
   final int? householdId; // NEW: So you can link it to a household
   final int? userId;
@@ -18,6 +19,7 @@ class SubscriptionRequest {
     required this.billingCycle,
     this.customIntervalDays,
     required this.nextBillingDate,
+    required this.purchaseDate,
     required this.isAutoPay,
     this.householdId,
     this.userId,
@@ -30,6 +32,7 @@ class SubscriptionRequest {
       'amount': amount,
       'billingCycle': billingCycle.name.toUpperCase(), // Backend expects uppercase
       'nextBillingDate': nextBillingDate.toIso8601String().split('T')[0], // Usually backend expects YYYY-MM-DD for LocalDate
+      'purchaseDate': purchaseDate.toIso8601String().split('T')[0],
       'isAutoPay': isAutoPay,
     };
 

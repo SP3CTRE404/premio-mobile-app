@@ -8,6 +8,7 @@ import '../../subscriptions/providers/subscription_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/action_card_list.dart';
 import '../widgets/financial_hero_card.dart';
+import '../../subscriptions/screens/subscription_detail_screen.dart';
 
 enum DashboardViewMode { personal, household }
 
@@ -55,7 +56,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Here is your subscription overview.',
+                    userRole == UserRole.single 
+                        ? 'Keep your personal subscriptions in check.' 
+                        : 'Here is your subscription overview.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
@@ -108,12 +111,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 
 
+              final actionNeeded = filteredSubs.where((s) {
+                if (s.isAutoPay) return false;
+                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
+                final isOverdue = billingDate.isBefore(today);
+                final isUpcoming = !isOverdue && billingDate.difference(today).inDays <= 3;
+                return isOverdue || isUpcoming;
+              }).toList();
+
+              if (allSubs.isEmpty) {
+                  return const _DashboardEmptyState();
+              }
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   monthlyTotalAsync.when(
                     data: (householdMonthly) {
-                      // Members only see their own monthly total, Admins see the whole house
                       final displayMonthly = isAdmin 
                           ? householdMonthly 
                           : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
@@ -126,8 +140,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         currencySymbol: currencySymbol,
                       );
                     },
-
-
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (err, st) => const FinancialHeroCard(
                       monthly: 0,
@@ -139,7 +151,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
 
                   const SizedBox(height: 28),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -148,16 +159,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  
                   ActionCardList(
-                    subscriptions: filteredSubs.where((s) {
-                      if (s.isAutoPay) return false;
-                      final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
-                      final isOverdue = billingDate.isBefore(today);
-                      final isUpcoming = !isOverdue && billingDate.difference(today).inDays <= 3;
-                      return isOverdue || isUpcoming;
-                    }).toList(), 
+                    subscriptions: actionNeeded, 
                     paidItems: _paidItems.map((e) => e.toString()).toSet(), 
                     currencySymbol: currencySymbol,
                     showOwner: _viewMode == DashboardViewMode.household,
@@ -172,8 +175,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       });
                     },
                   ),
-
-
                 ],
               );
             },
@@ -217,6 +218,79 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
+    );
+  }
+}
+
+class _DashboardEmptyState extends StatelessWidget {
+  const _DashboardEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              size: 48,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Ready to Track?',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Add your first subscription to see your personal financial overview and insights.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: () {
+              // Navigate to AddSubscriptionScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SubscriptionDetailScreen(),
+                ),
+              );
+              // Small delay to let the screen push before opening the FAB menu or similar logic
+              // Actually, better to just go to detailing screen or direct add
+              // For simplicity, we navigate to detailing screen where FAB is prominent
+            },
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add My First Subscription'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

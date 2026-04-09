@@ -57,6 +57,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     
     _isAutoPay = widget.initialData?.isAutoPay;
     _selectedCycle = widget.initialData?.billingCycle;
+    _selectedDate = widget.initialData?.purchaseDate;
     // _isShared = widget.initialData?.householdId != null || widget.targetHouseholdId != null;
   }
 
@@ -229,6 +230,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
             ? int.tryParse(_customDaysController.text.trim()) 
             : null,
         nextBillingDate: calculatedNextBilling,
+        purchaseDate: _selectedDate!,
         isAutoPay: _isAutoPay!,
         userId: widget.targetUserId ?? ref.read(userProvider).value?.id,
       );
