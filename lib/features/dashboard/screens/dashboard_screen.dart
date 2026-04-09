@@ -7,8 +7,10 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/action_card_list.dart';
-import '../widgets/category_chips.dart';
 import '../widgets/financial_hero_card.dart';
+
+enum DashboardViewMode { personal, household }
+
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -18,8 +20,10 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  String _selectedCategory = 'All';
+  DashboardViewMode _viewMode = DashboardViewMode.personal;
+
   final Set<int> _paidItems = {}; 
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,31 +71,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, stack) => Text('Failed to load subscriptions: $err'),
             data: (allSubs) {
-              final roleBasedSubs = userRole == UserRole.admin 
-                  ? allSubs 
-                  : allSubs.where((s) => s.ownerName == userAsync.value?.fullName).toList();
+              final isAdmin = userRole == UserRole.admin;
+              final currentUserId = userAsync.value?.id;
 
-              final filteredSubs = _selectedCategory == 'All' 
-                  ? roleBasedSubs 
-                  : roleBasedSubs; 
+              // What this user is ALLOWED to see on their dashboard
+              final viewableSubs = isAdmin
+                  ? allSubs // Admins see everything for the overview
+                  : allSubs.where((s) => s.ownerId == currentUserId).toList(); // Members only see their own
 
-              final upToDate = roleBasedSubs.where((s) => _paidItems.contains(s.id)).length;
-              final dueSoon = roleBasedSubs.where((s) => s.nextBillingDate.difference(DateTime.now()).inDays <= 7 && s.nextBillingDate.difference(DateTime.now()).inDays >= 0).length;
-              final overdue = roleBasedSubs.where((s) => s.nextBillingDate.isBefore(DateTime.now())).length;
+              // Action Needed list filtering (Specific focus for Admins)
+              final filteredSubs = (isAdmin && _viewMode == DashboardViewMode.personal)
+                  ? viewableSubs.where((s) => s.ownerId == currentUserId).toList()
+                  : (isAdmin && _viewMode == DashboardViewMode.household)
+                      ? viewableSubs.where((s) => s.ownerId != currentUserId).toList()
+                      : viewableSubs;
+
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              
+              final overdue = viewableSubs.where((s) {
+                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
+                return billingDate.isBefore(today);
+              }).length;
+
+              final dueSoon = viewableSubs.where((s) {
+                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
+                if (billingDate.isBefore(today)) return false;
+                final diff = billingDate.difference(today).inDays;
+                return diff >= 0 && diff <= 3;
+              }).length;
+
+              final upToDate = viewableSubs.length - overdue - dueSoon;
+
+
+
+
+
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   monthlyTotalAsync.when(
-                    data: (monthly) {
+                    data: (householdMonthly) {
+                      // Members only see their own monthly total, Admins see the whole house
+                      final displayMonthly = isAdmin 
+                          ? householdMonthly 
+                          : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
+                          
                       return FinancialHeroCard(
-                        monthly: monthly,
+                        monthly: displayMonthly,
                         upToDate: upToDate,
                         dueSoon: dueSoon,
                         overdue: overdue,
                         currencySymbol: currencySymbol,
                       );
                     },
+
 
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (err, st) => const FinancialHeroCard(
@@ -105,22 +140,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                   const SizedBox(height: 28),
 
-                  _sectionTitle(context, 'Categories'),
-                  const SizedBox(height: 12),
-                  CategoryChips(
-                    selectedCategory: _selectedCategory,
-                    onCategorySelected: (cat) => setState(() => _selectedCategory = cat),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _sectionTitle(context, 'Action Needed'),
+                      if (isAdmin) _buildViewToggle(context),
+                    ],
                   ),
-
-                  const SizedBox(height: 28),
-
-                  _sectionTitle(context, 'Action Needed'),
                   const SizedBox(height: 16),
+
                   
                   ActionCardList(
-                    subscriptions: filteredSubs, 
+                    subscriptions: filteredSubs.where((s) {
+                      if (s.isAutoPay) return false;
+                      final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
+                      final isOverdue = billingDate.isBefore(today);
+                      final isUpcoming = !isOverdue && billingDate.difference(today).inDays <= 3;
+                      return isOverdue || isUpcoming;
+                    }).toList(), 
                     paidItems: _paidItems.map((e) => e.toString()).toSet(), 
                     currencySymbol: currencySymbol,
+                    showOwner: _viewMode == DashboardViewMode.household,
                     onTogglePaid: (idString) {
                       final id = int.parse(idString);
                       setState(() {
@@ -132,6 +172,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       });
                     },
                   ),
+
+
                 ],
               );
             },
@@ -141,12 +183,91 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Widget _buildViewToggle(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: 180, // Made it a small unit
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          _ViewModeButton(
+            label: 'Personal',
+            isSelected: _viewMode == DashboardViewMode.personal,
+            onTap: () => setState(() => _viewMode = DashboardViewMode.personal),
+          ),
+          _ViewModeButton(
+            label: 'Household',
+            isSelected: _viewMode == DashboardViewMode.household,
+            onTap: () => setState(() => _viewMode = DashboardViewMode.household),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _sectionTitle(BuildContext context, String title) {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
           ),
+    );
+  }
+}
+
+class _ViewModeButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ViewModeButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? colorScheme.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    )
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.6),
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ),
+
+      ),
     );
   }
 }

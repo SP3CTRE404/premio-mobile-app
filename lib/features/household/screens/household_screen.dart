@@ -100,63 +100,76 @@ class HouseholdScreen extends ConsumerWidget {
     final int sharedSubsCount = subscriptions.length;
     final double totalValue = subscriptions.fold(0.0, (sum, sub) => sum + sub.amount);
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          HouseholdHeroCard(
-            householdName: householdName,
-            isAdmin: isAdmin,
-            sharedSubs: sharedSubsCount.toString(),
-            totalValue: totalValue,
-            currencySymbol: currencySymbol,
-            onInviteTap: () => _showInviteBottomSheet(context, householdName),
-          ),
-          const SizedBox(height: 36),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Members ($totalMembers)',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+    return RefreshIndicator(
+      onRefresh: () => ref.read(householdProvider.notifier).refresh(),
+      displacement: 20,
+      color: theme.primaryColor,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
+        child: Column(
+
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            HouseholdHeroCard(
+              householdName: householdName,
+              imageUrl: household['imageUrl'],
+              isAdmin: isAdmin,
+              sharedSubs: sharedSubsCount.toString(),
+              totalValue: totalValue,
+              currencySymbol: currencySymbol,
+              onInviteTap: () => _showInviteBottomSheet(context, householdName),
+            ),
+
+            const SizedBox(height: 36),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Members ($totalMembers)',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ...members.map((member) {
-            final isYou = member['id'] == currentUser?.id;
-            final name = isYou ? 'You' : (member['fullName'] ?? 'Member');
-            final role = member['role'] == 'ADMIN' || member['role'] == 'Admin' ? 'Admin' : 'Member';
-            
-            return MemberListItem(
-              name: name,
-              role: role,
-              isYou: isYou,
-              showArrow: isAdmin && !isYou,
-              onTap: (isAdmin && !isYou) ? () => Navigator.push(
-                context, 
-                MaterialPageRoute(
-                  builder: (_) => MemberDetailsScreen(
-                    memberName: member['fullName'] ?? 'Member', 
-                    role: role,
-                    householdId: household['id'],
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...members.map((member) {
+              final isYou = member['id'] == currentUser?.id;
+              final name = isYou ? 'You' : (member['fullName'] ?? 'Member');
+              final role = member['role'] == 'ADMIN' || member['role'] == 'Admin' ? 'Admin' : 'Member';
+              
+              return MemberListItem(
+                name: name,
+                role: role,
+                isYou: isYou,
+                profilePicture: member['profilePicture'],
+                showArrow: isAdmin && !isYou,
+  
+                onTap: (isAdmin && !isYou) ? () => Navigator.push(
+                  context, 
+                  MaterialPageRoute(
+                    builder: (_) => MemberDetailsScreen(
+                      memberId: member['id'],
+                      memberName: member['fullName'] ?? 'Member', 
+                      role: role,
+                      householdId: household['id'],
+                    )
+  
                   )
-                )
-              ) : null,
-            );
-          }),
-          const SizedBox(height: 40),
-          HouseholdActions(
-            isAdmin: isAdmin,
-            onLeave: () => _confirmLeave(context, ref, isAdmin, householdName),
-            onDelete: () => _confirmDelete(context, ref, householdName),
-          ),
-        ],
+                ) : null,
+              );
+            }),
+            const SizedBox(height: 40),
+            HouseholdActions(
+              isAdmin: isAdmin,
+              onLeave: () => _confirmLeave(context, ref, isAdmin, householdName),
+              onDelete: () => _confirmDelete(context, ref, householdName),
+            ),
+          ],
+        ),
       ),
     );
+
   }
 
   void _confirmLeave(BuildContext context, WidgetRef ref, bool isAdmin, String householdName) {

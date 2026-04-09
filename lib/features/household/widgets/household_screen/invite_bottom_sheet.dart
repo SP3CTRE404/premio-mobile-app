@@ -194,11 +194,13 @@ class InviteBottomSheet extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () => _showQRDialog(context, theme, shareLink),
+              onPressed: (household == null || inviteCode == 'LOADING...')
+                  ? null
+                  : () => _showQRDialog(context, theme, shareLink),
               icon: const Icon(Icons.qr_code_scanner_rounded),
-              label: const Text('Show QR Code'),
+              label: Text(inviteCode == 'LOADING...' ? 'Loading Invite...' : 'Show QR Code'),
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.all(16),
                 backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
                 foregroundColor: theme.colorScheme.onSurface,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -206,6 +208,7 @@ class InviteBottomSheet extends ConsumerWidget {
               ),
             ),
           ),
+
         ],
       ),
     );
@@ -214,45 +217,75 @@ class InviteBottomSheet extends ConsumerWidget {
   void _showQRDialog(BuildContext context, ThemeData theme, String shareLink) {
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (ctx) => AlertDialog(
         backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        contentPadding: const EdgeInsets.all(24),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'Scan to Join',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
+            Text(
+              'Hold this QR for a member to scan',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Explicitly sized container for the QR
             Container(
+              width: 240,
+              height: 240,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: QrImageView(
                 data: shareLink,
                 version: QrVersions.auto,
-                size: 200,
-                eyeStyle: const QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: Colors.black,
-                ),
-                dataModuleStyle: const QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: Colors.black,
-                ),
+                gapless: false,
+                errorStateBuilder: (cxt, err) {
+                  return Center(
+                    child: Text(
+                      'QR Error!',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: Colors.red),
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Close'),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Close'),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
 }

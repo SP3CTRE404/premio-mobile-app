@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class MemberListItem extends StatelessWidget {
@@ -6,6 +8,7 @@ class MemberListItem extends StatelessWidget {
   final String role;
   final bool isYou;
   final bool showArrow;
+  final String? profilePicture;
   final VoidCallback? onTap;
 
   const MemberListItem({
@@ -14,8 +17,10 @@ class MemberListItem extends StatelessWidget {
     required this.role,
     required this.isYou,
     this.showArrow = true,
+    this.profilePicture,
     this.onTap,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -81,17 +86,31 @@ class MemberListItem extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Center(
-                child: Text(
-                  name[0].toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ),
+              child: (profilePicture != null && profilePicture!.isNotEmpty)
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Image.memory(
+                        base64Decode(
+                          profilePicture!.contains(',') 
+                              ? profilePicture!.split(',').last 
+                              : profilePicture!
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    )
+
+                  : Center(
+                      child: Text(
+                        name[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
             ),
+
             const SizedBox(width: 16),
             Expanded(
               child: Column(

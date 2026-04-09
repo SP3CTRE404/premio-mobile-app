@@ -22,8 +22,12 @@ class Subscription {
   final DateTime nextBillingDate;
   final bool isAutoPay;
   final String? ownerName;
+  final int? ownerId;
   final String? householdName; // NEW: Based on your backend SubscriptionResponse
+
+  final int? householdId;
   final String status; // NEW: Status field (ACTIVE, EXPIRED, etc.)
+
 
   Subscription({
     required this.id,
@@ -34,9 +38,13 @@ class Subscription {
     required this.nextBillingDate,
     required this.isAutoPay,
     this.ownerName,
+    this.ownerId,
     this.householdName,
+    this.householdId,
     this.status = 'ACTIVE',
   });
+
+
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
@@ -48,10 +56,14 @@ class Subscription {
       nextBillingDate: DateTime.parse(json['nextBillingDate'] as String),
       isAutoPay: json['isAutoPay'] as bool,
       ownerName: json['ownerName'] as String?,
+      ownerId: json['ownerId'] as int?,
       householdName: json['householdName'] as String?,
+      householdId: json['householdId'] as int?,
       status: json['status'] as String? ?? 'ACTIVE',
     );
+
   }
+
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -62,9 +74,13 @@ class Subscription {
         'nextBillingDate': nextBillingDate.toIso8601String(),
         'isAutoPay': isAutoPay,
         'ownerName': ownerName,
+        'ownerId': ownerId,
         'householdName': householdName,
+        'householdId': householdId,
         'status': status,
       };
+
+
 
   /// Returns a copy with updated fields.
   Subscription copyWith({
@@ -76,9 +92,13 @@ class Subscription {
     DateTime? nextBillingDate,
     bool? isAutoPay,
     String? ownerName,
+    int? ownerId,
     String? householdName,
+    int? householdId,
     String? status,
   }) {
+
+
     return Subscription(
       id: id ?? this.id,
       serviceName: serviceName ?? this.serviceName,
@@ -88,8 +108,12 @@ class Subscription {
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       isAutoPay: isAutoPay ?? this.isAutoPay,
       ownerName: ownerName ?? this.ownerName,
+      ownerId: ownerId ?? this.ownerId,
       householdName: householdName ?? this.householdName,
+      householdId: householdId ?? this.householdId,
       status: status ?? this.status,
     );
+
   }
+
 }

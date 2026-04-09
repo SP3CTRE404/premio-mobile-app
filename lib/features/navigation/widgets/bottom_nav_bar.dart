@@ -83,7 +83,7 @@ class BottomNavBar extends ConsumerWidget {
                   NavItem(
                     outlinedIcon: Icons.receipt_long_outlined,
                     filledIcon: Icons.receipt_long_rounded,
-                    label: 'Subs',
+                    label: 'Subscriptions',
                     index: 1,
                     isPill: isPill,
                   ),
@@ -109,6 +109,8 @@ class BottomNavBar extends ConsumerWidget {
                     index: 4,
                     isPill: isPill,
                   ),
+
+
                 ],
               ),
             ),

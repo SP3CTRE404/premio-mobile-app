@@ -9,6 +9,8 @@ class SubscriptionRequest {
   final DateTime nextBillingDate;
   final bool isAutoPay;
   final int? householdId; // NEW: So you can link it to a household
+  final int? userId;
+
 
   SubscriptionRequest({
     required this.serviceName,
@@ -18,7 +20,9 @@ class SubscriptionRequest {
     required this.nextBillingDate,
     required this.isAutoPay,
     this.householdId,
+    this.userId,
   });
+
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{
@@ -35,6 +39,10 @@ class SubscriptionRequest {
     if (householdId != null) {
       map['householdId'] = householdId;
     }
+    if (userId != null) {
+      map['userId'] = userId;
+    }
+
 
     return map;
   }

@@ -48,9 +48,10 @@ class NavItem extends ConsumerWidget {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
           padding: EdgeInsets.symmetric(
-            horizontal: isSelected ? 16 : 12,
+            horizontal: isSelected ? 16 : 8,
             vertical: isProminent && isSelected ? 7 : 9,
           ),
+
           decoration: BoxDecoration(
             color: backgroundColor,
             borderRadius: BorderRadius.circular(isPill ? 28 : 12),

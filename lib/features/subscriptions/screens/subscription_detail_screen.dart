@@ -78,11 +78,18 @@ class _SubscriptionDetailScreenState
                         if (notification.metrics.axis != Axis.vertical) return false;
                         if (notification is ScrollUpdateNotification) {
                           final delta = notification.scrollDelta ?? 0;
-                          if (delta < 0 && !_isPillVisible) setState(() => _isPillVisible = true);
+                          // Show when scrolling up
+                          if (delta < -10 && !_isPillVisible) {
+                            setState(() => _isPillVisible = true);
+                          } 
+                          // Hide when scrolling down significantly
+                          else if (delta > 10 && _isPillVisible && notification.metrics.pixels > 50) {
+                            setState(() => _isPillVisible = false);
+                          }
                         }
-                        if (notification.metrics.extentAfter == 0 && _isPillVisible) setState(() => _isPillVisible = false);
                         return false;
                       },
+
                       child: TabBarView(
                         children: [
                           SubscriptionListView(

@@ -116,12 +116,6 @@ class HouseholdHeroCard extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      'Shared Workspace',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.5),
-                      ),
-                    ),
                   ],
                 ),
               ),

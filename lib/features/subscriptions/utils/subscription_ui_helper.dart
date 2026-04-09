@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+
 
 /// Helper to get consistent icons and colors for subscriptions based on their names.
 class SubscriptionUIHelper {
@@ -69,5 +71,10 @@ class SubscriptionUIHelper {
     }
     return 'Upcoming';
   }
+
+  static String formatDate(DateTime date) {
+    return DateFormat('MMM dd, yyyy').format(date);
+  }
 }
+
 

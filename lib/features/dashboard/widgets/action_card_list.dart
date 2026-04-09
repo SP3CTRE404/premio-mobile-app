@@ -8,6 +8,7 @@ class ActionCardList extends StatelessWidget {
   final Set<String> paidItems;
   final String currencySymbol;
   final ValueChanged<String> onTogglePaid;
+  final bool showOwner;
 
   const ActionCardList({
     super.key,
@@ -15,7 +16,9 @@ class ActionCardList extends StatelessWidget {
     required this.paidItems,
     required this.currencySymbol,
     required this.onTogglePaid,
+    this.showOwner = false,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class ActionCardList extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: Center(
           child: Text(
-            'No subscriptions in this category.',
+            'All Caught Up!',
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -43,8 +46,10 @@ class ActionCardList extends StatelessWidget {
                 isPaid: paidItems.contains(sub.id.toString()),
                 currencySymbol: currencySymbol,
                 onTogglePaid: () => onTogglePaid(sub.id.toString()),
+                showOwner: showOwner,
               ))
           .toList(),
+
     );
   }
 }
@@ -54,13 +59,16 @@ class _ActionCard extends StatelessWidget {
   final bool isPaid;
   final String currencySymbol;
   final VoidCallback onTogglePaid;
+  final bool showOwner;
 
   const _ActionCard({
     required this.sub,
     required this.isPaid,
     required this.currencySymbol,
     required this.onTogglePaid,
+    required this.showOwner,
   });
+
 
   IconData _getIconForService(String name) {
     final lower = name.toLowerCase();
@@ -76,21 +84,30 @@ class _ActionCard extends StatelessWidget {
 
   Color _getStatusColor(DateTime nextBilling) {
     final now = DateTime.now();
-    final difference = nextBilling.difference(now).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final billingDate = DateTime(nextBilling.year, nextBilling.month, nextBilling.day);
+    
+    final difference = billingDate.difference(today).inDays;
+    
     if (difference < 0) return Colors.redAccent;
-    if (difference <= 7) return Colors.orangeAccent;
+    if (difference <= 3) return Colors.orangeAccent;
     return Colors.blueAccent;
   }
 
+
   String _getDueStatus(DateTime nextBilling) {
     final now = DateTime.now();
-    final difference = nextBilling.difference(now).inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final billingDate = DateTime(nextBilling.year, nextBilling.month, nextBilling.day);
+    
+    final difference = billingDate.difference(today).inDays;
     
     if (difference < 0) return 'Overdue by ${difference.abs()} days';
     if (difference == 0) return 'Due today';
-    if (difference <= 7) return 'Due in $difference days';
+    if (difference <= 3) return 'Due in $difference days';
     return 'Upcoming';
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +174,19 @@ class _ActionCard extends StatelessWidget {
                       fontSize: 13,
                     ),
                   ),
+                  if (showOwner) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sub.ownerName ?? 'Unknown',
+
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+
+
                 ],
               ),
             ),

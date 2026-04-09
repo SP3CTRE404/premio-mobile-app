@@ -6,7 +6,9 @@ import '../../settings/providers/currency_provider.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
 import '../providers/subscription_provider.dart';
+import '../utils/subscription_date_helper.dart';
 import '../widgets/add_subscription/amount_field.dart';
+
 import '../widgets/add_subscription/billing_cycle_field.dart';
 import '../widgets/add_subscription/billing_date_field.dart';
 import '../widgets/add_subscription/form_label.dart';
@@ -14,13 +16,16 @@ import '../widgets/add_subscription/payment_type_field.dart';
 import '../widgets/add_subscription/save_subscription_button.dart';
 import '../widgets/add_subscription/service_name_field.dart';
 import '../../auth/widgets/auth_text_field.dart';
+import '../../account/providers/account_provider.dart';
 import '../../../core/widgets/custom_toast.dart';
+
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
   final Subscription? initialData;
-  final int? targetHouseholdId;
+  final int? targetUserId;
 
-  const AddSubscriptionScreen({super.key, this.initialData, this.targetHouseholdId});
+  const AddSubscriptionScreen({super.key, this.initialData, this.targetUserId});
+
 
   @override
   ConsumerState<AddSubscriptionScreen> createState() =>
@@ -37,6 +42,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   bool? _isAutoPay;
   DateTime? _selectedDate;
   bool _isLoading = false;
+  // bool _isShared = false;
+
+
 
   @override
   void initState() {
@@ -49,8 +57,10 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     
     _isAutoPay = widget.initialData?.isAutoPay;
     _selectedCycle = widget.initialData?.billingCycle;
-    _selectedDate = widget.initialData?.nextBillingDate;
+    // _isShared = widget.initialData?.householdId != null || widget.targetHouseholdId != null;
   }
+
+
 
   @override
   void dispose() {
@@ -70,8 +80,9 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      firstDate: DateTime(2000), // Allow historical purchases
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+
       builder: (context, child) {
         return Theme(
           data: theme.copyWith(
@@ -147,19 +158,25 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     const SizedBox(height: 24),
 
                     // ─── Payment Type Popup ───
-                    const FormLabel(text: 'Payment Type'),
+                    const FormLabel(text: 'Payment Method'),
                     PaymentTypeField(
                       isAutoPay: _isAutoPay,
                       onSelected: _onPaymentSelected,
                     ),
                     const SizedBox(height: 24),
 
-                    const FormLabel(text: 'Next Billing Date'),
+                    const FormLabel(text: 'Date of Purchase'),
+
                     BillingDateField(
                       selectedDate: _selectedDate,
                       onTap: _pickDate,
                     ),
+                    const SizedBox(height: 24),
+
                     const SizedBox(height: 48),
+
+
+
 
                     SaveSubscriptionButton(
                       text: widget.initialData != null ? 'Save Changes' : null,
@@ -196,6 +213,14 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
     setState(() => _isLoading = true);
     try {
+      final calculatedNextBilling = SubscriptionDateHelper.calculateNextBillingDate(
+        _selectedDate!, 
+        _selectedCycle!,
+        customDays: _selectedCycle == BillingCycle.custom 
+            ? int.tryParse(_customDaysController.text.trim()) 
+            : null,
+      );
+
       final request = SubscriptionRequest(
         serviceName: _nameController.text.trim(),
         amount: double.parse(_amountController.text.trim()),
@@ -203,10 +228,13 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
         customIntervalDays: _selectedCycle == BillingCycle.custom 
             ? int.tryParse(_customDaysController.text.trim()) 
             : null,
-        nextBillingDate: _selectedDate!,
+        nextBillingDate: calculatedNextBilling,
         isAutoPay: _isAutoPay!,
-        householdId: widget.targetHouseholdId,
+        userId: widget.targetUserId ?? ref.read(userProvider).value?.id,
       );
+
+
+
 
       if (widget.initialData != null) {
         await ref.read(subscriptionProvider.notifier).updateSubscription(widget.initialData!.id, request);
@@ -221,4 +249,4 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-}
+}

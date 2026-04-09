@@ -34,6 +34,23 @@ class SubscriptionCard extends StatelessWidget {
     final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';
     final String billingCycle = subscription.billingCycle.name[0].toUpperCase() + subscription.billingCycle.name.substring(1);
 
+    DateTime subDate;
+    final next = subscription.nextBillingDate;
+    switch (subscription.billingCycle) {
+      case BillingCycle.monthly:
+        subDate = DateTime(next.year, next.month - 1, next.day);
+        break;
+      case BillingCycle.yearly:
+        subDate = DateTime(next.year - 1, next.month, next.day);
+        break;
+      case BillingCycle.custom:
+        subDate = next.subtract(Duration(days: subscription.customIntervalDays ?? 0));
+        break;
+      default:
+        subDate = next;
+    }
+    final String subDateFormatted = SubscriptionUIHelper.formatDate(subDate);
+
     return Card(
       color: theme.cardTheme.color ?? colorScheme.surface,
       surfaceTintColor: Colors.transparent,
@@ -101,16 +118,9 @@ class SubscriptionCard extends StatelessWidget {
                               fontSize: 15,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            subscription.householdName ?? 'Personal',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.5),
-                              fontSize: 12,
-                            ),
-                          ),
                         ],
                       ),
+
                       const SizedBox(width: 8),
                       Icon(
                         isExpanded
@@ -154,7 +164,7 @@ class SubscriptionCard extends StatelessWidget {
                                         ),
                                         Expanded(
                                           child: SubscriptionDetailItem(
-                                            label: 'Payment Type',
+                                            label: 'Method',
                                             value: paymentType,
                                             icon: Icons.payment_outlined,
                                           ),
@@ -168,8 +178,8 @@ class SubscriptionCard extends StatelessWidget {
                                       children: [
                                         Expanded(
                                           child: SubscriptionDetailItem(
-                                            label: 'Date',
-                                            value: '${subscription.nextBillingDate.day}/${subscription.nextBillingDate.month}/${subscription.nextBillingDate.year}',
+                                            label: 'Puchased On',
+                                            value: subDateFormatted,
                                             icon:
                                                 Icons.event_available_outlined,
                                           ),
@@ -197,15 +207,15 @@ class SubscriptionCard extends StatelessWidget {
                                     ),
                                     Expanded(
                                       child: SubscriptionDetailItem(
-                                        label: 'Payment Type',
+                                        label: 'Method',
                                         value: paymentType,
                                         icon: Icons.payment_outlined,
                                       ),
                                     ),
                                     Expanded(
                                       child: SubscriptionDetailItem(
-                                        label: 'Next Billing',
-                                        value: '${subscription.nextBillingDate.day}/${subscription.nextBillingDate.month}/${subscription.nextBillingDate.year}',
+                                        label: 'Purchased On',
+                                        value: subDateFormatted,
                                         icon: Icons.event_available_outlined,
                                       ),
                                     ),
@@ -222,6 +232,7 @@ class SubscriptionCard extends StatelessWidget {
         ),
       ),
     );
+
   }
 }
 

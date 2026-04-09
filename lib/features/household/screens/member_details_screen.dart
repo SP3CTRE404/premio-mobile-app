@@ -1,5 +1,9 @@
 import 'dart:ui';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:subtrack/features/settings/providers/currency_provider.dart';
+import '../providers/household_provider.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/widgets/auth_background.dart';
 import '../../subscriptions/models/subscription_model.dart';
@@ -8,20 +12,26 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/screens/add_subscription_screen.dart';
 import '../../subscriptions/screens/edit_subscriptions_screen.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
-import '../../subscriptions/utils/subscription_ui_helper.dart';
+import '../../subscriptions/widgets/subscription_detail/subscription_card.dart';
 import '../../../../core/theme/app_colors.dart';
 
+
+
 class MemberDetailsScreen extends ConsumerStatefulWidget {
+  final int memberId;
   final String memberName;
   final String role;
   final int? householdId;
 
+
   const MemberDetailsScreen({
     super.key,
+    required this.memberId,
     required this.memberName,
     required this.role,
     this.householdId,
   });
+
 
   @override
   ConsumerState<MemberDetailsScreen> createState() => _MemberDetailsScreenState();
@@ -30,6 +40,18 @@ class MemberDetailsScreen extends ConsumerStatefulWidget {
 class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrolled = false;
+  final Set<int> _expandedSubs = {};
+
+  void _toggleExpand(int subId) {
+    setState(() {
+      if (_expandedSubs.contains(subId)) {
+        _expandedSubs.remove(subId);
+      } else {
+        _expandedSubs.add(subId);
+      }
+    });
+  }
+
 
   @override
   void initState() {
@@ -71,8 +93,9 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
 
     final subscriptions = ref.watch(subscriptionProvider).value ?? [];
     final List<Subscription> memberSubs = subscriptions
-        .where((s) => s.ownerName == widget.memberName)
+        .where((s) => s.ownerId == widget.memberId)
         .toList();
+
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -146,16 +169,37 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                           ),
                         ],
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        widget.memberName[0].toUpperCase(),
-                        style: const TextStyle(
-                          color: Colors.white, 
-                          fontSize: 32, 
-                          fontWeight: FontWeight.bold
-                        ),
+                      child: Builder(
+                        builder: (context) {
+                          final members = ref.watch(householdProvider).value?['members'] as List<dynamic>?;
+                          final member = members?.firstWhere((m) => m['id'] == widget.memberId, orElse: () => null);
+                          final pfp = member?['profilePicture'];
+
+                          if (pfp != null && pfp.toString().isNotEmpty) {
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: Image.memory(
+                                base64Decode(pfp.toString().split(',').last),
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                          }
+
+                          return Text(
+                            widget.memberName[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white, 
+                              fontSize: 32, 
+                              fontWeight: FontWeight.bold
+                            ),
+                          );
+                        },
                       ),
                     ),
+
+
                     const SizedBox(height: 16),
                     Text(
                       widget.memberName,
@@ -194,57 +238,19 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
                 ...memberSubs.map((sub) {
-                  final icon = SubscriptionUIHelper.getIcon(sub.serviceName);
-                  final cycle = sub.billingCycle.name[0].toUpperCase() + sub.billingCycle.name.substring(1);
-                  
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: theme.cardTheme.color,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: colorScheme.onSurface.withValues(alpha: 0.05)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.cobaltBlue.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(icon, color: AppColors.cobaltBlue),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                sub.serviceName,
-                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                cycle,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface.withValues(alpha: 0.6)
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '\$${sub.amount}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold, 
-                            color: AppColors.cobaltBlue
-                          ),
-                        ),
-                      ],
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: SubscriptionCard(
+                      subscription: sub,
+                      currencySymbol: ref.watch(currencySymbolProvider),
+                      isExpanded: _expandedSubs.contains(sub.id),
+                      onTap: () => _toggleExpand(sub.id),
+                      showMadeBy: false,
                     ),
                   );
                 }),
+
+
               ],
             ),
           ),
@@ -306,11 +312,12 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => AddSubscriptionScreen(
-                      targetHouseholdId: widget.householdId ?? 1,
+                      targetUserId: widget.memberId,
                     ),
                   ),
                 ),
               ),
+
             ],
           ),
         ),
@@ -344,4 +351,8 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     );
   }
 }
+
+
+
+
 

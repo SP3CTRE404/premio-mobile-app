@@ -2,25 +2,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
 import '../services/subscription_repository.dart';
+import '../../account/providers/account_provider.dart';
 import 'history_provider.dart';
+
 
 /// Holds the list of due / active subscriptions.
 class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
   @override
   Future<List<Subscription>> build() async {
-    return _fetchDue();
+    // Watch userProvider so it re-fetches if the user joins/leaves a household
+    ref.watch(userProvider);
+    return _fetchAllActive();
   }
 
-  Future<List<Subscription>> _fetchDue() async {
+  Future<List<Subscription>> _fetchAllActive() async {
     final repo = ref.read(subscriptionRepositoryProvider);
-    return repo.getDueSubscriptions();
+    final user = ref.read(userProvider).value;
+
+    if (user == null) return [];
+
+    // 1. Fetch user's personal subscriptions (Now fetching ALL, not just Due)
+    final userSubs = await repo.getAllSubscriptions();
+
+    // 2. If user is in a household, fetch shared subscriptions
+    List<Subscription> householdSubs = [];
+    if (user.householdId != null) {
+      try {
+        householdSubs = await repo.getHouseholdSubscriptions(user.householdId!);
+      } catch (e) {
+        // Log error but continue with user subs
+      }
+    }
+
+    // 3. Combine and remove duplicates based on ID
+    final combined = [...userSubs, ...householdSubs];
+    final seenIds = <int>{};
+    return combined.where((s) => seenIds.add(s.id)).toList();
   }
 
   /// Pull latest subscriptions from the server.
   Future<void> refresh() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(_fetchDue);
+    state = await AsyncValue.guard(_fetchAllActive);
   }
+
 
   /// Add a new subscription and refresh.
   Future<void> add(SubscriptionRequest request) async {

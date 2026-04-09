@@ -3,6 +3,8 @@ import '../models/history_model.dart';
 import '../models/subscription_model.dart';
 import '../services/history_repository.dart';
 import '../services/subscription_repository.dart';
+import '../../auth/providers/auth_provider.dart';
+
 
 /// Fetches payment history for a specific subscription ID.
 final historyProvider = FutureProvider.autoDispose.family<List<SubscriptionHistory>, int>(
@@ -14,8 +16,10 @@ final historyProvider = FutureProvider.autoDispose.family<List<SubscriptionHisto
 
 /// NEW: Fetches all expired subscriptions for the logged-in user.
 final userHistoryProvider = FutureProvider.autoDispose<List<Subscription>>((ref) async {
+  ref.watch(authProvider); // Reset on logout/login
   final repo = ref.read(subscriptionRepositoryProvider);
   return repo.getExpiredSubscriptions();
 });
+
 
 

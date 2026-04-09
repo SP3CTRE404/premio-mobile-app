@@ -1,13 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/secure_storage/secure_storage_service.dart';
 import '../../../core/api/api_client.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/user_model.dart';
+
 
 class UserNotifier extends AsyncNotifier<User?> {
   @override
   Future<User?> build() async {
+    // Watch the auth status to trigger a re-build (and re-fetch) on login/logout
+    ref.watch(authProvider);
     return _fetchUserFromApi();
   }
+
 
   /// Attempts to fetch the freshest profile from the backend.
   /// Falls back to secure storage if offline.

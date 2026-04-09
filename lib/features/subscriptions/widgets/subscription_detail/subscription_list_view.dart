@@ -24,7 +24,6 @@ class SubscriptionListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.only(
         top: 100.0,
         bottom: 130.0,
