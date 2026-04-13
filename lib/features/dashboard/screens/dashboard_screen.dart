@@ -101,7 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 return s.isOverdue || s.isUpcoming;
               }).toList();
 
-              if (allSubs.isEmpty) {
+              if (viewableSubs.isEmpty) {
                   return const _DashboardEmptyState();
               }
 
@@ -212,63 +212,96 @@ class _DashboardEmptyState extends StatelessWidget {
     final theme = Theme.of(context);
     
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 32),
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.cardTheme.color!,
+            theme.cardTheme.color!.withValues(alpha: 0.8),
+          ],
         ),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary.withValues(alpha: 0.2),
+                  theme.colorScheme.primary.withValues(alpha: 0.05),
+                ],
+              ),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.auto_awesome_rounded,
-              size: 48,
+              size: 56,
               color: theme.colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Text(
             'Ready to Track?',
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             'Add your first subscription to see your personal financial overview and insights.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
+          const SizedBox(height: 40),
+          ElevatedButton(
             onPressed: () {
-              // Navigate to AddSubscriptionScreen
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AddSubscriptionScreen(),
                 ),
               );
-              // Small delay to let the screen push before opening the FAB menu or similar logic
-              // Actually, better to just go to detailing screen or direct add
-              // For simplicity, we navigate to detailing screen where FAB is prominent
             },
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add My First Subscription'),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 8,
+              shadowColor: theme.colorScheme.primary.withValues(alpha: 0.4),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add_rounded, size: 28),
+                SizedBox(width: 12),
+                Text(
+                  'Add My First Subscription',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
         ],

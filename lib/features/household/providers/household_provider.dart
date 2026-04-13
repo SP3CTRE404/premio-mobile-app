@@ -62,6 +62,8 @@ class HouseholdNotifier extends AsyncNotifier<Map<String, dynamic>?> {
       await ref.read(userProvider.notifier).refresh();
       await ref.read(subscriptionProvider.notifier).refresh();
       
+      // Explicitly set state to null to trigger UI change instantly
+      state = const AsyncData(null);
       return null;
     });
   }

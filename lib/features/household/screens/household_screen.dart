@@ -8,6 +8,7 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../../navigation/screens/main_scaffold.dart';
 import 'create_household_screen.dart';
 import 'join_household_screen.dart';
 import 'member_details_screen.dart';
@@ -220,6 +221,9 @@ class HouseholdScreen extends ConsumerWidget {
               try {
                 await ref.read(householdProvider.notifier).leave();
                 if (context.mounted) {
+                  // Switch to Dashboard tab
+                  ref.read(navigationIndexProvider.notifier).setIndex(2);
+                  
                   CustomToast.show(
                     context: context,
                     message: 'You have left the household.',
@@ -299,6 +303,9 @@ class HouseholdScreen extends ConsumerWidget {
             await ref.read(householdProvider.notifier).leave();
 
             if (context.mounted) {
+              // Switch to Dashboard tab
+              ref.read(navigationIndexProvider.notifier).setIndex(2);
+              
               CustomToast.show(
                 context: context,
                 message: 'Adminship transferred and you have left.',
