@@ -6,6 +6,7 @@ import '../widgets/shared/household_form_layout.dart';
 import 'qr_scanner_screen.dart';
 import '../../../core/widgets/custom_toast.dart';
 import '../providers/household_provider.dart';
+import '../../account/providers/account_provider.dart';
 
 class JoinHouseholdScreen extends ConsumerStatefulWidget {
   final String? initialCode;
@@ -33,12 +34,47 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(userProvider);
+    final user = userAsync.value;
+    final isMinor = user != null && user.age < 18;
+
     return HouseholdFormLayout(
       title: 'Join\nHousehold',
       subtitle: 'Enter the invite code shared by your household administrator.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (isMinor) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.blue.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Colors.blue, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'For your safety, users under 18 must join a household managed by an adult to use SubTrack. Once you join, you will have full access under their oversight.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.blue.shade300,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
           AuthTextField(
             label: 'Invite Code',
             hint: 'Enter 8-digit code',

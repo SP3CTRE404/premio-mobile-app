@@ -82,38 +82,26 @@ class _ActionCard extends StatelessWidget {
     return Icons.subscriptions_rounded;
   }
 
-  Color _getStatusColor(DateTime nextBilling) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final billingDate = DateTime(nextBilling.year, nextBilling.month, nextBilling.day);
-    
-    final difference = billingDate.difference(today).inDays;
-    
-    if (difference < 0) return Colors.redAccent;
-    if (difference <= 3) return Colors.orangeAccent;
+  Color _getStatusColor(Subscription sub) {
+    if (sub.isOverdue) return Colors.redAccent;
+    if (sub.isUpcoming) return Colors.orangeAccent;
     return Colors.blueAccent;
   }
 
 
-  String _getDueStatus(DateTime nextBilling) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final billingDate = DateTime(nextBilling.year, nextBilling.month, nextBilling.day);
-    
-    final difference = billingDate.difference(today).inDays;
-    
-    if (difference < 0) return 'Overdue by ${difference.abs()} days';
-    if (difference == 0) return 'Due today';
-    if (difference <= 3) return 'Due in $difference days';
+  String _getDueStatus(Subscription sub) {
+    if (sub.isOverdue) return 'Overdue by ${sub.daysUntilDue.abs()} days';
+    if (sub.daysUntilDue == 0) return 'Due today';
+    if (sub.isUpcoming) return 'Due in ${sub.daysUntilDue} days';
     return 'Upcoming';
   }
 
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(sub.nextBillingDate);
+    final statusColor = _getStatusColor(sub);
     final icon = _getIconForService(sub.serviceName);
-    final due = _getDueStatus(sub.nextBillingDate);
+    final due = _getDueStatus(sub);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),

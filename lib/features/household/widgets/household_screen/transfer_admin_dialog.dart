@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class TransferAdminDialog extends StatefulWidget {
-  final List<String> members;
-  final ValueChanged<String> onTransferAndLeave;
+  final List<Map<String, dynamic>> members;
+  final ValueChanged<int> onTransferAndLeave;
 
   const TransferAdminDialog({
     super.key,
@@ -16,7 +16,7 @@ class TransferAdminDialog extends StatefulWidget {
 }
 
 class _TransferAdminDialogState extends State<TransferAdminDialog> {
-  String? _selectedMember;
+  int? _selectedMemberId;
 
   @override
   Widget build(BuildContext context) {
@@ -34,24 +34,24 @@ class _TransferAdminDialogState extends State<TransferAdminDialog> {
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Since you are the admin, you must choose another member to take over before leaving.',
-            style: TextStyle(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+          children: [
+            Text(
+              'Since you are the admin, you must choose another adult member to take over before leaving.',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: RadioGroup<String>(
-              groupValue: _selectedMember,
+            const SizedBox(height: 16),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            child: RadioGroup<int>(
+              groupValue: _selectedMemberId,
               onChanged: (val) {
                 setState(() {
-                  _selectedMember = val;
+                  _selectedMemberId = val;
                 });
               },
               child: ListView.builder(
@@ -59,22 +59,25 @@ class _TransferAdminDialogState extends State<TransferAdminDialog> {
                 itemCount: widget.members.length,
                 itemBuilder: (context, index) {
                   final member = widget.members[index];
-                  return RadioListTile<String>(
+                  final id = member['id'] as int;
+                  final name = member['fullName'] as String? ?? 'Member';
+
+                  return RadioListTile<int>(
                     title: Text(
-                      member,
+                      name,
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    value: member,
+                    value: id,
                     activeColor: AppColors.cobaltBlue,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   );
                 },
               ),
             ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
-    ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -87,10 +90,10 @@ class _TransferAdminDialogState extends State<TransferAdminDialog> {
         ),
         const SizedBox(width: 8),
         FilledButton(
-          onPressed: _selectedMember != null
+          onPressed: _selectedMemberId != null
               ? () {
                   Navigator.pop(context);
-                  widget.onTransferAndLeave(_selectedMember!);
+                  widget.onTransferAndLeave(_selectedMemberId!);
                 }
               : null, // Disabled if no member is selected
           style: FilledButton.styleFrom(

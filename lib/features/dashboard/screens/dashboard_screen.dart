@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtrack/features/subscriptions/screens/add_subscription_screen.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../../subscriptions/models/user_role.dart';
@@ -8,7 +9,6 @@ import '../../subscriptions/providers/subscription_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/action_card_list.dart';
 import '../widgets/financial_hero_card.dart';
-import '../../subscriptions/screens/subscription_detail_screen.dart';
 
 enum DashboardViewMode { personal, household }
 
@@ -89,34 +89,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ? viewableSubs.where((s) => s.ownerId != currentUserId).toList()
                       : viewableSubs;
 
-              final now = DateTime.now();
-              final today = DateTime(now.year, now.month, now.day);
-              
-              final overdue = viewableSubs.where((s) {
-                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
-                return billingDate.isBefore(today);
-              }).length;
+              final overdue = viewableSubs.where((s) => s.isOverdue).length;
 
-              final dueSoon = viewableSubs.where((s) {
-                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
-                if (billingDate.isBefore(today)) return false;
-                final diff = billingDate.difference(today).inDays;
-                return diff >= 0 && diff <= 3;
-              }).length;
+              final dueSoon = viewableSubs.where((s) => s.isUpcoming).length;
 
               final upToDate = viewableSubs.length - overdue - dueSoon;
 
 
-
-
-
-
               final actionNeeded = filteredSubs.where((s) {
                 if (s.isAutoPay) return false;
-                final billingDate = DateTime(s.nextBillingDate.year, s.nextBillingDate.month, s.nextBillingDate.day);
-                final isOverdue = billingDate.isBefore(today);
-                final isUpcoming = !isOverdue && billingDate.difference(today).inDays <= 3;
-                return isOverdue || isUpcoming;
+                return s.isOverdue || s.isUpcoming;
               }).toList();
 
               if (allSubs.isEmpty) {
@@ -275,7 +257,7 @@ class _DashboardEmptyState extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const SubscriptionDetailScreen(),
+                  builder: (context) => const AddSubscriptionScreen(),
                 ),
               );
               // Small delay to let the screen push before opening the FAB menu or similar logic

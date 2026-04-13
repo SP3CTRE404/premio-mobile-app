@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_toast.dart';
 
 class EditProfileForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController nameController;
   final TextEditingController emailController;
   final TextEditingController phoneController;
+  final VoidCallback onPasswordChangeTap;
 
   const EditProfileForm({
     super.key,
@@ -14,6 +14,7 @@ class EditProfileForm extends StatelessWidget {
     required this.nameController,
     required this.emailController,
     required this.phoneController,
+    required this.onPasswordChangeTap,
   });
 
   @override
@@ -56,9 +57,7 @@ class EditProfileForm extends StatelessWidget {
 
           _buildLabel('Password', theme),
           GestureDetector(
-            onTap: () {
-              CustomToast.show(context: context, message: 'Change Password screen coming soon!', isError: false);
-            },
+            onTap: onPasswordChangeTap,
             child: AbsorbPointer(
               child: TextFormField(
                 initialValue: '********',

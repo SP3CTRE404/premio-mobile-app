@@ -28,6 +28,9 @@ class Subscription {
 
   final int? householdId;
   final String status; // NEW: Status field (ACTIVE, EXPIRED, etc.)
+  final bool isOverdue;
+  final bool isUpcoming;
+  final int daysUntilDue;
 
 
   Subscription({
@@ -44,6 +47,9 @@ class Subscription {
     this.householdName,
     this.householdId,
     this.status = 'ACTIVE',
+    this.isOverdue = false,
+    this.isUpcoming = false,
+    this.daysUntilDue = 0,
   });
 
 
@@ -65,6 +71,9 @@ class Subscription {
       householdName: json['householdName'] as String?,
       householdId: json['householdId'] as int?,
       status: json['status'] as String? ?? 'ACTIVE',
+      isOverdue: json['isOverdue'] as bool? ?? false,
+      isUpcoming: json['isUpcoming'] as bool? ?? false,
+      daysUntilDue: json['daysUntilDue'] as int? ?? 0,
     );
 
   }
@@ -84,6 +93,9 @@ class Subscription {
         'householdName': householdName,
         'householdId': householdId,
         'status': status,
+        'isOverdue': isOverdue,
+        'isUpcoming': isUpcoming,
+        'daysUntilDue': daysUntilDue,
       };
 
 
@@ -103,6 +115,9 @@ class Subscription {
     String? householdName,
     int? householdId,
     String? status,
+    bool? isOverdue,
+    bool? isUpcoming,
+    int? daysUntilDue,
   }) {
 
 
@@ -120,6 +135,9 @@ class Subscription {
       householdName: householdName ?? this.householdName,
       householdId: householdId ?? this.householdId,
       status: status ?? this.status,
+      isOverdue: isOverdue ?? this.isOverdue,
+      isUpcoming: isUpcoming ?? this.isUpcoming,
+      daysUntilDue: daysUntilDue ?? this.daysUntilDue,
     );
 
   }

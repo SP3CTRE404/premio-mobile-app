@@ -9,12 +9,14 @@ class EditSubscriptionCard extends StatelessWidget {
   final Subscription sub;
   final VoidCallback onEdit;
   final VoidCallback onEnd;
+  final VoidCallback onDelete;
 
   const EditSubscriptionCard({
     super.key,
     required this.sub,
     required this.onEdit,
     required this.onEnd,
+    required this.onDelete,
   });
 
   @override
@@ -23,7 +25,10 @@ class EditSubscriptionCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     final IconData icon = SubscriptionUIHelper.getIcon(sub.serviceName);
-    final Color statusColor = SubscriptionUIHelper.getStatusColor(sub.nextBillingDate);
+    final Color statusColor = SubscriptionUIHelper.getStatusColor(
+      isOverdue: sub.isOverdue,
+      isUpcoming: sub.isUpcoming,
+    );
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -71,6 +76,14 @@ class EditSubscriptionCard extends StatelessWidget {
             style: IconButton.styleFrom(
               backgroundColor: AppColors.cobaltBlue.withValues(alpha: 0.1),
               foregroundColor: AppColors.cobaltBlue,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, size: 20),
+            onPressed: onDelete,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.neonRed.withValues(alpha: 0.1),
+              foregroundColor: AppColors.neonRed,
             ),
           ),
           const SizedBox(width: 8),

@@ -23,6 +23,7 @@ class SecureStorageService {
   static const _keyThemeMode = 'theme_mode';
   static const _keyDueDateAlerts = 'due_date_alerts';
   static const _keyReminderLeadDays = 'reminder_lead_days';
+  static const _keyAppLockEnabled = 'app_lock_enabled';
 
   // ── Token ──
   Future<void> saveToken(String token) =>
@@ -83,6 +84,15 @@ class SecureStorageService {
   Future<int> getReminderLeadDays() async {
     final raw = await _storage.read(key: _keyReminderLeadDays);
     return raw != null ? (int.tryParse(raw) ?? 1) : 1;
+  }
+
+  // ── Settings: App Lock ──
+  Future<void> saveAppLockEnabled(bool enabled) =>
+      _storage.write(key: _keyAppLockEnabled, value: enabled.toString());
+
+  Future<bool> getAppLockEnabled() async {
+    final raw = await _storage.read(key: _keyAppLockEnabled);
+    return raw == 'true';
   }
 
   // ── Clear all ──

@@ -91,7 +91,8 @@ class HouseholdNotifier extends AsyncNotifier<Map<String, dynamic>?> {
       // Refresh user profile as admin status has changed
       await ref.read(userProvider.notifier).refresh();
       
-      return state.value; // Keep existing data or refresh
+      // Refresh household data and return it to update state
+      return await repo.getMyHousehold();
     });
   }
 
@@ -119,6 +120,20 @@ class HouseholdNotifier extends AsyncNotifier<Map<String, dynamic>?> {
       final repo = ref.read(householdRepositoryProvider);
       await repo.updateHouseholdImage(base64Image);
       return await repo.getMyHousehold(); // refresh data
+    });
+  }
+
+  Future<void> removeMember(int memberId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(householdRepositoryProvider);
+      await repo.removeMember(memberId);
+      
+      // Refresh household data and potentially user profile if roles changed
+      final updated = await repo.getMyHousehold();
+      await ref.read(userProvider.notifier).refresh();
+      await ref.read(subscriptionProvider.notifier).refresh();
+      return updated;
     });
   }
 }

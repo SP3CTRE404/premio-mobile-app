@@ -45,4 +45,8 @@ class HouseholdRepository {
   Future<void> updateHouseholdImage(String base64Image) async {
     await dio.put('/api/households/image', data: {'imageUrl': base64Image});
   }
+
+  Future<void> removeMember(int memberId) async {
+    await dio.delete('/api/households/members/$memberId');
+  }
 }

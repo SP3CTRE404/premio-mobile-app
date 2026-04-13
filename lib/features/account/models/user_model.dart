@@ -6,6 +6,7 @@ class User {
   final int? householdId;
   final bool isHouseholdAdmin; // Matches backend's householdAdmin
   final String? profilePicture; // NEW: Added Profile Picture field
+  final DateTime? dateOfBirth;
 
   User({
     required this.id,
@@ -15,7 +16,44 @@ class User {
     this.householdId,
     this.isHouseholdAdmin = false,
     this.profilePicture,
+    this.dateOfBirth,
   });
+
+  int get age => calculateAge(dateOfBirth);
+
+  static int calculateAge(DateTime? dob) {
+    if (dob == null) return -1;
+    final now = DateTime.now();
+    int age = now.year - dob.year;
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  static int getAgeFromJson(Map<String, dynamic> json) {
+    // Check for direct age field first as it's the most explicit
+    final ageRaw = json['age'];
+    if (ageRaw != null) {
+      if (ageRaw is int) return ageRaw;
+      if (ageRaw is String) return int.tryParse(ageRaw) ?? -1;
+    }
+
+    // Fallback to parsing from various DOB keys
+    final dobRaw = json['dateOfBirth'] ?? 
+                 json['date_of_birth'] ?? 
+                 json['dob'] ?? 
+                 json['birthday'] ?? 
+                 json['birthDate'] ??
+                 json['birth_date'];
+    if (dobRaw == null) return -1;
+    try {
+      return calculateAge(DateTime.parse(dobRaw.toString()));
+    } catch (_) {
+      return -1;
+    }
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
     int? parsedHouseholdId;
@@ -25,6 +63,10 @@ class User {
       parsedHouseholdId = json['household']['id'] as int?;
     }
 
+    // Robustly parse DOB from multiple possible key names (camelCase, snake_case, short)
+    final dobRaw = json['dateOfBirth'] ?? json['date_of_birth'] ?? json['dob'];
+    final parsedDob = dobRaw != null ? DateTime.parse(dobRaw.toString()) : null;
+
     return User(
       id: json['id'] as int,
       email: json['email'] as String,
@@ -33,6 +75,7 @@ class User {
       householdId: parsedHouseholdId,
       isHouseholdAdmin: json['householdAdmin'] as bool? ?? false,
       profilePicture: json['profilePicture'] as String?, // Map from backend
+      dateOfBirth: parsedDob,
     );
   }
 
@@ -44,5 +87,6 @@ class User {
         'householdId': householdId,
         'householdAdmin': isHouseholdAdmin,
         'profilePicture': profilePicture,
+        'dateOfBirth': dateOfBirth?.toIso8601String(),
       };
 }

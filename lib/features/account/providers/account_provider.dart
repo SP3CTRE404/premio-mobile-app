@@ -83,6 +83,25 @@ class UserNotifier extends AsyncNotifier<User?> {
       return updatedUser;
     });
   }
+
+  /// Resets the user's password (called after biometric verification).
+  Future<void> resetPassword(String newPassword) async {
+    final dio = ref.read(apiClientProvider).dio;
+    await dio.put('/api/users/reset-password', data: {
+      'newPassword': newPassword,
+    });
+  }
+
+  /// Permanently deletes the user account from the system.
+  Future<void> deleteAccount() async {
+    final dio = ref.read(apiClientProvider).dio;
+    await dio.delete('/api/users/profile');
+    
+    // Clear local user data
+    clear();
+    // Trigger logout to clean up token and redirects
+    await ref.read(authProvider.notifier).logout();
+  }
 }
 
 final userProvider = AsyncNotifierProvider<UserNotifier, User?>(

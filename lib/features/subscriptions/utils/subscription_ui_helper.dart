@@ -43,31 +43,33 @@ class SubscriptionUIHelper {
     return Icons.subscriptions_rounded;
   }
 
-  static Color getStatusColor(DateTime nextBillingDate, {bool isDark = false}) {
-    final now = DateTime.now();
-    final difference = nextBillingDate.difference(now).inDays;
-
-    if (difference < 0) {
+  static Color getStatusColor({
+    required bool isOverdue,
+    required bool isUpcoming,
+    bool isDark = false,
+  }) {
+    if (isOverdue) {
       return Colors.redAccent;
     }
-    if (difference <= 7) {
+    if (isUpcoming) {
       return Colors.orangeAccent;
     }
     return AppColors.cobaltBlue;
   }
 
-  static String getDueStatus(DateTime nextBillingDate) {
-    final now = DateTime.now();
-    final difference = nextBillingDate.difference(now).inDays;
-
-    if (difference < 0) {
-      return 'Overdue by ${difference.abs()} days';
+  static String getDueStatus({
+    required bool isOverdue,
+    required bool isUpcoming,
+    required int daysUntilDue,
+  }) {
+    if (isOverdue) {
+      return 'Overdue by ${daysUntilDue.abs()} days';
     }
-    if (difference == 0) {
+    if (daysUntilDue == 0) {
       return 'Due today';
     }
-    if (difference <= 7) {
-      return 'Due in $difference days';
+    if (isUpcoming) {
+      return 'Due in $daysUntilDue days';
     }
     return 'Upcoming';
   }

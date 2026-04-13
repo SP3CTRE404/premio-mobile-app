@@ -1,21 +1,17 @@
-import 'dart:ui';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:subtrack/features/settings/providers/currency_provider.dart';
-import '../providers/household_provider.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/widgets/auth_background.dart';
 import '../../subscriptions/models/subscription_model.dart';
 import '../../subscriptions/models/user_role.dart';
 import '../../subscriptions/providers/user_role_provider.dart';
-import '../../subscriptions/screens/add_subscription_screen.dart';
-import '../../subscriptions/screens/edit_subscriptions_screen.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
 import '../../subscriptions/widgets/subscription_detail/subscription_card.dart';
-import '../../../../core/theme/app_colors.dart';
 
-
+import '../widgets/member_details_screen/member_details_app_bar.dart';
+import '../widgets/member_details_screen/member_profile_header.dart';
+import '../widgets/member_details_screen/admin_action_pill.dart';
 
 class MemberDetailsScreen extends ConsumerStatefulWidget {
   final int memberId;
@@ -77,19 +73,8 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final userRole = ref.watch(userRoleProvider);
     final isAdmin = userRole == UserRole.admin;
-    
-    // Create consistent avatar based on name hash
-    final avatarColors = [
-      Colors.purpleAccent,
-      Colors.deepOrangeAccent,
-      Colors.tealAccent.shade400,
-      AppColors.cobaltBlue,
-    ];
-    final colorHash = widget.memberName.hashCode.abs() % avatarColors.length;
-    final avatarColor = avatarColors[colorHash];
 
     final subscriptions = ref.watch(subscriptionProvider).value ?? [];
     final List<Subscription> memberSubs = subscriptions
@@ -100,45 +85,11 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Member Details',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                color: theme.colorScheme.surface.withValues(alpha: 0.8),
-                offset: const Offset(0, 1),
-                blurRadius: 8,
-              ),
-            ],
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        flexibleSpace: AnimatedOpacity(
-          opacity: _isScrolled ? 1.0 : 0.0,
-          duration: const Duration(milliseconds: 200),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      theme.colorScheme.surface.withValues(alpha: 0.3),
-                      theme.colorScheme.surface.withValues(alpha: 0.0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+      appBar: MemberDetailsAppBar(
+        memberId: widget.memberId,
+        memberName: widget.memberName,
+        isAdmin: isAdmin,
+        isScrolled: _isScrolled,
       ),
       body: Stack(
         children: [
@@ -149,82 +100,10 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
             child: Column(
               children: [
                 // Profile Section
-                Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [avatarColor.withValues(alpha: 0.8), avatarColor],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: avatarColor.withValues(alpha: 0.3), 
-                            blurRadius: 10, 
-                            offset: const Offset(0, 4)
-                          ),
-                        ],
-                      ),
-                      child: Builder(
-                        builder: (context) {
-                          final members = ref.watch(householdProvider).value?['members'] as List<dynamic>?;
-                          final member = members?.firstWhere((m) => m['id'] == widget.memberId, orElse: () => null);
-                          final pfp = member?['profilePicture'];
-
-                          if (pfp != null && pfp.toString().isNotEmpty) {
-                            return ClipRRect(
-                              borderRadius: BorderRadius.circular(40),
-                              child: Image.memory(
-                                base64Decode(pfp.toString().split(',').last),
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                            );
-                          }
-
-                          return Text(
-                            widget.memberName[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white, 
-                              fontSize: 32, 
-                              fontWeight: FontWeight.bold
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.memberName,
-                      style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: widget.role == 'Admin' 
-                            ? AppColors.cobaltBlue.withValues(alpha: 0.1) 
-                            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        widget.role,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: widget.role == 'Admin' 
-                              ? AppColors.cobaltBlue 
-                              : colorScheme.onSurface.withValues(alpha: 0.8),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+                MemberProfileHeader(
+                  memberId: widget.memberId,
+                  memberName: widget.memberName,
+                  role: widget.role,
                 ),
                 const SizedBox(height: 32),
                 
@@ -256,103 +135,12 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
           ),
         ],
       ),
-      floatingActionButton: isAdmin ? _buildAdminPill(context) : null,
-    );
-  }
-
-  Widget _buildAdminPill(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(25),
-        child: Container(
-          height: 46,
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.15)
-                  : Colors.black.withValues(alpha: 0.1),
-              width: 0.8,
-            ),
-            color: Theme.of(context).bottomNavigationBarTheme.backgroundColor ?? Colors.black,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 24,
-                spreadRadius: -8,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPillButton(
-                context,
-                icon: Icons.edit_rounded,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => EditSubscriptionsScreen(memberName: widget.memberName)),
-                ),
-              ),
-              Container(
-                width: 0.8,
-                height: 20,
-                color: isDark 
-                    ? Colors.white.withValues(alpha: 0.1) 
-                    : Colors.black.withValues(alpha: 0.1),
-              ),
-              _buildPillButton(
-                context,
-                icon: Icons.add_rounded,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AddSubscriptionScreen(
-                      targetUserId: widget.memberId,
-                    ),
-                  ),
-                ),
-              ),
-
-            ],
-          ),
-        ),
-      );
-  }
-
-  Widget _buildPillButton(
-    BuildContext context, {
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-        highlightColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(28),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Icon(
-            icon, 
-            color: isDark ? Colors.white : theme.colorScheme.onSurface, 
-            size: 24
-          ),
-        ),
-      ),
+      floatingActionButton: isAdmin 
+          ? AdminActionPill(
+              memberId: widget.memberId,
+              memberName: widget.memberName,
+            ) 
+          : null,
     );
   }
 }
-
-
-
-
-

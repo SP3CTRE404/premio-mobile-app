@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../../auth/screens/login_screen.dart';
 
 class LogoutButton extends ConsumerWidget {
   const LogoutButton({super.key});
@@ -59,12 +58,6 @@ class LogoutButton extends ConsumerWidget {
             onPressed: () async {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (_) => false,
-                );
-              }
             },
             child: const Text('Sign Out'),
           ),

@@ -9,7 +9,9 @@ import '../providers/account_provider.dart';
 import '../widgets/edit_profile_screen/edit_profile_form.dart';
 import '../widgets/edit_profile_screen/profile_avatar_editor.dart';
 import '../widgets/edit_profile_screen/save_button.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/widgets/custom_toast.dart';
+import 'change_password_screen.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -145,10 +147,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     nameController: _nameController,
                     emailController: _emailController,
                     phoneController: _phoneController,
+                    onPasswordChangeTap: () => _handlePasswordChange(context, ref),
                   ),
                   const SizedBox(height: 48),
 
-                  SaveButton(
+                   SaveButton(
                     isLoading: _isLoading,
                     onPressed: _saveProfile,
                   ),
@@ -159,5 +162,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _handlePasswordChange(BuildContext context, WidgetRef ref) async {
+    final authService = ref.read(authServiceProvider);
+    
+    // Perform manual authentication
+    final success = await authService.authenticate();
+    
+    if (success && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+      );
+    }
   }
 }

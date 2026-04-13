@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../navigation/screens/main_scaffold.dart';
 import '../models/auth_request.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_background.dart';
@@ -48,11 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authProvider);
 
     ref.listen<AuthStatus>(authProvider, (previous, next) {
-      if (next == AuthStatus.authenticated) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MainScaffold()),
-        );
-      } else if (next == AuthStatus.error) {
+      if (next == AuthStatus.error) {
         CustomToast.show(context: context, message: 'Login failed. Please check your credentials.', isError: false);
       }
     });

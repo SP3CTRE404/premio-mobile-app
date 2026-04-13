@@ -9,6 +9,7 @@ import '../models/subscription_model.dart';
 import '../widgets/edit_subscription/edit_subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
 import '../widgets/edit_subscription/end_subscription_dialog.dart';
+import '../widgets/edit_subscription/delete_subscription_dialog.dart';
 
 class EditSubscriptionsScreen extends ConsumerStatefulWidget {
 
@@ -57,6 +58,13 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     );
   }
 
+
+  void _confirmDeleteSubscription(Subscription sub) {
+    showDialog(
+      context: context,
+      builder: (context) => DeleteSubscriptionDialog(sub: sub),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -144,6 +152,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
                       ),
                     ),
                     onEnd: () => _confirmEndSubscription(sub),
+                    onDelete: () => _confirmDeleteSubscription(sub),
                   );
                 },
               );

@@ -28,8 +28,15 @@ class SubscriptionCard extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final IconData icon = SubscriptionUIHelper.getIcon(subscription.serviceName);
-    final Color statusColor = SubscriptionUIHelper.getStatusColor(subscription.nextBillingDate);
-    final String dueStatus = SubscriptionUIHelper.getDueStatus(subscription.nextBillingDate);
+    final Color statusColor = SubscriptionUIHelper.getStatusColor(
+      isOverdue: subscription.isOverdue,
+      isUpcoming: subscription.isUpcoming,
+    );
+    final String dueStatus = SubscriptionUIHelper.getDueStatus(
+      isOverdue: subscription.isOverdue,
+      isUpcoming: subscription.isUpcoming,
+      daysUntilDue: subscription.daysUntilDue,
+    );
 
     final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';
     final String billingCycle = subscription.billingCycle.name[0].toUpperCase() + subscription.billingCycle.name.substring(1);

@@ -12,6 +12,9 @@ import '../../household/screens/household_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/bottom_nav_bar.dart';
 
+import '../../account/providers/account_provider.dart';
+import '../../household/screens/join_household_screen.dart';
+
 class NavigationIndexNotifier extends Notifier<int> {
   @override
   int build() => 2;
@@ -70,89 +73,113 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationIndexProvider);
     final userRole = ref.watch(userRoleProvider);
+    final userAsync = ref.watch(userProvider);
     final isSingle = userRole == UserRole.single;
 
-    final List<Widget> screens = [
-      const HouseholdScreen(),
-      const SubscriptionDetailScreen(),
-      const DashboardScreen(),
-      const HistoryScreen(),
-      const AccountScreen(),
-    ];
+    return userAsync.when(
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
+      data: (user) {
+        // Only intercept if we KNOW the user is a minor (<18)
+        final isMinorWithoutHousehold = user != null && 
+                                      user.dateOfBirth != null && 
+                                      user.age >= 0 &&
+                                      user.age < 18 && 
+                                      user.householdId == null;
 
-    final List<String> titles = [
-      isSingle ? 'Collaborate' : 'Household',
-      'Ongoing Subscriptions',
-      'SubTrack',
-      'History',
-      'Account',
-    ];
+        if (isMinorWithoutHousehold) {
+          return Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: const CustomAppBar(
+              title: 'Join a Household',
+              isScrolled: false,
+            ),
+            body: const JoinHouseholdScreen(),
+          );
+        }
 
-    ref.listen(navigationIndexProvider, (previous, next) {
-      if (previous != null) {
-        _previousIndex = previous;
-      }
-      setState(() {
-        _isScrolled = false;
-        _isPill = true;
-        _isAtBottom = false;
-      });
-    });
+        final List<Widget> screens = [
+          const HouseholdScreen(),
+          const SubscriptionDetailScreen(),
+          const DashboardScreen(),
+          const HistoryScreen(),
+          const AccountScreen(),
+        ];
 
-    return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
-      appBar: CustomAppBar(
-        isScrolled: _isScrolled,
-        title: titles[currentIndex],
-        trailingAction: currentIndex == 1
-            ? IconButton(
-                icon: const Icon(Icons.edit_note_rounded),
-                tooltip: 'Manage Subscriptions',
-                onPressed: () {
-                  // Navigate to EditSubscriptionsScreen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditSubscriptionsScreen(),
-                    ),
-                  );
-                },
-              )
-            : null,
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _handleScrollNotification,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 600),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) {
-            final childIndex = (child.key as ValueKey<int>).value;
-            final isForward = currentIndex >= _previousIndex;
-            
-            Offset beginOffset;
-            if (childIndex == currentIndex) {
-              beginOffset = Offset(isForward ? 1.0 : -1.0, 0.0);
-            } else {
-              beginOffset = Offset(isForward ? -1.0 : 1.0, 0.0);
-            }
+        final List<String> titles = [
+          isSingle ? 'Collaborate' : 'Household',
+          'Ongoing Subscriptions',
+          'SubTrack',
+          'History',
+          'Account',
+        ];
 
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: beginOffset,
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            );
-          },
-          child: SizedBox(
-            key: ValueKey<int>(currentIndex),
-            child: screens[currentIndex],
+        ref.listen(navigationIndexProvider, (previous, next) {
+          if (previous != null) {
+            _previousIndex = previous;
+          }
+          setState(() {
+            _isScrolled = false;
+            _isPill = true;
+            _isAtBottom = false;
+          });
+        });
+
+        return Scaffold(
+          extendBody: true,
+          extendBodyBehindAppBar: true,
+          appBar: CustomAppBar(
+            isScrolled: _isScrolled,
+            title: titles[currentIndex],
+            trailingAction: currentIndex == 1
+                ? IconButton(
+                    icon: const Icon(Icons.edit_note_rounded),
+                    tooltip: 'Manage Subscriptions',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const EditSubscriptionsScreen(),
+                        ),
+                      );
+                    },
+                  )
+                : null,
           ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavBar(isPill: _isPill),
+          body: NotificationListener<ScrollNotification>(
+            onNotification: _handleScrollNotification,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                final childIndex = (child.key as ValueKey<int>).value;
+                final isForward = currentIndex >= _previousIndex;
+                
+                Offset beginOffset;
+                if (childIndex == currentIndex) {
+                  beginOffset = Offset(isForward ? 1.0 : -1.0, 0.0);
+                } else {
+                  beginOffset = Offset(isForward ? -1.0 : 1.0, 0.0);
+                }
+
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: beginOffset,
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                );
+              },
+              child: SizedBox(
+                key: ValueKey<int>(currentIndex),
+                child: screens[currentIndex],
+              ),
+            ),
+          ),
+          bottomNavigationBar: BottomNavBar(isPill: _isPill),
+        );
+      },
     );
   }
 }

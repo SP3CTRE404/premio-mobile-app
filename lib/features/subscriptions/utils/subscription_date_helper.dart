@@ -10,46 +10,35 @@ class SubscriptionDateHelper {
     int? customDays,
   }) {
     final DateTime now = DateTime.now();
-    // Normalize to date only (midnight)
     final DateTime today = DateTime(now.year, now.month, now.day);
     final DateTime normalizedPurchase = DateTime(purchaseDate.year, purchaseDate.month, purchaseDate.day);
     
-    // If purchase date is today or in the future, that IS the next billing date
-    if (!normalizedPurchase.isBefore(today)) {
-      return normalizedPurchase;
-    }
+    // Logic: If you purchase a subscription, the "next" billing date is at least one cycle away.
+    // We start by adding the first cycle to the purchase date.
+    DateTime nextDate = _incrementDate(normalizedPurchase, cycle, customDays);
 
-    DateTime nextDate = normalizedPurchase;
-
-    // Safety counter to prevent infinite loops
+    // If the subscription was purchased so far in the past that the next cycle is still 
+    // before today, we keep incrementing until we reach today or a future date.
     int iterations = 0;
-    while (iterations < 1000) {
-      DateTime candidate;
-      switch (cycle) {
-        case BillingCycle.monthly:
-          candidate = _addMonths(nextDate, 1);
-          break;
-        case BillingCycle.quarterly:
-          candidate = _addMonths(nextDate, 3);
-          break;
-        case BillingCycle.yearly:
-          candidate = DateTime(nextDate.year + 1, nextDate.month, nextDate.day);
-          break;
-        case BillingCycle.custom:
-          candidate = nextDate.add(Duration(days: customDays ?? 30));
-          break;
-      }
-
-      // If the NEXT date is in the future, then the CURRENT nextDate is the one that's due (or was due most recently)
-      if (candidate.isAfter(today)) {
-        break;
-      }
-
-      nextDate = candidate;
+    while (nextDate.isBefore(today) && iterations < 1000) {
+      nextDate = _incrementDate(nextDate, cycle, customDays);
       iterations++;
     }
 
     return nextDate;
+  }
+
+  static DateTime _incrementDate(DateTime date, BillingCycle cycle, int? customDays) {
+    switch (cycle) {
+      case BillingCycle.monthly:
+        return _addMonths(date, 1);
+      case BillingCycle.quarterly:
+        return _addMonths(date, 3);
+      case BillingCycle.yearly:
+        return DateTime(date.year + 1, date.month, date.day);
+      case BillingCycle.custom:
+        return date.add(Duration(days: customDays ?? 30));
+    }
   }
 
   /// Adds months to a date, clamping to the last day of the month if necessary.

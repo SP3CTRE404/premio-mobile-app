@@ -37,7 +37,7 @@ class HouseholdFormLayout extends StatelessWidget {
                     title: title,
                     subtitle: subtitle,
                   ),
-                  const SizedBox(height: 60),
+                  const SizedBox(height: 32),
                   child,
                   const SizedBox(height: 40),
                 ],

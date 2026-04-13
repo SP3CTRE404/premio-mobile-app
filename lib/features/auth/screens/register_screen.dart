@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../navigation/screens/main_scaffold.dart';
 import '../models/auth_request.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_background.dart';
@@ -27,8 +27,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _dobController = TextEditingController();
   final _householdNameController = TextEditingController();
-  bool _createHousehold = true;
+  bool _createHousehold = false;
+  DateTime? _selectedDob;
 
   @override
   void dispose() {
@@ -36,8 +38,43 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _dobController.dispose();
     _householdNameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 18)),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.cobaltBlue,
+              onPrimary: Colors.white,
+              surface: Theme.of(context).colorScheme.surface,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDob) {
+      setState(() {
+        _selectedDob = picked;
+        _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+        
+        // Calculate age and update toggle if needed
+        final age = DateTime.now().year - picked.year;
+        final isMinor = age < 18;
+        if (isMinor) {
+          _createHousehold = false;
+        }
+      });
+    }
   }
 
   void _submit() {
@@ -56,6 +93,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
         fullName: _fullNameController.text.trim(),
+        dateOfBirth: _selectedDob,
         createHousehold: _createHousehold,
         householdName:
             _createHousehold ? _householdNameController.text.trim() : '',
@@ -64,17 +102,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  int _calculateAge(DateTime? dob) {
+    if (dob == null) return 0;
+    final now = DateTime.now();
+    int age = now.year - dob.year;
+    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final age = _calculateAge(_selectedDob);
+    final isMinor = _selectedDob != null && age < 18;
 
     ref.listen<AuthStatus>(authProvider, (previous, next) {
-      if (next == AuthStatus.authenticated) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const MainScaffold()),
-          (Route<dynamic> route) => false,
-        );
-      } else if (next == AuthStatus.error) {
+      if (next == AuthStatus.error) {
         CustomToast.show(context: context, message: 'Registration failed. Please try again.', isError: false);
       }
     });
@@ -130,6 +175,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         controller: _confirmPasswordController,
                         isPassword: true,
                       ),
+                      const SizedBox(height: 16),
+                      AuthTextField(
+                        label: 'Date of Birth',
+                        hint: 'YYYY-MM-DD',
+                        controller: _dobController,
+                        readOnly: true,
+                        onTap: () => _selectDate(context),
+                      ),
                       const SizedBox(height: 24),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -154,11 +207,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                             Switch(
                               value: _createHousehold,
-                              onChanged: (value) {
-                                setState(() {
-                                  _createHousehold = value;
-                                });
-                              },
+                              onChanged: isMinor
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        _createHousehold = value;
+                                      });
+                                    },
                               activeThumbColor: AppColors.cobaltBlue,
                             ),
                           ],
