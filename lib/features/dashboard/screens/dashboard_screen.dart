@@ -287,7 +287,7 @@ class _DashboardEmptyState extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               elevation: 8,
               shadowColor: theme.colorScheme.primary.withValues(alpha: 0.4),
@@ -296,10 +296,14 @@ class _DashboardEmptyState extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.add_rounded, size: 28),
-                SizedBox(width: 12),
-                Text(
-                  'Add My First Subscription',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Add My First Subscription',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
               ],
             ),

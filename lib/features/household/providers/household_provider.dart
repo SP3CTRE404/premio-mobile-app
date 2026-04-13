@@ -98,6 +98,27 @@ class HouseholdNotifier extends AsyncNotifier<Map<String, dynamic>?> {
     });
   }
 
+  Future<void> handoverAndLeave(int newAdminId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final repo = ref.read(householdRepositoryProvider);
+      
+      // 1. Transfer adminship
+      await repo.transferAdmin(newAdminId);
+      
+      // 2. Immediately leave the household
+      await repo.leaveHousehold();
+      
+      // 3. Refresh profile and subs once after everything is done
+      await ref.read(userProvider.notifier).refresh();
+      await ref.read(subscriptionProvider.notifier).refresh();
+      
+      // 4. Force state to null to trigger UI redirection
+      state = const AsyncData(null);
+      return null;
+    });
+  }
+
 
   Future<void> refresh() async {
     state = const AsyncValue.loading();

@@ -25,11 +25,8 @@ class AuthService {
     try {
       final result = await _auth.authenticate(
         localizedReason: ' ',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false, // Allows PIN/Pattern fallback
-          useErrorDialogs: true, // Show system dialogs for errors
-        ),
+        biometricOnly: false, // Allows PIN/Pattern fallback
+        persistAcrossBackgrounding: true, // Replaces stickyAuth
       );
       return result;
     } on PlatformException {

@@ -299,8 +299,7 @@ class HouseholdScreen extends ConsumerWidget {
           }
 
           try {
-            await ref.read(householdProvider.notifier).transferAdmin(targetId);
-            await ref.read(householdProvider.notifier).leave();
+            await ref.read(householdProvider.notifier).handoverAndLeave(targetId);
 
             if (context.mounted) {
               // Switch to Dashboard tab

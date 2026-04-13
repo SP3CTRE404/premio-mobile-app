@@ -43,28 +43,33 @@ class _DeepLinkHandlerState extends State<DeepLinkHandler> {
   }
 
   void _handleLink(Uri uri) {
-    // Expected: https://subtrack.app/join/CODE
-    if (uri.path.startsWith('/join')) {
-      final code = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
+    // We handle two formats:
+    // 1. https://subtrack.app/join/CODE
+    // 2. subtrack://join/CODE (for local testing/fallback)
+    
+    String? inviteCode;
+    
+    if (uri.scheme == 'subtrack' && uri.host == 'join') {
+      // subtrack://join/CODE
+      inviteCode = uri.path.replaceAll('/', '');
+    } else if (uri.path.startsWith('/join')) {
+      // https://subtrack.app/join/CODE
+      inviteCode = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
+    }
+    
+    if (inviteCode != null && inviteCode.isNotEmpty && inviteCode.length >= 8) {
+      debugPrint('Deep Link received: joining household with code $inviteCode');
       
-      if (code != null && code.isNotEmpty) {
-        // Navigate to JoinHouseholdScreen
-        // Note: Using findAncestorStateOfType or similar might be complex here.
-        // A simple way is to use a context-based navigation if ready, 
-        // but since this is usually wrapping the MaterialApp, we might need a GlobalKey.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         
-        // For simplicity, we'll use a post-frame callback to ensure context is ready
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => JoinHouseholdScreen(initialCode: code),
-            ),
-          );
-        });
-      }
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JoinHouseholdScreen(initialCode: inviteCode!),
+          ),
+        );
+      });
     }
   }
 

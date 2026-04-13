@@ -125,30 +125,54 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
                 // If the scanned result is a full link, extract the code
                 String code = result;
                 if (result.contains('/join/')) {
-                   code = result.split('/').last;
+                  code = result.split('/').last;
+                } else if (result.contains('/join')) {
+                  // Fallback for subtrack://join/CODE
+                  code = result.split('/').last;
                 }
 
-                setState(() {
-                  _codeController.text = code;
-                  _isLoading = true;
-                });
-                
-                try {
-                  await ref.read(householdProvider.notifier).joinHousehold(code);
-                  if (context.mounted) {
-                    CustomToast.show(context: context, message: 'Successfully joined household!', isError: false);
-                    Navigator.pop(context);
+                // Show confirmation dialog instead of joining instantly
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Join Household'),
+                    content: Text('Do you want to join the household with code $code?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Join'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed == true && context.mounted) {
+                  setState(() {
+                    _codeController.text = code;
+                    _isLoading = true;
+                  });
+                  
+                  try {
+                    await ref.read(householdProvider.notifier).joinHousehold(code);
+                    if (context.mounted) {
+                      CustomToast.show(context: context, message: 'Successfully joined household!', isError: false);
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    String errorMessage = e.toString();
+                    if (errorMessage.toLowerCase().contains('already')) {
+                      errorMessage = 'You are already in a household. Leave your current one first.';
+                    } else if (errorMessage.toLowerCase().contains('invalid') || errorMessage.toLowerCase().contains('not found')) {
+                      errorMessage = 'This invite code is invalid or has expired.';
+                    }
+                    if (context.mounted) CustomToast.show(context: context, message: errorMessage, isError: true);
+                  } finally {
+                    if (mounted) setState(() => _isLoading = false);
                   }
-                } catch (e) {
-                   String errorMessage = e.toString();
-                   if (errorMessage.toLowerCase().contains('already')) {
-                     errorMessage = 'You are already in a household. Leave your current one first.';
-                   } else if (errorMessage.toLowerCase().contains('invalid') || errorMessage.toLowerCase().contains('not found')) {
-                     errorMessage = 'This invite code is invalid or has expired.';
-                   }
-                  if (context.mounted) CustomToast.show(context: context, message: errorMessage, isError: true);
-                } finally {
-                  if (mounted) setState(() => _isLoading = false);
                 }
               }
             },
