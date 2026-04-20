@@ -28,6 +28,7 @@ class EditSubscriptionCard extends StatelessWidget {
     final Color statusColor = SubscriptionUIHelper.getStatusColor(
       isOverdue: sub.isOverdue,
       isUpcoming: sub.isUpcoming,
+      daysUntilDue: sub.daysUntilDue,
     );
 
     return Container(
@@ -48,7 +49,7 @@ class EditSubscriptionCard extends StatelessWidget {
               color: statusColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: statusColor, size: 24),
+            child: Icon(icon, color: AppColors.cobaltBlue, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(

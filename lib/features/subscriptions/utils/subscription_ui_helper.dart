@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../models/subscription_model.dart';
 
 
 /// Helper to get consistent icons and colors for subscriptions based on their names.
 class SubscriptionUIHelper {
+  static String formatBillingCycle(BillingCycle cycle, {int? value, String? unit}) {
+    if (cycle == BillingCycle.oneTime) return 'One-time';
+    if (cycle != BillingCycle.custom) {
+      return cycle.name[0].toUpperCase() + cycle.name.substring(1);
+    }
+    if (value == null) return 'Custom';
+    final unitStr = unit?.toLowerCase() ?? 'days';
+    final displayUnit = value == 1 ? unitStr.substring(0, unitStr.length - 1) : unitStr;
+    return 'Every $value ${displayUnit[0].toUpperCase() + displayUnit.substring(1)}';
+  }
+
   static IconData getIcon(String serviceName) {
     final lower = serviceName.toLowerCase();
     if (lower.contains('youtube') ||
@@ -46,14 +58,14 @@ class SubscriptionUIHelper {
   static Color getStatusColor({
     required bool isOverdue,
     required bool isUpcoming,
+    required int daysUntilDue,
     bool isDark = false,
   }) {
-    if (isOverdue) {
+    if (isOverdue || daysUntilDue < 0) {
       return Colors.redAccent;
     }
-    if (isUpcoming) {
-      return Colors.orangeAccent;
-    }
+    if (daysUntilDue == 0) return Colors.amber;
+    if (isUpcoming) return Colors.amber;
     return AppColors.cobaltBlue;
   }
 
@@ -62,14 +74,15 @@ class SubscriptionUIHelper {
     required bool isUpcoming,
     required int daysUntilDue,
   }) {
-    if (isOverdue) {
-      return 'Overdue by ${daysUntilDue.abs()} days';
+    if (isOverdue || daysUntilDue < 0) {
+      final absDays = daysUntilDue.abs();
+      return 'Overdue by $absDays ${absDays == 1 ? 'day' : 'days'}';
     }
     if (daysUntilDue == 0) {
       return 'Due today';
     }
     if (isUpcoming) {
-      return 'Due in $daysUntilDue days';
+      return 'Due in $daysUntilDue ${daysUntilDue == 1 ? 'day' : 'days'}';
     }
     return 'Upcoming';
   }

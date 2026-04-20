@@ -6,7 +6,6 @@ import '../../settings/providers/currency_provider.dart';
 import '../models/subscription_model.dart';
 import '../models/subscription_request.dart';
 import '../providers/subscription_provider.dart';
-import '../utils/subscription_date_helper.dart';
 import '../widgets/add_subscription/amount_field.dart';
 
 import '../widgets/add_subscription/billing_cycle_field.dart';
@@ -18,6 +17,8 @@ import '../widgets/add_subscription/service_name_field.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import '../../account/providers/account_provider.dart';
 import '../../../core/widgets/custom_toast.dart';
+
+enum CustomIntervalUnit { days, months, years }
 
 
 class AddSubscriptionScreen extends ConsumerStatefulWidget {
@@ -41,6 +42,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   BillingCycle? _selectedCycle;
   bool? _isAutoPay;
   DateTime? _selectedDate;
+  CustomIntervalUnit _customUnit = CustomIntervalUnit.days;
   bool _isLoading = false;
   // bool _isShared = false;
 
@@ -58,7 +60,14 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     _isAutoPay = widget.initialData?.isAutoPay;
     _selectedCycle = widget.initialData?.billingCycle;
     _selectedDate = widget.initialData?.purchaseDate;
-    // _isShared = widget.initialData?.householdId != null || widget.targetHouseholdId != null;
+
+    // Correctly restore the custom unit if it exists
+    if (widget.initialData?.customIntervalUnit != null) {
+      _customUnit = CustomIntervalUnit.values.firstWhere(
+        (e) => e.name.toUpperCase() == widget.initialData!.customIntervalUnit!.toUpperCase(),
+        orElse: () => CustomIntervalUnit.days,
+      );
+    }
   }
 
 
@@ -149,22 +158,80 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     ),
                     if (_selectedCycle == BillingCycle.custom) ...[
                       const SizedBox(height: 16),
-                      AuthTextField(
-                        label: 'Custom Interval (Days)',
-                        hint: 'e.g. 14',
-                        controller: _customDaysController,
-                        keyboardType: TextInputType.number,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: AuthTextField(
+                              label: 'Interval Value',
+                              hint: 'e.g. 14',
+                              controller: _customDaysController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Unit',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  height: 56, // Match AuthTextField TextFormField height
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.transparent, // Match AuthTextField style
+                                    ),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<CustomIntervalUnit>(
+                                      value: _customUnit,
+                                      isExpanded: true,
+                                      icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                      items: CustomIntervalUnit.values.map((unit) {
+                                        return DropdownMenuItem(
+                                          value: unit,
+                                          child: Text(
+                                            unit.name[0].toUpperCase() + unit.name.substring(1),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      onChanged: (val) {
+                                        if (val != null) setState(() => _customUnit = val);
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     const SizedBox(height: 24),
 
-                    // ─── Payment Type Popup ───
-                    const FormLabel(text: 'Payment Method'),
-                    PaymentTypeField(
-                      isAutoPay: _isAutoPay,
-                      onSelected: _onPaymentSelected,
-                    ),
-                    const SizedBox(height: 24),
+                    if (_selectedCycle != BillingCycle.oneTime) ...[
+                      const FormLabel(text: 'Payment Method'),
+                      PaymentTypeField(
+                        isAutoPay: _isAutoPay,
+                        onSelected: _onPaymentSelected,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
 
                     const FormLabel(text: 'Date of Purchase'),
 
@@ -203,7 +270,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
       CustomToast.show(context: context, message: 'Please select a billing cycle', isError: true);
       return;
     }
-    if (_isAutoPay == null) {
+    if (_selectedCycle != BillingCycle.oneTime && _isAutoPay == null) {
       CustomToast.show(context: context, message: 'Please select a payment type', isError: true);
       return;
     }
@@ -214,13 +281,6 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final calculatedNextBilling = SubscriptionDateHelper.calculateNextBillingDate(
-        _selectedDate!, 
-        _selectedCycle!,
-        customDays: _selectedCycle == BillingCycle.custom 
-            ? int.tryParse(_customDaysController.text.trim()) 
-            : null,
-      );
 
       final request = SubscriptionRequest(
         serviceName: _nameController.text.trim(),
@@ -229,9 +289,12 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
         customIntervalDays: _selectedCycle == BillingCycle.custom 
             ? int.tryParse(_customDaysController.text.trim()) 
             : null,
-        nextBillingDate: calculatedNextBilling,
+        customIntervalUnit: _selectedCycle == BillingCycle.custom 
+            ? _customUnit.name.toUpperCase() 
+            : null,
+        nextBillingDate: null, // Backend will calculate this
         purchaseDate: _selectedDate!,
-        isAutoPay: _isAutoPay!,
+        isAutoPay: _selectedCycle == BillingCycle.oneTime ? false : (_isAutoPay ?? true),
         userId: widget.targetUserId ?? ref.read(userProvider).value?.id,
       );
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../subscriptions/models/subscription_model.dart';
 
@@ -83,16 +84,20 @@ class _ActionCard extends StatelessWidget {
   }
 
   Color _getStatusColor(Subscription sub) {
-    if (sub.isOverdue) return Colors.redAccent;
-    if (sub.isUpcoming) return Colors.orangeAccent;
+    if (sub.isOverdue || sub.daysUntilDue < 0) return Colors.redAccent;
+    if (sub.daysUntilDue == 0) return Colors.amber;
+    if (sub.isUpcoming) return Colors.amber;
     return Colors.blueAccent;
   }
 
 
   String _getDueStatus(Subscription sub) {
-    if (sub.isOverdue) return 'Overdue by ${sub.daysUntilDue.abs()} days';
+    if (sub.isOverdue || sub.daysUntilDue < 0) {
+      final absDays = sub.daysUntilDue.abs();
+      return 'Overdue by $absDays ${absDays == 1 ? 'day' : 'days'}';
+    }
     if (sub.daysUntilDue == 0) return 'Due today';
-    if (sub.isUpcoming) return 'Due in ${sub.daysUntilDue} days';
+    if (sub.isUpcoming) return 'Due in ${sub.daysUntilDue} ${sub.daysUntilDue == 1 ? 'day' : 'days'}';
     return 'Upcoming';
   }
 
@@ -131,7 +136,7 @@ class _ActionCard extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                color: isPaid ? Colors.green : statusColor,
+                color: isPaid ? Colors.green : AppColors.cobaltBlue,
                 size: 22,
               ),
             ),

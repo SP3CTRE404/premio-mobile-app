@@ -68,15 +68,39 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
       _isAuthenticating = true;
     });
 
-    final authService = ref.read(authServiceProvider);
-    final success = await authService.authenticate();
+    try {
+      final authService = ref.read(authServiceProvider);
+      final success = await authService.authenticate();
 
-    if (success) {
+      if (success) {
+        setState(() {
+          _isLocked = false;
+          _isAuthenticating = false;
+        });
+      } else {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
+    } on LocalAuthException {
+      // Handle case where no PIN/Pattern/Biometric is set on the device
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'App Lock is enabled but no device security (PIN/Fingerprint) was found. Please set up device security in Android settings.',
+              style: TextStyle(color: Theme.of(context).colorScheme.onError),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
       setState(() {
         _isLocked = false;
         _isAuthenticating = false;
       });
-    } else {
+    } catch (_) {
       setState(() {
         _isAuthenticating = false;
       });

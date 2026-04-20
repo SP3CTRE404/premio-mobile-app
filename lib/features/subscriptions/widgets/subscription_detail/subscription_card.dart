@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../models/subscription_model.dart';
 import '../../utils/subscription_ui_helper.dart';
@@ -31,6 +32,7 @@ class SubscriptionCard extends StatelessWidget {
     final Color statusColor = SubscriptionUIHelper.getStatusColor(
       isOverdue: subscription.isOverdue,
       isUpcoming: subscription.isUpcoming,
+      daysUntilDue: subscription.daysUntilDue,
     );
     final String dueStatus = SubscriptionUIHelper.getDueStatus(
       isOverdue: subscription.isOverdue,
@@ -39,7 +41,11 @@ class SubscriptionCard extends StatelessWidget {
     );
 
     final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';
-    final String billingCycle = subscription.billingCycle.name[0].toUpperCase() + subscription.billingCycle.name.substring(1);
+    final String billingCycle = SubscriptionUIHelper.formatBillingCycle(
+      subscription.billingCycle,
+      value: subscription.customIntervalDays,
+      unit: subscription.customIntervalUnit,
+    );
 
     final String subDateFormatted = SubscriptionUIHelper.formatDate(subscription.purchaseDate);
 
@@ -73,7 +79,7 @@ class SubscriptionCard extends StatelessWidget {
                     backgroundColor: colorScheme.surfaceContainerHighest,
                     child: Icon(
                       icon,
-                      color: statusColor,
+                      color: AppColors.cobaltBlue,
                     ),
                   ),
                   title: Text(

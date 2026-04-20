@@ -24,6 +24,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   DashboardViewMode _viewMode = DashboardViewMode.personal;
 
   final Set<int> _paidItems = {}; 
+  
+  Future<void> _handleRefresh() async {
+    // We use the notifier's refresh method to preserve UI state 
+    // instead of ref.invalidate() which destroys the state and causes UI jumps.
+    await ref.read(subscriptionProvider.notifier).refresh();
+    ref.refresh(userProvider);
+  }
 
 
   @override
@@ -36,132 +43,154 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 40;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          userAsync.when(
-            data: (user) => Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Hello, ${user?.fullName.split(' ').first ?? 'User'}!',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    userRole == UserRole.single 
-                        ? 'Keep your personal subscriptions in check.' 
-                        : 'Here is your subscription overview.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            loading: () => const SizedBox(height: 60),
-            error: (err, stack) => const SizedBox.shrink(),
-          ),
-
-          subscriptionsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Text('Failed to load subscriptions: $err'),
-            data: (allSubs) {
-              final isAdmin = userRole == UserRole.admin;
-              final currentUserId = userAsync.value?.id;
-
-              // What this user is ALLOWED to see on their dashboard
-              final viewableSubs = isAdmin
-                  ? allSubs // Admins see everything for the overview
-                  : allSubs.where((s) => s.ownerId == currentUserId).toList(); // Members only see their own
-
-              // Action Needed list filtering (Specific focus for Admins)
-              final filteredSubs = (isAdmin && _viewMode == DashboardViewMode.personal)
-                  ? viewableSubs.where((s) => s.ownerId == currentUserId).toList()
-                  : (isAdmin && _viewMode == DashboardViewMode.household)
-                      ? viewableSubs.where((s) => s.ownerId != currentUserId).toList()
-                      : viewableSubs;
-
-              final overdue = viewableSubs.where((s) => s.isOverdue).length;
-
-              final dueSoon = viewableSubs.where((s) => s.isUpcoming).length;
-
-              final upToDate = viewableSubs.length - overdue - dueSoon;
-
-
-              final actionNeeded = filteredSubs.where((s) {
-                if (s.isAutoPay) return false;
-                return s.isOverdue || s.isUpcoming;
-              }).toList();
-
-              if (viewableSubs.isEmpty) {
-                  return const _DashboardEmptyState();
-              }
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  monthlyTotalAsync.when(
-                    data: (householdMonthly) {
-                      final displayMonthly = isAdmin 
-                          ? householdMonthly 
-                          : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
-                          
-                      return FinancialHeroCard(
-                        monthly: displayMonthly,
-                        upToDate: upToDate,
-                        dueSoon: dueSoon,
-                        overdue: overdue,
-                        currencySymbol: currencySymbol,
-                      );
-                    },
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (err, st) => const FinancialHeroCard(
-                      monthly: 0,
-                      upToDate: 0,
-                      dueSoon: 0,
-                      overdue: 0,
-                      currencySymbol: '\$',
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      displacement: 100, // Move it below the transparent app bar area
+      edgeOffset: topPadding,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(), // Important for RefreshIndicator
+        padding: EdgeInsets.fromLTRB(20, topPadding, 20, 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            userAsync.when(
+              data: (user) => Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hello, ${user?.fullName.split(' ').first ?? 'User'}!',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
-                  ),
-
-                  const SizedBox(height: 28),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _sectionTitle(context, 'Action Needed'),
-                      if (isAdmin) _buildViewToggle(context),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ActionCardList(
-                    subscriptions: actionNeeded, 
-                    paidItems: _paidItems.map((e) => e.toString()).toSet(), 
-                    currencySymbol: currencySymbol,
-                    showOwner: _viewMode == DashboardViewMode.household,
-                    onTogglePaid: (idString) {
-                      final id = int.parse(idString);
-                      setState(() {
-                        if (_paidItems.contains(id)) {
-                          _paidItems.remove(id);
-                        } else {
-                          _paidItems.add(id);
+                    const SizedBox(height: 4),
+                    Text(
+                      userRole == UserRole.single 
+                          ? 'Keep your personal subscriptions in check.' 
+                          : 'Here is your subscription overview.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              loading: () => const SizedBox(height: 60),
+              error: (err, stack) => const SizedBox.shrink(),
+            ),
+  
+            subscriptionsAsync.when(
+              skipLoadingOnReload: true,
+              skipLoadingOnRefresh: true,
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Text('Failed to load subscriptions: $err'),
+              data: (allSubs) {
+                final isAdmin = userRole == UserRole.admin;
+                final currentUserId = userAsync.value?.id;
+  
+                // What this user is ALLOWED to see on their dashboard
+                final viewableSubs = isAdmin
+                    ? allSubs // Admins see everything for the overview
+                    : allSubs.where((s) => s.ownerId == currentUserId).toList(); // Members only see their own
+  
+                // Action Needed list filtering (Specific focus for Admins)
+                final filteredSubs = (isAdmin && _viewMode == DashboardViewMode.personal)
+                    ? viewableSubs.where((s) => s.ownerId == currentUserId).toList()
+                    : (isAdmin && _viewMode == DashboardViewMode.household)
+                        ? viewableSubs.where((s) => s.ownerId != currentUserId).toList()
+                        : viewableSubs;
+  
+                final overdue = viewableSubs.where((s) => s.isOverdue).length;
+  
+                final dueSoon = viewableSubs.where((s) => s.isUpcoming).length;
+  
+                final upToDate = viewableSubs.length - overdue - dueSoon;
+  
+  
+                final actionNeeded = filteredSubs.where((s) {
+                  if (s.isAutoPay) return false;
+                  return s.isOverdue || s.isUpcoming;
+                }).toList();
+  
+                if (viewableSubs.isEmpty) {
+                    return const _DashboardEmptyState();
+                }
+  
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    monthlyTotalAsync.when(
+                      skipLoadingOnReload: true,
+                      skipLoadingOnRefresh: true,
+                      data: (householdMonthly) {
+                        final displayMonthly = isAdmin 
+                            ? householdMonthly 
+                            : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
+                            
+                        return FinancialHeroCard(
+                          monthly: displayMonthly,
+                          upToDate: upToDate,
+                          dueSoon: dueSoon,
+                          overdue: overdue,
+                          currencySymbol: currencySymbol,
+                        );
+                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, st) => const FinancialHeroCard(
+                        monthly: 0,
+                        upToDate: 0,
+                        dueSoon: 0,
+                        overdue: 0,
+                        currencySymbol: '\$',
+                      ),
+                    ),
+  
+                    const SizedBox(height: 28),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _sectionTitle(context, 'Action Needed'),
+                        if (isAdmin) _buildViewToggle(context),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    ActionCardList(
+                      subscriptions: actionNeeded, 
+                      paidItems: _paidItems.map((e) => e.toString()).toSet(), 
+                      currencySymbol: currencySymbol,
+                      showOwner: _viewMode == DashboardViewMode.household,
+                      onTogglePaid: (idString) async {
+                        final id = int.parse(idString);
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          await ref.read(subscriptionProvider.notifier).pay(id);
+                          
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Payment confirmed!')),
+                            );
+                            setState(() {
+                              _paidItems.remove(id);
+                            });
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            messenger.showSnackBar(
+                              SnackBar(content: Text('Failed to confirm payment: $e')),
+                            );
+                          }
                         }
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

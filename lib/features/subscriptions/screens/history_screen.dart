@@ -34,7 +34,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       data: (historyList) {
         // Sort history by most recent "expiry" (nextBillingDate)
         final sortedList = List.of(historyList)
-          ..sort((a, b) => b.nextBillingDate.compareTo(a.nextBillingDate));
+          ..sort((a, b) {
+            final dateA = a.nextBillingDate ?? a.purchaseDate;
+            final dateB = b.nextBillingDate ?? b.purchaseDate;
+            return dateB.compareTo(dateA);
+          });
 
         return HistoryListView(
           historyItems: sortedList,

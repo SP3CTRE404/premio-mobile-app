@@ -27,7 +27,7 @@ class HistoryCard extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final IconData icon = SubscriptionUIHelper.getIcon(historyItem.serviceName);
-    final String formattedDate = DateFormat('MMM dd, yyyy').format(historyItem.nextBillingDate);
+    final String formattedDate = DateFormat('MMM dd, yyyy').format(historyItem.nextBillingDate ?? historyItem.purchaseDate);
     final contentColor = colorScheme.onSurface.withValues(alpha: 0.6); // Grayed out
 
     return Card(

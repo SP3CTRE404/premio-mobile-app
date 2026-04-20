@@ -2,14 +2,22 @@ enum BillingCycle {
   monthly,
   quarterly,
   yearly,
-  custom; // NEW: Gap 1
+  custom,
+  oneTime; // NEW
 
   /// Convert from backend string (e.g. "MONTHLY") to enum.
   static BillingCycle fromString(String value) {
+    if (value.toUpperCase() == 'ONE_TIME') return BillingCycle.oneTime;
     return BillingCycle.values.firstWhere(
       (e) => e.name.toUpperCase() == value.toUpperCase(),
       orElse: () => BillingCycle.monthly,
     );
+  }
+
+  /// Convert to backend string format
+  String toJsonString() {
+    if (this == BillingCycle.oneTime) return 'ONE_TIME';
+    return name.toUpperCase();
   }
 }
 
@@ -18,8 +26,9 @@ class Subscription {
   final String serviceName;
   final double amount;
   final BillingCycle billingCycle;
-  final int? customIntervalDays; // NEW: Gap 12
-  final DateTime nextBillingDate;
+  final int? customIntervalDays;
+  final String? customIntervalUnit;
+  final DateTime? nextBillingDate;
   final DateTime purchaseDate;
   final bool isAutoPay;
   final String? ownerName;
@@ -39,7 +48,8 @@ class Subscription {
     required this.amount,
     required this.billingCycle,
     this.customIntervalDays,
-    required this.nextBillingDate,
+    this.customIntervalUnit,
+    this.nextBillingDate,
     required this.purchaseDate,
     required this.isAutoPay,
     this.ownerName,
@@ -61,10 +71,11 @@ class Subscription {
       amount: (json['amount'] as num).toDouble(),
       billingCycle: BillingCycle.fromString(json['billingCycle'] as String),
       customIntervalDays: json['customIntervalDays'] as int?,
-      nextBillingDate: DateTime.parse(json['nextBillingDate'] as String),
+      customIntervalUnit: json['customIntervalUnit'] as String?,
+      nextBillingDate: json['nextBillingDate'] != null ? DateTime.parse(json['nextBillingDate'] as String) : null,
       purchaseDate: json['purchaseDate'] != null 
           ? DateTime.parse(json['purchaseDate'] as String)
-          : DateTime.parse(json['nextBillingDate'] as String), // Fallback to nextBillingDate if null
+          : (json['nextBillingDate'] != null ? DateTime.parse(json['nextBillingDate'] as String) : DateTime.now()), // Fallback
       isAutoPay: json['isAutoPay'] as bool,
       ownerName: json['ownerName'] as String?,
       ownerId: json['ownerId'] as int?,
@@ -83,9 +94,10 @@ class Subscription {
         'id': id,
         'serviceName': serviceName,
         'amount': amount,
-        'billingCycle': billingCycle.name.toUpperCase(),
+        'billingCycle': billingCycle.toJsonString(),
         'customIntervalDays': customIntervalDays,
-        'nextBillingDate': nextBillingDate.toIso8601String(),
+        'customIntervalUnit': customIntervalUnit,
+        'nextBillingDate': nextBillingDate?.toIso8601String(),
         'purchaseDate': purchaseDate.toIso8601String(),
         'isAutoPay': isAutoPay,
         'ownerName': ownerName,
@@ -107,6 +119,7 @@ class Subscription {
     double? amount,
     BillingCycle? billingCycle,
     int? customIntervalDays,
+    String? customIntervalUnit,
     DateTime? nextBillingDate,
     DateTime? purchaseDate,
     bool? isAutoPay,
@@ -127,6 +140,7 @@ class Subscription {
       amount: amount ?? this.amount,
       billingCycle: billingCycle ?? this.billingCycle,
       customIntervalDays: customIntervalDays ?? this.customIntervalDays,
+      customIntervalUnit: customIntervalUnit ?? this.customIntervalUnit,
       nextBillingDate: nextBillingDate ?? this.nextBillingDate,
       purchaseDate: purchaseDate ?? this.purchaseDate,
       isAutoPay: isAutoPay ?? this.isAutoPay,

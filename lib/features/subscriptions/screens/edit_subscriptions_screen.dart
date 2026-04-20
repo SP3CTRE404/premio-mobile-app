@@ -25,6 +25,12 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = "";
   bool _isScrolled = false;
+  
+  Future<void> _handleRefresh() async {
+    ref.invalidate(subscriptionProvider);
+    ref.invalidate(userProvider);
+    await ref.read(subscriptionProvider.future);
+  }
 
   @override
   void initState() {
@@ -136,25 +142,31 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
                 return const Center(child: Text('No subscriptions found.'));
               }
 
-              return ListView.separated(
-                controller: _scrollController,
-                padding: EdgeInsets.fromLTRB(16, 120, 16, 140 + bottomInset),
-                itemCount: filteredSubs.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final sub = filteredSubs[index];
-                  return EditSubscriptionCard(
-                    sub: sub,
-                    onEdit: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddSubscriptionScreen(initialData: sub),
+              return RefreshIndicator(
+                onRefresh: _handleRefresh,
+                displacement: 100,
+                edgeOffset: 10,
+                child: ListView.separated(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(16, 120, 16, 140 + bottomInset),
+                  itemCount: filteredSubs.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final sub = filteredSubs[index];
+                    return EditSubscriptionCard(
+                      sub: sub,
+                      onEdit: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddSubscriptionScreen(initialData: sub),
+                        ),
                       ),
-                    ),
-                    onEnd: () => _confirmEndSubscription(sub),
-                    onDelete: () => _confirmDeleteSubscription(sub),
-                  );
-                },
+                      onEnd: () => _confirmEndSubscription(sub),
+                      onDelete: () => _confirmDeleteSubscription(sub),
+                    );
+                  },
+                ),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),

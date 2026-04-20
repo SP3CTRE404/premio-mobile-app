@@ -5,8 +5,9 @@ class SubscriptionRequest {
   final String serviceName;
   final double amount;
   final BillingCycle billingCycle;
-  final int? customIntervalDays; // NEW
-  final DateTime nextBillingDate;
+  final int? customIntervalDays;
+  final String? customIntervalUnit;
+  final DateTime? nextBillingDate;
   final DateTime purchaseDate;
   final bool isAutoPay;
   final int? householdId; // NEW: So you can link it to a household
@@ -18,7 +19,8 @@ class SubscriptionRequest {
     required this.amount,
     required this.billingCycle,
     this.customIntervalDays,
-    required this.nextBillingDate,
+    this.customIntervalUnit,
+    this.nextBillingDate,
     required this.purchaseDate,
     required this.isAutoPay,
     this.householdId,
@@ -30,14 +32,19 @@ class SubscriptionRequest {
     final map = <String, dynamic>{
       'serviceName': serviceName,
       'amount': amount,
-      'billingCycle': billingCycle.name.toUpperCase(), // Backend expects uppercase
-      'nextBillingDate': nextBillingDate.toIso8601String().split('T')[0], // Usually backend expects YYYY-MM-DD for LocalDate
+      'billingCycle': billingCycle.toJsonString(), // Backend expects uppercase and ONE_TIME
       'purchaseDate': purchaseDate.toIso8601String().split('T')[0],
       'isAutoPay': isAutoPay,
     };
 
+    if (nextBillingDate != null) {
+      map['nextBillingDate'] = nextBillingDate!.toIso8601String().split('T')[0];
+    }
     if (customIntervalDays != null) {
       map['customIntervalDays'] = customIntervalDays;
+    }
+    if (customIntervalUnit != null) {
+      map['customIntervalUnit'] = customIntervalUnit;
     }
     if (householdId != null) {
       map['householdId'] = householdId;

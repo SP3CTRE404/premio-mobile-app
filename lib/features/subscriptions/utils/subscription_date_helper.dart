@@ -13,6 +13,8 @@ class SubscriptionDateHelper {
     final DateTime today = DateTime(now.year, now.month, now.day);
     final DateTime normalizedPurchase = DateTime(purchaseDate.year, purchaseDate.month, purchaseDate.day);
     
+    if (cycle == BillingCycle.oneTime) return normalizedPurchase;
+
     // Logic: If you purchase a subscription, the "next" billing date is at least one cycle away.
     // We start by adding the first cycle to the purchase date.
     DateTime nextDate = _incrementDate(normalizedPurchase, cycle, customDays);
@@ -38,6 +40,8 @@ class SubscriptionDateHelper {
         return DateTime(date.year + 1, date.month, date.day);
       case BillingCycle.custom:
         return date.add(Duration(days: customDays ?? 30));
+      case BillingCycle.oneTime:
+        return date;
     }
   }
 

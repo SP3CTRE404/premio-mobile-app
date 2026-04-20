@@ -171,7 +171,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                   child: child,
                 );
               },
-              child: SizedBox(
+              child: SizedBox.expand(
                 key: ValueKey<int>(currentIndex),
                 child: screens[currentIndex],
               ),
