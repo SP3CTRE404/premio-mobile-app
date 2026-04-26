@@ -1,12 +1,38 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../secure_storage/secure_storage_service.dart';
+import '../../features/auth/providers/auth_provider.dart';
 
 /// Dio [Interceptor] that attaches `Authorization: Bearer <token>`
 /// to every request whose path starts with `/api/`.
+///
+/// Performance optimization: The JWT is cached in-memory after first read,
+/// avoiding expensive native secure storage I/O on every HTTP request.
 class AuthInterceptor extends Interceptor {
   final SecureStorageService _storage;
+  final Ref _ref;
 
-  AuthInterceptor(this._storage);
+  /// In-memory cache of the JWT token.
+  /// Eliminates repeated reads from iOS Keychain / Android Keystore.
+  String? _cachedToken;
+
+  AuthInterceptor(this._storage, this._ref);
+
+  /// Loads the token from secure storage into memory.
+  /// Called once at app startup and after login.
+  Future<void> warmUpToken() async {
+    _cachedToken = await _storage.getToken();
+  }
+
+  /// Updates the in-memory cached token (called after login).
+  void setToken(String token) {
+    _cachedToken = token;
+  }
+
+  /// Clears the in-memory cached token (called on logout or 401).
+  void clearToken() {
+    _cachedToken = null;
+  }
 
   @override
   Future<void> onRequest(
@@ -14,9 +40,13 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     if (options.path.startsWith('/api')) {
-      final token = await _storage.getToken();
-      if (token != null && token.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer $token';
+      // Use cached token instead of reading from native storage every time
+      if (_cachedToken == null || _cachedToken!.isEmpty) {
+        // Fallback: read from storage if cache is somehow empty
+        _cachedToken = await _storage.getToken();
+      }
+      if (_cachedToken != null && _cachedToken!.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $_cachedToken';
       }
     }
     handler.next(options);
@@ -25,9 +55,9 @@ class AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
-      // Token expired or invalid — downstream code should handle logout.
-      // We could clear the token here, but it's better to let the
-      // AuthNotifier react to the 401 so the UI navigates properly.
+      // Token expired or invalid — clear cache and logout
+      clearToken();
+      _ref.read(authProvider.notifier).logout();
     }
     handler.next(err);
   }

@@ -89,4 +89,24 @@ class User {
         'profilePicture': profilePicture,
         'dateOfBirth': dateOfBirth?.toIso8601String(),
       };
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is User &&
+        other.id == id &&
+        other.email == email &&
+        other.fullName == fullName &&
+        other.phoneNumber == phoneNumber &&
+        other.householdId == householdId &&
+        other.isHouseholdAdmin == isHouseholdAdmin &&
+        other.profilePicture == profilePicture &&
+        other.dateOfBirth == dateOfBirth;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id, email, fullName, phoneNumber,
+        householdId, isHouseholdAdmin, profilePicture, dateOfBirth,
+      );
 }

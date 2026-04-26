@@ -16,7 +16,7 @@ import '../widgets/add_subscription/save_subscription_button.dart';
 import '../widgets/add_subscription/service_name_field.dart';
 import '../../auth/widgets/auth_text_field.dart';
 import '../../account/providers/account_provider.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 
 enum CustomIntervalUnit { days, months, years }
 

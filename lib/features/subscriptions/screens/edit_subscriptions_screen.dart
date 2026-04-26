@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../auth/widgets/auth_background.dart';
@@ -9,7 +10,9 @@ import '../models/subscription_model.dart';
 import '../widgets/edit_subscription/edit_subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
 import '../widgets/edit_subscription/end_subscription_dialog.dart';
-import '../widgets/edit_subscription/delete_subscription_dialog.dart';
+import '../../../../shared/widgets/destructive_action_dialog.dart';
+import '../../../../core/auth/auth_service.dart';
+import '../../../../shared/widgets/custom_toast.dart';
 
 class EditSubscriptionsScreen extends ConsumerStatefulWidget {
 
@@ -24,6 +27,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String _searchQuery = "";
+  Timer? _debounce;
   bool _isScrolled = false;
   
   Future<void> _handleRefresh() async {
@@ -47,8 +51,16 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     });
   }
 
+  void _onSearchChanged(String val) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      setState(() => _searchQuery = val);
+    });
+  }
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -68,7 +80,36 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
   void _confirmDeleteSubscription(Subscription sub) {
     showDialog(
       context: context,
-      builder: (context) => DeleteSubscriptionDialog(sub: sub),
+      builder: (context) => DestructiveActionDialog(
+        title: 'Delete Subscription?',
+        content: 'Are you sure you want to permanently delete your "${sub.serviceName}" subscription? All the payment history will be lost. This action cannot be undone.',
+        actionText: 'Delete Forever',
+        onConfirm: () async {
+          final authenticated = await ref.read(authServiceProvider).authenticate();
+          if (!authenticated) return;
+          
+          if (!context.mounted) return;
+          try {
+            await ref.read(subscriptionProvider.notifier).delete(sub.id);
+            if (context.mounted) {
+              Navigator.pop(context);
+              CustomToast.show(
+                context: context, 
+                message: '${sub.serviceName} deleted permanently', 
+                isError: false,
+              );
+            }
+          } catch (e) {
+            if (context.mounted) {
+              CustomToast.show(
+                context: context, 
+                message: 'Failed to delete: $e', 
+                isError: true,
+              );
+            }
+          }
+        },
+      ),
     );
   }
 
@@ -176,7 +217,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
           SubscriptionSearchBar(
             controller: _searchController,
             query: _searchQuery,
-            onChanged: (val) => setState(() => _searchQuery = val),
+            onChanged: _onSearchChanged,
           ),
         ],
       ),

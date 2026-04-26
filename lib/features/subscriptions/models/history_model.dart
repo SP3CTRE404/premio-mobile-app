@@ -34,5 +34,19 @@ class SubscriptionHistory {
         'paymentDate': paymentDate.toIso8601String(),
         'status': status,
       };
-}
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is SubscriptionHistory &&
+        other.id == id &&
+        other.subscriptionId == subscriptionId &&
+        other.serviceName == serviceName &&
+        other.amount == amount &&
+        other.paymentDate == paymentDate &&
+        other.status == status;
+  }
+
+  @override
+  int get hashCode => Object.hash(id, subscriptionId, serviceName, amount, paymentDate, status);
+}

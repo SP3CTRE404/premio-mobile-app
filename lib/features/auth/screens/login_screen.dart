@@ -11,7 +11,7 @@ import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
 import 'register_screen.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});

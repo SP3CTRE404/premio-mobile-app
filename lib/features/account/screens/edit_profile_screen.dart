@@ -10,7 +10,7 @@ import '../widgets/edit_profile_screen/edit_profile_form.dart';
 import '../widgets/edit_profile_screen/profile_avatar_editor.dart';
 import '../widgets/edit_profile_screen/save_button.dart';
 import '../../../core/auth/auth_service.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 import 'change_password_screen.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {

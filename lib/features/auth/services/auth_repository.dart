@@ -9,14 +9,15 @@ import '../models/auth_request.dart';
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final storage = ref.watch(secureStorageServiceProvider);
-  return AuthRepository(dio: apiClient.dio, storage: storage);
+  return AuthRepository(dio: apiClient.dio, storage: storage, apiClient: apiClient);
 });
 
 class AuthRepository {
   final Dio dio;
   final SecureStorageService storage;
+  final ApiClient apiClient;
 
-  AuthRepository({required this.dio, required this.storage});
+  AuthRepository({required this.dio, required this.storage, required this.apiClient});
 
   // ── Hardcoded test credentials (bypass server) ──
   static const _testEmail = 'admin@mail.com';
@@ -42,6 +43,8 @@ class AuthRepository {
     final token = data['token'] as String;
 
     await storage.saveToken(token);
+    // Sync in-memory token cache
+    apiClient.authInterceptor.setToken(token);
 
     // If the backend returns user info alongside the token, persist it.
     if (data.containsKey('user')) {
@@ -64,6 +67,7 @@ class AuthRepository {
 
   /// Clears all persisted credentials.
   Future<void> logout() async {
+    apiClient.authInterceptor.clearToken();
     await storage.clearAll();
   }
 

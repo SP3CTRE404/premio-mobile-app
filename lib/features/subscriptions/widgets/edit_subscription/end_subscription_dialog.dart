@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/subscription_model.dart';
 import '../../providers/subscription_provider.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_toast.dart';
+import '../../../../shared/widgets/custom_toast.dart';
 
 class EndSubscriptionDialog extends ConsumerStatefulWidget {
   final Subscription sub;

@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../models/subscription_model.dart';
 import '../../utils/subscription_ui_helper.dart';
-import 'subscription_detail_item.dart';
+import '../../../../shared/widgets/icon_detail_item.dart';
 
 class SubscriptionCard extends StatelessWidget {
   final Subscription subscription;
@@ -154,14 +154,14 @@ class SubscriptionCard extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
-                                          child: SubscriptionDetailItem(
+                                          child: IconDetailItem(
                                             label: 'Billing Cycle',
                                             value: billingCycle,
                                             icon: Icons.calendar_month_outlined,
                                           ),
                                         ),
                                         Expanded(
-                                          child: SubscriptionDetailItem(
+                                          child: IconDetailItem(
                                             label: 'Method',
                                             value: paymentType,
                                             icon: Icons.payment_outlined,
@@ -175,7 +175,7 @@ class SubscriptionCard extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
-                                          child: SubscriptionDetailItem(
+                                          child: IconDetailItem(
                                             label: 'Puchased On',
                                             value: subDateFormatted,
                                             icon:
@@ -183,7 +183,7 @@ class SubscriptionCard extends StatelessWidget {
                                           ),
                                         ),
                                         Expanded(
-                                          child: SubscriptionDetailItem(
+                                          child: IconDetailItem(
                                             label: 'Owner:',
                                             value: subscription.ownerName ?? 'Unknown',
                                             icon: Icons.person_outline,
@@ -197,21 +197,21 @@ class SubscriptionCard extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
-                                      child: SubscriptionDetailItem(
+                                      child: IconDetailItem(
                                         label: 'Billing Cycle',
                                         value: billingCycle,
                                         icon: Icons.calendar_month_outlined,
                                       ),
                                     ),
                                     Expanded(
-                                      child: SubscriptionDetailItem(
+                                      child: IconDetailItem(
                                         label: 'Method',
                                         value: paymentType,
                                         icon: Icons.payment_outlined,
                                       ),
                                     ),
                                     Expanded(
-                                      child: SubscriptionDetailItem(
+                                      child: IconDetailItem(
                                         label: 'Purchased On',
                                         value: subDateFormatted,
                                         icon: Icons.event_available_outlined,

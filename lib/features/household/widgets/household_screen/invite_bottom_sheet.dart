@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/custom_toast.dart';
+import '../../../../shared/widgets/custom_toast.dart';
 import '../../providers/household_provider.dart';
 
 class InviteBottomSheet extends ConsumerWidget {
@@ -236,7 +236,7 @@ class InviteBottomSheet extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Hold this QR for a member to scan',
+              'Show this QR to the person you\'re inviting.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),

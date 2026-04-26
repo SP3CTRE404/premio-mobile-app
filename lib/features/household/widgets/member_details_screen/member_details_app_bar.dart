@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/auth_service.dart';
 import '../../providers/household_provider.dart';
 import '../../../account/providers/account_provider.dart';
+import '../../../account/screens/expired_subscriptions_screen.dart';
+import '../../../subscriptions/screens/payment_history_screen.dart';
 
 class MemberDetailsAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final int memberId;
@@ -48,7 +50,27 @@ class MemberDetailsAppBar extends ConsumerWidget implements PreferredSizeWidget 
             offset: const Offset(0, 50),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (value) async {
-              if (value == 'remove') {
+              if (value == 'history') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentHistoryScreen(
+                      memberId: memberId,
+                      memberName: memberName,
+                    ),
+                  ),
+                );
+              } else if (value == 'expired') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ExpiredSubscriptionsScreen(
+                      memberId: memberId,
+                      memberName: memberName,
+                    ),
+                  ),
+                );
+              } else if (value == 'remove') {
                 // Authentication required!
                 final authService = ref.read(authServiceProvider);
                 final authenticated = await authService.authenticate();
@@ -95,6 +117,26 @@ class MemberDetailsAppBar extends ConsumerWidget implements PreferredSizeWidget 
               }
             },
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'history',
+                child: Row(
+                  children: [
+                    Icon(Icons.history_rounded, size: 20),
+                    SizedBox(width: 12),
+                    Text('View History'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'expired',
+                child: Row(
+                  children: [
+                    Icon(Icons.event_busy_rounded, size: 20),
+                    SizedBox(width: 12),
+                    Text('View Expired'),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: 'remove',
                 child: Row(

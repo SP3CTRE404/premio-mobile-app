@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/auth/providers/auth_provider.dart';
 
 import '../../../core/auth/auth_service.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 import '../../account/models/user_model.dart';
 import '../../account/providers/account_provider.dart';
 import '../../household/providers/household_provider.dart';
@@ -13,7 +13,7 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../widgets/about_section.dart';
 import '../widgets/look_and_feel_section.dart';
 import '../widgets/security_section.dart';
-import '../widgets/settings_section_header.dart';
+import '../../../../shared/widgets/app_section_header.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -36,15 +36,15 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          const SettingsSectionHeader(title: 'Look and Feel'),
+          const AppSectionHeader(title: 'Look and Feel', isUppercase: true),
           const LookAndFeelSection(),
           const SizedBox(height: 12),
 
-          const SettingsSectionHeader(title: 'Security'),
+          const AppSectionHeader(title: 'Security', isUppercase: true),
           const SecuritySection(),
           const SizedBox(height: 12),
 
-          const SettingsSectionHeader(title: 'About'),
+          const AppSectionHeader(title: 'About', isUppercase: true),
           const AboutSection(),
           const SizedBox(height: 24),
 

@@ -25,7 +25,7 @@ class LookAndFeelSection extends ConsumerWidget {
           child: Card(
             color: colorScheme.surface,
             child: ListTile(
-              leading: Icon(Icons.currency_exchange_rounded,
+              leading: const Icon(Icons.currency_exchange_rounded,
                   color: AppColors.cobaltBlue),
               title: const Text('Currency'),
               subtitle: Text(_currencyLabel(currentCurrency)),
@@ -49,7 +49,7 @@ class LookAndFeelSection extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.palette_outlined,
+                      const Icon(Icons.palette_outlined,
                           color: AppColors.cobaltBlue),
                       const SizedBox(width: 16),
                       Text(

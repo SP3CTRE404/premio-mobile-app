@@ -30,12 +30,53 @@ class HistoryRepository {
     return list.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
   }
 
-  // GET global history for the user (Dashboard/History Tab)
-  Future<List<SubscriptionHistory>> getUserHistory() async {
-    final userId = await _getUserId();
-    final response = await dio.get(ApiEndpoints.userHistory(userId));
-    final list = response.data as List<dynamic>;
-    return list.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
+  /// GET paginated history for a user.
+  /// Returns a [PaginatedHistory] containing the page of items and metadata.
+  Future<PaginatedHistory> getUserHistory({int? userId, int page = 0, int size = 20}) async {
+    final effectiveId = userId ?? await _getUserId();
+    final response = await dio.get(
+      ApiEndpoints.userHistory(effectiveId),
+      queryParameters: {'page': page, 'size': size},
+    );
+
+    final data = response.data;
+
+    // Support both paginated response (Map) and legacy flat list (List)
+    if (data is Map<String, dynamic>) {
+      final content = (data['content'] as List<dynamic>)
+          .map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>))
+          .toList();
+      return PaginatedHistory(
+        items: content,
+        page: data['page'] as int? ?? page,
+        totalElements: data['totalElements'] as int? ?? content.length,
+        hasMore: data['hasMore'] as bool? ?? false,
+      );
+    } else {
+      // Legacy fallback: plain list response
+      final list = data as List<dynamic>;
+      final items = list.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
+      return PaginatedHistory(
+        items: items,
+        page: 0,
+        totalElements: items.length,
+        hasMore: false,
+      );
+    }
   }
 }
 
+/// Holds a page of history items along with pagination metadata.
+class PaginatedHistory {
+  final List<SubscriptionHistory> items;
+  final int page;
+  final int totalElements;
+  final bool hasMore;
+
+  const PaginatedHistory({
+    required this.items,
+    required this.page,
+    required this.totalElements,
+    required this.hasMore,
+  });
+}

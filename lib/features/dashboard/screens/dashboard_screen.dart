@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/subscriptions/screens/add_subscription_screen.dart';
+import '../../../shared/widgets/skeleton_card.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
 import '../../subscriptions/models/user_role.dart';
@@ -29,6 +30,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // We use the notifier's refresh method to preserve UI state 
     // instead of ref.invalidate() which destroys the state and causes UI jumps.
     await ref.read(subscriptionProvider.notifier).refresh();
+    // ignore: unused_result
     ref.refresh(userProvider);
   }
 
@@ -85,7 +87,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             subscriptionsAsync.when(
               skipLoadingOnReload: true,
               skipLoadingOnRefresh: true,
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const DashboardSkeleton(),
               error: (err, stack) => Text('Failed to load subscriptions: $err'),
               data: (allSubs) {
                 final isAdmin = userRole == UserRole.admin;
@@ -138,7 +140,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           currencySymbol: currencySymbol,
                         );
                       },
-                      loading: () => const Center(child: CircularProgressIndicator()),
+                      loading: () => const SkeletonHeroCard(),
                       error: (err, st) => const FinancialHeroCard(
                         monthly: 0,
                         upToDate: 0,

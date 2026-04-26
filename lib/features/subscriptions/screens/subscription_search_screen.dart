@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
   String _query = '';
   final Set<String> _expandedCards = {}; 
   bool _isScrolled = false;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -37,6 +39,13 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
     });
   }
 
+  void _onSearchChanged(String val) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      setState(() => _query = val);
+    });
+  }
+
   void _toggleCard(String cardKey) {
     setState(() {
       if (_expandedCards.contains(cardKey)) {
@@ -49,6 +58,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -144,7 +154,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
             controller: _searchController,
             query: _query,
             autofocus: true,
-            onChanged: (val) => setState(() => _query = val),
+            onChanged: _onSearchChanged,
           ),
         ],
       ),

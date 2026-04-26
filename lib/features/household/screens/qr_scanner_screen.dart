@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 
 class QrScannerScreen extends StatefulWidget {
   const QrScannerScreen({super.key});

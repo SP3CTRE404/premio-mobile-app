@@ -50,7 +50,9 @@ class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
     
     // Refresh dashboard-related providers instead of invalidating them 
     // so they also preserve their previous UI state while reloading.
+    // ignore: unused_result
     ref.refresh(monthlyTotalProvider);
+    // ignore: unused_result
     ref.refresh(dueSubscriptionsProvider);
   }
 

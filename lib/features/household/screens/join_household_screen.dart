@@ -4,7 +4,7 @@ import '../../auth/widgets/auth_text_field.dart';
 import '../../auth/widgets/auth_button.dart';
 import '../widgets/shared/household_form_layout.dart';
 import 'qr_scanner_screen.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 import '../providers/household_provider.dart';
 import '../../account/providers/account_provider.dart';
 

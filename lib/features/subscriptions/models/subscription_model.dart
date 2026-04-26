@@ -156,4 +156,35 @@ class Subscription {
 
   }
 
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Subscription &&
+        other.id == id &&
+        other.serviceName == serviceName &&
+        other.amount == amount &&
+        other.billingCycle == billingCycle &&
+        other.customIntervalDays == customIntervalDays &&
+        other.customIntervalUnit == customIntervalUnit &&
+        other.nextBillingDate == nextBillingDate &&
+        other.purchaseDate == purchaseDate &&
+        other.isAutoPay == isAutoPay &&
+        other.ownerName == ownerName &&
+        other.ownerId == ownerId &&
+        other.householdName == householdName &&
+        other.householdId == householdId &&
+        other.status == status &&
+        other.isOverdue == isOverdue &&
+        other.isUpcoming == isUpcoming &&
+        other.daysUntilDue == daysUntilDue;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        id, serviceName, amount, billingCycle,
+        customIntervalDays, customIntervalUnit,
+        nextBillingDate, purchaseDate, isAutoPay,
+        ownerName, ownerId, householdName,
+        householdId, status, isOverdue, isUpcoming,
+      );
 }

@@ -1,20 +1,20 @@
-// In lib/features/subscriptions/widgets/history/history_card.dart
+// lib/features/account/widgets/expired_subscriptions/expired_subscription_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../models/subscription_model.dart';
-import '../../utils/subscription_ui_helper.dart';
-import 'history_detail_item.dart';
+import '../../../subscriptions/models/subscription_model.dart';
+import '../../../subscriptions/utils/subscription_ui_helper.dart';
+import '../../../../shared/widgets/icon_detail_item.dart';
 
-class HistoryCard extends StatelessWidget {
-  final Subscription historyItem; // Now uses Subscription
+class ExpiredSubscriptionCard extends StatelessWidget {
+  final Subscription subscription;
   final String currencySymbol;
   final bool isExpanded;
   final VoidCallback onTap;
 
-  const HistoryCard({
+  const ExpiredSubscriptionCard({
     super.key,
-    required this.historyItem,
+    required this.subscription,
     required this.currencySymbol,
     required this.isExpanded,
     required this.onTap,
@@ -26,8 +26,8 @@ class HistoryCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final IconData icon = SubscriptionUIHelper.getIcon(historyItem.serviceName);
-    final String formattedDate = DateFormat('MMM dd, yyyy').format(historyItem.nextBillingDate ?? historyItem.purchaseDate);
+    final IconData icon = SubscriptionUIHelper.getIcon(subscription.serviceName);
+    final String formattedDate = DateFormat('MMM dd, yyyy').format(subscription.nextBillingDate ?? subscription.purchaseDate);
     final contentColor = colorScheme.onSurface.withValues(alpha: 0.6); // Grayed out
 
     return Card(
@@ -54,11 +54,11 @@ class HistoryCard extends StatelessWidget {
                     child: Icon(icon, color: contentColor),
                   ),
                   title: Text(
-                    historyItem.serviceName,
+                    subscription.serviceName,
                     style: textTheme.titleMedium?.copyWith(
                       color: contentColor,
                       fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.lineThrough, // Strikethrough effect!
+                      decoration: TextDecoration.lineThrough,
                       fontSize: 16,
                     ),
                   ),
@@ -74,7 +74,7 @@ class HistoryCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            formatCurrency(historyItem.amount, currencySymbol),
+                            formatCurrency(subscription.amount, currencySymbol),
                             style: textTheme.bodyLarge?.copyWith(
                               color: contentColor,
                               fontWeight: FontWeight.w700,
@@ -108,16 +108,16 @@ class HistoryCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
-                              child: HistoryDetailItem(
+                              child: IconDetailItem(
                                 label: 'Final Billing Cycle',
-                                value: historyItem.billingCycle.name.toUpperCase(),
+                                value: subscription.billingCycle.name.toUpperCase(),
                                 icon: Icons.calendar_month_outlined,
                               ),
                             ),
                             Expanded(
-                              child: HistoryDetailItem(
+                              child: IconDetailItem(
                                 label: 'Subscription ID',
-                                value: '#${historyItem.id.toString().padLeft(6, '0')}',
+                                value: '#${subscription.id.toString().padLeft(6, '0')}',
                                 icon: Icons.tag,
                               ),
                             ),
@@ -129,7 +129,6 @@ class HistoryCard extends StatelessWidget {
                   ),
               ],
             ),
-
           ),
         ),
       ),

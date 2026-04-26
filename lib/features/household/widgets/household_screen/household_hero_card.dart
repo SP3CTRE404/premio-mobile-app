@@ -1,15 +1,16 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../../core/widgets/custom_toast.dart';
+import '../../../../shared/widgets/custom_toast.dart';
 import '../../providers/household_provider.dart';
 import 'edit_household_name_dialog.dart';
 
-// Changed to ConsumerWidget to access Riverpod ref
-class HouseholdHeroCard extends ConsumerWidget {
+// Changed to ConsumerStatefulWidget to cache decoded image bytes
+class HouseholdHeroCard extends ConsumerStatefulWidget {
   final String householdName;
   final String? imageUrl; // NEW
   final bool isAdmin;
@@ -30,22 +31,43 @@ class HouseholdHeroCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HouseholdHeroCard> createState() => _HouseholdHeroCardState();
+}
+
+class _HouseholdHeroCardState extends ConsumerState<HouseholdHeroCard> {
+  Uint8List? _decodedImageBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _decodeImage();
+  }
+
+  @override
+  void didUpdateWidget(HouseholdHeroCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.imageUrl != oldWidget.imageUrl) {
+      _decodeImage();
+    }
+  }
+
+  void _decodeImage() {
+    if (widget.imageUrl != null && widget.imageUrl!.isNotEmpty) {
+      try {
+        final base64String = widget.imageUrl!.split(',').last;
+        _decodedImageBytes = base64Decode(base64String);
+      } catch (e) {
+        _decodedImageBytes = null;
+      }
+    } else {
+      _decodedImageBytes = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    // Helper to safely display base64 image
-    ImageProvider? getImageProvider() {
-      if (imageUrl != null && imageUrl!.isNotEmpty) {
-        try {
-          final base64String = imageUrl!.split(',').last;
-          return MemoryImage(base64Decode(base64String));
-        } catch (e) {
-          return null; // fallback if image string is malformed
-        }
-      }
-      return null;
-    }
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -75,7 +97,7 @@ class HouseholdHeroCard extends ConsumerWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            householdName,
+                            widget.householdName,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.onSurface,
@@ -84,7 +106,7 @@ class HouseholdHeroCard extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (isAdmin) ...[
+                        if (widget.isAdmin) ...[
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.edit_rounded, size: 20),
@@ -95,7 +117,7 @@ class HouseholdHeroCard extends ConsumerWidget {
                               showDialog(
                                 context: context,
                                 builder: (context) => EditHouseholdNameDialog(
-                                  currentName: householdName,
+                                  currentName: widget.householdName,
                                   onSave: (newName) async {
                                     try {
                                       await ref.read(householdProvider.notifier).updateHouseholdName(newName);
@@ -121,7 +143,7 @@ class HouseholdHeroCard extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                onTap: isAdmin ? () async {
+                onTap: widget.isAdmin ? () async {
                   final ImagePicker picker = ImagePicker();
                   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
                   
@@ -148,12 +170,12 @@ class HouseholdHeroCard extends ConsumerWidget {
                     CircleAvatar(
                       radius: 30,
                       backgroundColor: AppColors.cobaltBlue.withValues(alpha: 0.15),
-                      backgroundImage: getImageProvider(),
-                      child: getImageProvider() == null 
+                      backgroundImage: _decodedImageBytes != null ? MemoryImage(_decodedImageBytes!) : null,
+                      child: _decodedImageBytes == null 
                           ? const Icon(Icons.groups_rounded, color: AppColors.cobaltBlue, size: 32)
                           : null, // Only show icon if no image
                     ),
-                    if (isAdmin)
+                    if (widget.isAdmin)
                       Positioned(
                         bottom: 0,
                         right: 0,
@@ -182,17 +204,17 @@ class HouseholdHeroCard extends ConsumerWidget {
           const SizedBox(height: 28),
           Row(
             children: [
-              _buildStatCol(context, sharedSubs, 'Subscriptions'),
+              _buildStatCol(context, widget.sharedSubs, 'Subscriptions'),
               Container(height: 40, width: 1, color: colorScheme.onSurface.withValues(alpha: 0.1)),
-              _buildStatCol(context, formatCurrency(totalValue, currencySymbol), 'Yearly Value'),
+              _buildStatCol(context, formatCurrency(widget.totalValue, widget.currencySymbol), 'Yearly Value'),
             ],
           ),
-          if (isAdmin) ...[
+          if (widget.isAdmin) ...[
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: onInviteTap,
+                onPressed: widget.onInviteTap,
                 icon: const Icon(Icons.person_add_rounded),
                 label: const Text('Invite People'),
                 style: OutlinedButton.styleFrom(

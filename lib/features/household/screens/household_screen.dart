@@ -17,11 +17,10 @@ import '../widgets/household_screen/household_hero_card.dart';
 import '../widgets/household_screen/member_list_item.dart';
 import '../widgets/household_screen/invite_bottom_sheet.dart';
 import '../widgets/household_screen/household_actions.dart';
-import '../widgets/household_screen/leave_household_dialog.dart';
 import '../widgets/household_screen/transfer_admin_dialog.dart';
-import '../widgets/household_screen/delete_household_dialog.dart';
+import '../../../../shared/widgets/destructive_action_dialog.dart';
 import '../widgets/shared/selection_card.dart';
-import '../../../core/widgets/custom_toast.dart';
+import '../../../shared/widgets/custom_toast.dart';
 import '../../../core/auth/auth_service.dart';
 
 class HouseholdScreen extends ConsumerWidget {
@@ -206,8 +205,10 @@ class HouseholdScreen extends ConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => LeaveHouseholdDialog(
-        householdName: householdName,
+      builder: (context) => DestructiveActionDialog(
+        title: 'Leave Household?',
+        content: 'Are you sure you want to leave "$householdName"? You will lose access to all analytics, and household features.',
+        actionText: 'Leave Household',
         onConfirm: () async {
           if (isAdmin) {
             // Admin flow: first check for successors
@@ -331,8 +332,10 @@ class HouseholdScreen extends ConsumerWidget {
   ) {
     showDialog(
       context: context,
-      builder: (context) => DeleteHouseholdDialog(
-        householdName: householdName,
+      builder: (context) => DestructiveActionDialog(
+        title: 'Delete Household?',
+        content: 'Are you sure you want to delete "$householdName"? This action is permanent and will remove all members and shared data.',
+        actionText: 'Delete Forever',
         onConfirm: () async {
           // Authentication Barrier
           final authService = ref.read(authServiceProvider);

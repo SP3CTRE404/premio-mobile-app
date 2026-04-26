@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/account_screen/logout_button.dart';
+import '../widgets/account_screen/management_card.dart';
 import '../widgets/account_screen/profile_header.dart';
 import '../widgets/account_screen/section_block.dart';
 import '../widgets/account_screen/support_card.dart';
@@ -20,17 +21,22 @@ class AccountScreen extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const ProfileHeader(),
-                const SizedBox(height: 28),
-                const SectionBlock(
+                ProfileHeader(),
+                SizedBox(height: 28),
+                SectionBlock(
+                  title: 'Management',
+                  child: ManagementCard(),
+                ),
+                SizedBox(height: 28),
+                SectionBlock(
                   title: 'Support',
                   child: SupportCard(),
                 ),
-                const SizedBox(height: 32),
-                const LogoutButton(),
+                SizedBox(height: 32),
+                LogoutButton(),
               ],
             ),
           ),

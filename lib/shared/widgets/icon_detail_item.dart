@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class HistoryDetailItem extends StatelessWidget {
+class IconDetailItem extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
 
-  const HistoryDetailItem({
+  const IconDetailItem({
     super.key,
     required this.label,
     required this.value,
@@ -15,26 +15,20 @@ class HistoryDetailItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 14,
-              color: colorScheme.primary,
-            ),
+            Icon(icon, size: 14, color: theme.colorScheme.primary),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 label,
-                style: textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.54),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.54),
                   fontSize: 11,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -45,8 +39,8 @@ class HistoryDetailItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),

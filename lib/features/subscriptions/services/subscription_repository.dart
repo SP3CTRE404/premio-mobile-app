@@ -103,12 +103,12 @@ class SubscriptionRepository {
   }
 
   /// NEW: GET /api/subscriptions/user/{userId}/expired
-  Future<List<Subscription>> getExpiredSubscriptions() async {
-    final userId = await _getUserId();
-    final response = await dio.get(ApiEndpoints.expiredSubscriptions(userId));
+  Future<List<Subscription>> getExpiredSubscriptions({int? userId}) async {
+    final effectiveId = userId ?? await _getUserId();
+    final response = await dio.get(ApiEndpoints.expiredSubscriptions(effectiveId));
     final list = response.data as List<dynamic>;
     return list
         .map((json) => Subscription.fromJson(json as Map<String, dynamic>))
         .toList();
   }
-}
+}

@@ -5,7 +5,6 @@ import '../services/history_repository.dart';
 import '../services/subscription_repository.dart';
 import '../../auth/providers/auth_provider.dart';
 
-
 /// Fetches payment history for a specific subscription ID.
 final historyProvider = FutureProvider.autoDispose.family<List<SubscriptionHistory>, int>(
   (ref, subscriptionId) async {
@@ -14,12 +13,112 @@ final historyProvider = FutureProvider.autoDispose.family<List<SubscriptionHisto
   },
 );
 
-/// NEW: Fetches all expired subscriptions for the logged-in user.
-final userHistoryProvider = FutureProvider.autoDispose<List<Subscription>>((ref) async {
-  ref.watch(authProvider); // Reset on logout/login
+/// Holds a page of history items plus pagination metadata.
+class PaginatedHistoryState {
+  final List<SubscriptionHistory> items;
+  final bool hasMore;
+  final bool isLoadingMore;
+
+  const PaginatedHistoryState({
+    this.items = const [],
+    this.hasMore = true,
+    this.isLoadingMore = false,
+  });
+
+  PaginatedHistoryState copyWith({
+    List<SubscriptionHistory>? items,
+    bool? hasMore,
+    bool? isLoadingMore,
+  }) {
+    return PaginatedHistoryState(
+      items: items ?? this.items,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
+}
+
+/// Simple non-paginated provider for backwards compatibility.
+final userHistoryProvider = FutureProvider.autoDispose<List<SubscriptionHistory>>((ref) async {
+  ref.watch(authProvider);
+  final repo = ref.read(historyRepositoryProvider);
+  final result = await repo.getUserHistory(page: 0, size: 20);
+  return result.items;
+});
+
+/// Notifier for paginated history with loadMore support.
+class PaginatedHistoryNotifier extends Notifier<PaginatedHistoryState> {
+  int _currentPage = 0;
+  static const _pageSize = 20;
+
+  @override
+  PaginatedHistoryState build() {
+    _fetchInitial();
+    return const PaginatedHistoryState();
+  }
+
+  Future<void> _fetchInitial() async {
+    _currentPage = 0;
+    try {
+      final repo = ref.read(historyRepositoryProvider);
+      final result = await repo.getUserHistory(page: 0, size: _pageSize);
+      _currentPage = 1;
+      state = PaginatedHistoryState(
+        items: result.items,
+        hasMore: result.hasMore,
+      );
+    } catch (e) {
+      state = const PaginatedHistoryState(items: [], hasMore: false);
+    }
+  }
+
+  bool get hasMore => state.hasMore;
+  bool get isLoadingMore => state.isLoadingMore;
+
+  /// Loads the next page and appends items to current list.
+  Future<void> loadMore() async {
+    if (!state.hasMore || state.isLoadingMore) return;
+    state = state.copyWith(isLoadingMore: true);
+
+    try {
+      final repo = ref.read(historyRepositoryProvider);
+      final result = await repo.getUserHistory(page: _currentPage, size: _pageSize);
+      _currentPage++;
+      state = PaginatedHistoryState(
+        items: [...state.items, ...result.items],
+        hasMore: result.hasMore,
+        isLoadingMore: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoadingMore: false);
+    }
+  }
+
+  Future<void> refresh() async {
+    await _fetchInitial();
+  }
+}
+
+final paginatedHistoryProvider = NotifierProvider<PaginatedHistoryNotifier, PaginatedHistoryState>(
+  PaginatedHistoryNotifier.new,
+);
+
+/// Fetches all expired subscriptions for the logged-in user.
+final expiredSubscriptionsProvider = FutureProvider.autoDispose<List<Subscription>>((ref) async {
+  ref.watch(authProvider);
   final repo = ref.read(subscriptionRepositoryProvider);
   return repo.getExpiredSubscriptions();
 });
 
+/// Fetches payment history for a specific member (Admin only).
+final memberHistoryProvider = FutureProvider.autoDispose.family<List<SubscriptionHistory>, int>((ref, userId) async {
+  final repo = ref.read(historyRepositoryProvider);
+  final result = await repo.getUserHistory(userId: userId, page: 0, size: 100);
+  return result.items;
+});
 
-
+/// Fetches expired subscriptions for a specific member (Admin only).
+final memberExpiredSubscriptionsProvider = FutureProvider.autoDispose.family<List<Subscription>, int>((ref, userId) async {
+  final repo = ref.read(subscriptionRepositoryProvider);
+  return repo.getExpiredSubscriptions(userId: userId);
+});

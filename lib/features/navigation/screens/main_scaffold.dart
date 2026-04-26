@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:subtrack/features/subscriptions/screens/history_screen.dart';
+import 'package:subtrack/features/subscriptions/screens/payment_history_screen.dart';
 import 'package:subtrack/features/subscriptions/models/user_role.dart';
 import 'package:subtrack/features/subscriptions/providers/user_role_provider.dart';
 
@@ -73,113 +73,119 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationIndexProvider);
     final userRole = ref.watch(userRoleProvider);
-    final userAsync = ref.watch(userProvider);
     final isSingle = userRole == UserRole.single;
 
-    return userAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
-      data: (user) {
-        // Only intercept if we KNOW the user is a minor (<18)
-        final isMinorWithoutHousehold = user != null && 
-                                      user.dateOfBirth != null && 
-                                      user.age >= 0 &&
-                                      user.age < 18 && 
-                                      user.householdId == null;
+    // Fix #2: Only select the fields we actually need for the minor check
+    final isMinorWithoutHousehold = ref.watch(userProvider.select((asyncUser) {
+      final user = asyncUser.value;
+      if (user == null) return false;
+      return user.dateOfBirth != null &&
+             user.age >= 0 &&
+             user.age < 18 &&
+             user.householdId == null;
+    }));
+    final isLoading = ref.watch(userProvider.select((u) => u.isLoading));
+    final hasError = ref.watch(userProvider.select((u) => u.hasError));
+    final errorMessage = ref.watch(userProvider.select((u) => u.error?.toString() ?? ''));
 
-        if (isMinorWithoutHousehold) {
-          return Scaffold(
-            extendBodyBehindAppBar: true,
-            appBar: const CustomAppBar(
-              title: 'Join a Household',
-              isScrolled: false,
-            ),
-            body: const JoinHouseholdScreen(),
-          );
-        }
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (hasError) {
+      return Scaffold(body: Center(child: Text('Error: $errorMessage')));
+    }
 
-        final List<Widget> screens = [
-          const HouseholdScreen(),
-          const SubscriptionDetailScreen(),
-          const DashboardScreen(),
-          const HistoryScreen(),
-          const AccountScreen(),
-        ];
+    if (isMinorWithoutHousehold) {
+      return const Scaffold(
+        extendBodyBehindAppBar: true,
+        appBar: CustomAppBar(
+          title: 'Join a Household',
+          isScrolled: false,
+        ),
+        body: JoinHouseholdScreen(),
+      );
+    }
 
-        final List<String> titles = [
-          isSingle ? 'Collaborate' : 'Household',
-          'Ongoing Subscriptions',
-          'SubTrack',
-          'History',
-          'Account',
-        ];
+    final List<Widget> screens = [
+      const HouseholdScreen(),
+      const SubscriptionDetailScreen(),
+      const DashboardScreen(),
+      const PaymentHistoryScreen(),
+      const AccountScreen(),
+    ];
 
-        ref.listen(navigationIndexProvider, (previous, next) {
-          if (previous != null) {
-            _previousIndex = previous;
-          }
-          setState(() {
-            _isScrolled = false;
-            _isPill = true;
-            _isAtBottom = false;
-          });
-        });
+    final List<String> titles = [
+      isSingle ? 'Collaborate' : 'Household',
+      'Ongoing Subscriptions',
+      'SubTrack',
+      'History',
+      'Account',
+    ];
 
-        return Scaffold(
-          extendBody: true,
-          extendBodyBehindAppBar: true,
-          appBar: CustomAppBar(
-            isScrolled: _isScrolled,
-            title: titles[currentIndex],
-            trailingAction: currentIndex == 1
-                ? IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
-                    tooltip: 'Manage Subscriptions',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditSubscriptionsScreen(),
-                        ),
-                      );
-                    },
-                  )
-                : null,
+    ref.listen(navigationIndexProvider, (previous, next) {
+      if (previous != null) {
+        _previousIndex = previous;
+      }
+      setState(() {
+        _isScrolled = false;
+        _isPill = true;
+        _isAtBottom = false;
+      });
+    });
+
+    return Scaffold(
+      extendBody: true,
+      extendBodyBehindAppBar: true,
+      appBar: CustomAppBar(
+        isScrolled: _isScrolled,
+        title: titles[currentIndex],
+        trailingAction: currentIndex == 1
+            ? IconButton(
+                icon: const Icon(Icons.edit_note_rounded),
+                tooltip: 'Manage Subscriptions',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditSubscriptionsScreen(),
+                    ),
+                  );
+                },
+              )
+            : null,
+      ),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final childIndex = (child.key as ValueKey<int>).value;
+            final isForward = currentIndex >= _previousIndex;
+            
+            Offset beginOffset;
+            if (childIndex == currentIndex) {
+              beginOffset = Offset(isForward ? 1.0 : -1.0, 0.0);
+            } else {
+              beginOffset = Offset(isForward ? -1.0 : 1.0, 0.0);
+            }
+
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: beginOffset,
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+          child: SizedBox.expand(
+            key: ValueKey<int>(currentIndex),
+            child: screens[currentIndex],
           ),
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _handleScrollNotification,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                final childIndex = (child.key as ValueKey<int>).value;
-                final isForward = currentIndex >= _previousIndex;
-                
-                Offset beginOffset;
-                if (childIndex == currentIndex) {
-                  beginOffset = Offset(isForward ? 1.0 : -1.0, 0.0);
-                } else {
-                  beginOffset = Offset(isForward ? -1.0 : 1.0, 0.0);
-                }
-
-                return SlideTransition(
-                  position: Tween<Offset>(
-                    begin: beginOffset,
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
-                );
-              },
-              child: SizedBox.expand(
-                key: ValueKey<int>(currentIndex),
-                child: screens[currentIndex],
-              ),
-            ),
-          ),
-          bottomNavigationBar: BottomNavBar(isPill: _isPill),
-        );
-      },
+        ),
+      ),
+      bottomNavigationBar: BottomNavBar(isPill: _isPill),
     );
   }
 }

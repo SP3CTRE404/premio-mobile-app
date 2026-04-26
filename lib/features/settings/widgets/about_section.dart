@@ -18,7 +18,7 @@ class AboutSection extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              leading: Icon(Icons.info_outline_rounded,
+              leading: const Icon(Icons.info_outline_rounded,
                   color: AppColors.cobaltBlue),
               title: const Text('App Version'),
               trailing: Text(
