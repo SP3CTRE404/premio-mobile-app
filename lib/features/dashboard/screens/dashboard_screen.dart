@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/subscriptions/screens/add_subscription_screen.dart';
@@ -199,27 +200,96 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildViewToggle(BuildContext context) {
     final theme = Theme.of(context);
+    final isPersonal = _viewMode == DashboardViewMode.personal;
+
     return Container(
-      width: 180, // Made it a small unit
-      padding: const EdgeInsets.all(2),
+      width: 200,
+      height: 44,
       decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha: 0.05)),
+        color: theme.colorScheme.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
-      child: Row(
-        children: [
-          _ViewModeButton(
-            label: 'Personal',
-            isSelected: _viewMode == DashboardViewMode.personal,
-            onTap: () => setState(() => _viewMode = DashboardViewMode.personal),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(22),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Stack(
+            children: [
+              // Liquid Indicator
+              AnimatedAlign(
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.elasticOut,
+                alignment: isPersonal ? Alignment.centerLeft : Alignment.centerRight,
+                child: FractionallySizedBox(
+                  widthFactor: 0.5,
+                  child: Padding(
+                    padding: const EdgeInsets.all(3.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _viewMode = DashboardViewMode.personal),
+                      behavior: HitTestBehavior.opaque,
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 300),
+                          style: TextStyle(
+                            color: isPersonal
+                                ? Colors.white
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                          child: const Text('Personal'),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _viewMode = DashboardViewMode.household),
+                      behavior: HitTestBehavior.opaque,
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 300),
+                          style: TextStyle(
+                            color: !isPersonal
+                                ? Colors.white
+                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                          child: const Text('Household'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          _ViewModeButton(
-            label: 'Household',
-            isSelected: _viewMode == DashboardViewMode.household,
-            onTap: () => setState(() => _viewMode = DashboardViewMode.household),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -345,53 +415,3 @@ class _DashboardEmptyState extends StatelessWidget {
   }
 }
 
-class _ViewModeButton extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ViewModeButton({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? colorScheme.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: colorScheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    )
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.6),
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ),
-
-      ),
-    );
-  }
-}
