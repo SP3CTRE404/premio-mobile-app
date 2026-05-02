@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_service.dart';
 import '../../settings/providers/app_lock_provider.dart';
+import '../../auth/screens/pin_entry_screen.dart';
 
 class NativeLockWrapper extends ConsumerStatefulWidget {
   final Widget child;
@@ -21,6 +22,10 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
   bool _isLocked = false;
   bool _isAuthenticating = false;
   bool _isInitialCheckDone = false;
+  bool _showPinEntry = false;
+  PinPurpose _pinPurpose = PinPurpose.verify;
+  DateTime? _lastBackgroundTime;
+  static const _lockGracePeriod = Duration(seconds: 30);
 
   @override
   void initState() {
@@ -36,21 +41,34 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    final authService = ref.read(authServiceProvider);
+    
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      final authService = ref.read(authServiceProvider);
-      // Don't lock if we are currently performing a manual authentication
-      if (authService.isAuthenticating) return;
-
-      final isLockEnabledAsync = ref.read(appLockProvider);
-      isLockEnabledAsync.whenData((enabled) {
-        if (enabled) {
+      // Don't record background time if we are currently performing a manual authentication
+      // or if the app is already locked.
+      if (authService.isAuthenticating || _isLocked) return;
+      
+      _lastBackgroundTime = DateTime.now();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_lastBackgroundTime != null) {
+        final now = DateTime.now();
+        final elapsed = now.difference(_lastBackgroundTime!);
+        
+        final isLockEnabled = ref.read(appLockProvider).value ?? false;
+        if (isLockEnabled && elapsed >= _lockGracePeriod) {
           setState(() {
             _isLocked = true;
           });
         }
-      });
-    } else if (state == AppLifecycleState.resumed) {
-      _authenticateIfNeeded();
+        
+        // Reset background time after check
+        _lastBackgroundTime = null;
+      }
+      
+      // Always try to authenticate if we are in a locked state
+      if (_isLocked) {
+        _authenticateIfNeeded();
+      }
     }
   }
 
@@ -60,16 +78,33 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
     final isLockEnabledAsync = ref.read(appLockProvider);
     final isEnabled = isLockEnabledAsync.value ?? false;
     if (!isEnabled) {
-      setState(() => _isLocked = false);
+      setState(() {
+        _isLocked = false;
+        _showPinEntry = false;
+      });
+      return;
+    }
+
+    final authService = ref.read(authServiceProvider);
+    final isSecure = await authService.isDeviceSecure();
+    
+    if (!isSecure) {
+      // Fallback PIN logic for devices without system lock
+      final hasPin = await authService.hasFallbackPin();
+      setState(() {
+        _showPinEntry = true;
+        _pinPurpose = hasPin ? PinPurpose.verify : PinPurpose.set;
+        _isAuthenticating = false; 
+      });
       return;
     }
 
     setState(() {
       _isAuthenticating = true;
+      _showPinEntry = false;
     });
 
     try {
-      final authService = ref.read(authServiceProvider);
       final success = await authService.authenticate();
 
       if (success) {
@@ -83,21 +118,11 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
         });
       }
     } on LocalAuthException {
-      // Handle case where no PIN/Pattern/Biometric is set on the device
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'App Lock is enabled but no device security (PIN/Fingerprint) was found. Please set up device security in Android settings.',
-              style: TextStyle(color: Theme.of(context).colorScheme.onError),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
+      // Even if it throws an exception, double check if we should fall back to PIN
+      final hasPin = await authService.hasFallbackPin();
       setState(() {
-        _isLocked = false;
+        _showPinEntry = true;
+        _pinPurpose = hasPin ? PinPurpose.verify : PinPurpose.set;
         _isAuthenticating = false;
       });
     } catch (_) {
@@ -105,6 +130,14 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
         _isAuthenticating = false;
       });
     }
+  }
+
+  void _onPinAuthenticated() {
+    setState(() {
+      _isLocked = false;
+      _showPinEntry = false;
+      _isAuthenticating = false;
+    });
   }
 
   @override
@@ -123,6 +156,7 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
           // If disabled but locked, unlock it (covers turning it OFF)
           setState(() {
             _isLocked = false;
+            _showPinEntry = false;
           });
         }
       });
@@ -148,14 +182,9 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
       });
     }
 
-    // We wrap the entire app (the Navigator) in a PopScope to bridge
-    // system back-button events. This ensures that sub-screens (pushed pages)
-    // are popped normally rather than closing the app immediately.
     return PopScope(
       canPop: !_isLocked && !(widget.navigatorKey.currentState?.canPop() ?? false),
       onPopInvokedWithResult: (didPop, result) {
-        // If the system expected a pop but it was blocked (didPop == false),
-        // we check if we can manually pop the internal navigator.
         if (!didPop && !_isLocked) {
           final nav = widget.navigatorKey.currentState;
           if (nav != null && nav.canPop()) {
@@ -168,39 +197,44 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
           widget.child,
           if (_isLocked)
             Material(
-              child: Container(
-                color: Theme.of(context).colorScheme.surface,
-                width: double.infinity,
-                height: double.infinity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                     Icon(
-                      Icons.lock_outline_rounded,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'SubTrack is Locked',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
+              child: _showPinEntry 
+                ? PinEntryScreen(
+                    purpose: _pinPurpose, 
+                    onAuthenticated: _onPinAuthenticated,
+                  )
+                : Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                         Icon(
+                          Icons.lock_outline_rounded,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'SubTrack is Locked',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text('Authentication required'),
+                        const SizedBox(height: 32),
+                        ElevatedButton.icon(
+                          onPressed: _authenticateIfNeeded,
+                          icon: const Icon(Icons.fingerprint_rounded),
+                          label: const Text('Unlock Now'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
-                    const Text('Authentication required'),
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      onPressed: _authenticateIfNeeded,
-                      icon: const Icon(Icons.fingerprint_rounded),
-                      label: const Text('Unlock Now'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
             ),
         ],
       ),

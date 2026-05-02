@@ -73,7 +73,7 @@ class MemberDetailsAppBar extends ConsumerWidget implements PreferredSizeWidget 
               } else if (value == 'remove') {
                 // Authentication required!
                 final authService = ref.read(authServiceProvider);
-                final authenticated = await authService.authenticate();
+                final authenticated = await authService.verifyUser(context);
                 
                 if (authenticated) {
                   if (!context.mounted) return;

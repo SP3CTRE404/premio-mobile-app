@@ -8,7 +8,7 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.light,
       primaryColor: AppColors.cobaltBlue,
-      scaffoldBackgroundColor: AppColors.pureWhite,
+      scaffoldBackgroundColor: AppColors.lightSurface,
       colorScheme: const ColorScheme.light(
         primary: AppColors.cobaltBlue,
         surface: AppColors.lightSurface,

@@ -1,14 +1,21 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
+import '../secure_storage/secure_storage_service.dart';
+import '../../features/auth/screens/pin_entry_screen.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+  final storage = ref.watch(secureStorageServiceProvider);
+  return AuthService(storage);
 });
 
 class AuthService {
   final LocalAuthentication _auth = LocalAuthentication();
+  final SecureStorageService _storage;
   bool isAuthenticating = false;
+
+  AuthService(this._storage);
 
   Future<bool> isBiometricAvailable() async {
     try {
@@ -25,10 +32,6 @@ class AuthService {
       final List<BiometricType> availableBiometrics = await _auth.getAvailableBiometrics();
       if (availableBiometrics.isNotEmpty) return true;
       
-      // If no biometrics, we check if device is supported for other types (PIN/Pattern)
-      // but unfortunately local_auth doesn't have a direct "hasPinSet" method.
-      // However, if authenticate() throws noCredentialsSet, we know it's not secure.
-      // For now, we'll assume that if it's supported, we should try.
       return await _auth.isDeviceSupported();
     } on PlatformException {
       return false;
@@ -40,16 +43,18 @@ class AuthService {
     try {
       final result = await _auth.authenticate(
         localizedReason: 'Please authenticate to unlock SubTrack',
-        biometricOnly: false, // Allows PIN/Pattern fallback
-        persistAcrossBackgrounding: true,
+        biometricOnly: false,
       );
       return result;
     } on PlatformException catch (e) {
       if (e.code == 'NotEnrolled' || 
           e.code == 'noCredentialsSet' || 
           e.code == 'notEnrolled' || 
-          e.code == 'no_credentials') {
-        // This is the specific error when no PIN/Pattern/Biometric is set
+          e.code == 'no_credentials' ||
+          e.code == 'PasscodeNotSet' ||
+          e.code == 'passcodeNotSet' ||
+          e.code == 'PermanentlyLockedOut' ||
+          e.code == 'NotAvailable') {
         throw LocalAuthException(
           code: e.code,
           message: e.message ?? 'No credentials set on device',
@@ -60,6 +65,60 @@ class AuthService {
       isAuthenticating = false;
     }
   }
+
+  // --- Smart Verification ---
+
+  /// Performs user verification. 
+  /// Uses native authentication if the device is secure.
+  /// Falls back to in-app PIN if the device is not secure.
+  /// Returns true if successfully authenticated.
+  Future<bool> verifyUser(BuildContext context) async {
+    final isSecure = await isDeviceSecure();
+    
+    if (!context.mounted) return false;
+
+    if (isSecure) {
+      try {
+        return await authenticate();
+      } on LocalAuthException {
+        // If native auth fails with an enrollment error, fall back to PIN
+        return _verifyWithPin(context);
+      }
+    } else {
+      return _verifyWithPin(context);
+    }
+  }
+
+  Future<bool> _verifyWithPin(BuildContext context) async {
+    final hasPin = await hasFallbackPin();
+    
+    if (!context.mounted) return false;
+
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => PinEntryScreen(
+          purpose: hasPin ? PinPurpose.verify : PinPurpose.set,
+          onAuthenticated: () => Navigator.of(context).pop(true),
+        ),
+      ),
+    );
+    
+    return result ?? false;
+  }
+
+  // --- Fallback PIN Logic ---
+
+  Future<bool> hasFallbackPin() => _storage.hasFallbackPin();
+
+  Future<void> setFallbackPin(String pin) => _storage.saveFallbackPin(pin);
+
+  Future<bool> verifyFallbackPin(String inputPin) async {
+    final savedPin = await _storage.getFallbackPin();
+    return savedPin == inputPin;
+  }
+
+  Future<void> removeFallbackPin() => _storage.deleteFallbackPin();
 }
 
 class LocalAuthException implements Exception {

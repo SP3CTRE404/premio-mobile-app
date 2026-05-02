@@ -69,6 +69,11 @@ class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
     final repo = ref.read(subscriptionRepositoryProvider);
     await repo.paySubscription(id);
     await refresh();
+    
+    // Invalidate history providers so the UI reflects the new payment record
+    ref.invalidate(historyProvider(id));
+    ref.invalidate(userHistoryProvider);
+    ref.read(paginatedHistoryProvider.notifier).refresh();
   }
 
   /// Toggle auto-pay for a subscription.

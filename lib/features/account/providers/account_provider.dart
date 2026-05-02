@@ -59,6 +59,7 @@ class UserNotifier extends AsyncNotifier<User?> {
     required String fullName, 
     String? phoneNumber,
     String? profilePicture, // NEW: Accept image string
+    String? currencySymbol, // NEW: Sync with backend
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
@@ -69,6 +70,7 @@ class UserNotifier extends AsyncNotifier<User?> {
         'fullName': fullName,
         'phoneNumber': phoneNumber,
         'profilePicture': profilePicture,
+        'currencySymbol': currencySymbol,
       });
 
       final updatedUser = User.fromJson(response.data);

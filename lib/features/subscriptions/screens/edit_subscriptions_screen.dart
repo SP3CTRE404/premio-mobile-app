@@ -85,7 +85,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
         content: 'Are you sure you want to permanently delete your "${sub.serviceName}" subscription? All the payment history will be lost. This action cannot be undone.',
         actionText: 'Delete Forever',
         onConfirm: () async {
-          final authenticated = await ref.read(authServiceProvider).authenticate();
+          final authenticated = await ref.read(authServiceProvider).verifyUser(context);
           if (!authenticated) return;
           
           if (!context.mounted) return;

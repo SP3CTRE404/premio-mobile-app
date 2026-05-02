@@ -9,11 +9,23 @@ import 'features/auth/providers/auth_provider.dart';
 import 'core/routing/deep_link_handler.dart';
 import 'features/navigation/widgets/native_lock_wrapper.dart';
 
+import 'core/notifications/notification_service.dart';
+import 'core/background/background_task_handler.dart';
+
 // We use a global navigator key to allow the NativeLockWrapper to 
 // bridge system back-button events to the internal Navigator.
 final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Notifications
+  await NotificationService().init();
+  
+  // Initialize Background Task Handler
+  await BackgroundTaskHandler.init();
+  await BackgroundTaskHandler.scheduleDailyTask();
+
   runApp(
     const ProviderScope(
       child: SubTrackApp(),

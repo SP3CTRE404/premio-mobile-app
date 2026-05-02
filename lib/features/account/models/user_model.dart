@@ -6,6 +6,7 @@ class User {
   final int? householdId;
   final bool isHouseholdAdmin; // Matches backend's householdAdmin
   final String? profilePicture; // NEW: Added Profile Picture field
+  final String currencySymbol;
   final DateTime? dateOfBirth;
 
   User({
@@ -16,6 +17,7 @@ class User {
     this.householdId,
     this.isHouseholdAdmin = false,
     this.profilePicture,
+    this.currencySymbol = '₹',
     this.dateOfBirth,
   });
 
@@ -75,6 +77,7 @@ class User {
       householdId: parsedHouseholdId,
       isHouseholdAdmin: json['householdAdmin'] as bool? ?? false,
       profilePicture: json['profilePicture'] as String?, // Map from backend
+      currencySymbol: json['currencySymbol'] as String? ?? '₹',
       dateOfBirth: parsedDob,
     );
   }
@@ -87,6 +90,7 @@ class User {
         'householdId': householdId,
         'householdAdmin': isHouseholdAdmin,
         'profilePicture': profilePicture,
+        'currencySymbol': currencySymbol,
         'dateOfBirth': dateOfBirth?.toIso8601String(),
       };
 

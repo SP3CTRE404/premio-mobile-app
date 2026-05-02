@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 
-/// The hero card designed to match the sleek, neon-glowing 
+/// The hero card designed to match the sleek, neon-glowing
 /// analytics aesthetic, now fully theme-aware for light and dark modes.
 class FinancialHeroCard extends StatelessWidget {
   final double monthly;
@@ -11,6 +11,9 @@ class FinancialHeroCard extends StatelessWidget {
   final int dueSoon;
   final int overdue;
   final String currencySymbol;
+  final bool isAdmin;
+  final int personalCount;
+  final int householdCount;
 
   const FinancialHeroCard({
     super.key,
@@ -19,6 +22,9 @@ class FinancialHeroCard extends StatelessWidget {
     required this.dueSoon,
     required this.overdue,
     required this.currencySymbol,
+    this.isAdmin = false,
+    this.personalCount = 0,
+    this.householdCount = 0,
   });
 
   @override
@@ -30,11 +36,13 @@ class FinancialHeroCard extends StatelessWidget {
     // Theme-aware colors from AppColors
     final cardBackground = isDark ? AppColors.darkSurface : AppColors.pureWhite;
     final trackColor = isDark ? AppColors.white06 : AppColors.black04;
-    final textMuted = isDark ? AppColors.onSurfaceDark50 : AppColors.onSurfaceLight50;
+    final textMuted = isDark
+        ? AppColors.onSurfaceDark50
+        : AppColors.onSurfaceLight50;
     final textPrimary = isDark ? Colors.white : Colors.black87;
-    
+
     // Neon palette for the data
-    final neonCyan =  AppColors.cobaltBlue;
+    final neonCyan = AppColors.cobaltBlue;
     const neonAmber = Color(0xFFFFB800);
     const neonRed = Color(0xFFFF3366);
 
@@ -44,7 +52,9 @@ class FinancialHeroCard extends StatelessWidget {
         color: cardBackground,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
           width: 1,
         ),
         boxShadow: [
@@ -91,9 +101,13 @@ class FinancialHeroCard extends StatelessWidget {
                     const SizedBox(height: 16),
                     // The small pill mimicking the "+12.4%" badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -121,66 +135,107 @@ class FinancialHeroCard extends StatelessWidget {
               ),
 
               // ── Right Column: Glowing Ring Chart ──
-              SizedBox(
-                width: 110,
-                height: 110,
-                child: CustomPaint(
-                  painter: _NeonRingPainter(
-                    upToDate: upToDate,
-                    dueSoon: dueSoon,
-                    overdue: overdue,
-                    trackColor: trackColor,
-                    upToDateColor: neonCyan,
-                    dueSoonColor: neonAmber,
-                    overdueColor: neonRed,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          totalSubs.toString(),
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    height: 110,
+                    child: CustomPaint(
+                      painter: _NeonRingPainter(
+                        upToDate: upToDate,
+                        dueSoon: dueSoon,
+                        overdue: overdue,
+                        trackColor: trackColor,
+                        upToDateColor: neonCyan,
+                        dueSoonColor: neonAmber,
+                        overdueColor: neonRed,
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              totalSubs.toString(),
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Subs',
+                              style: TextStyle(
+                                color: textMuted,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Subs',
-                          style: TextStyle(
-                            color: textMuted,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  if (isAdmin) ...[
+                    const SizedBox(height: 0),
+                    Transform.translate(
+                      offset: const Offset(0, -12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _TinyBreakdownItem(
+                            icon: Icons.person_rounded,
+                            count: personalCount,
+                            color: textMuted,
+                          ),
+                          const SizedBox(width: 8),
+                          _TinyBreakdownItem(
+                            icon: Icons.home_rounded,
+                            count: householdCount,
+                            color: textMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 10),
 
           // ── Bottom Row: Stats Legend ──
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.03),
+              color: (isDark ? Colors.white : Colors.black).withValues(
+                alpha: 0.03,
+              ),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _StatItem(label: 'Upcoming', count: dueSoon, color: neonAmber, textColor: textMuted, countColor: textPrimary),
+                _StatItem(
+                  label: 'Upcoming',
+                  count: dueSoon,
+                  color: neonAmber,
+                  textColor: textMuted,
+                  countColor: textPrimary,
+                ),
                 Container(
                   width: 1,
                   height: 32,
                   color: isDark ? Colors.white12 : Colors.black12,
                 ),
-                _StatItem(label: 'Overdue', count: overdue, color: neonRed, textColor: textMuted, countColor: textPrimary),
+                _StatItem(
+                  label: 'Overdue',
+                  count: overdue,
+                  color: neonRed,
+                  textColor: textMuted,
+                  countColor: textPrimary,
+                ),
               ],
             ),
           ),
@@ -280,7 +335,7 @@ class _NeonRingPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width / 2, size.height / 2) - 8;
     const strokeWidth = 12.0;
-    
+
     // We want a 270-degree arc (3/4 circle)
     const totalSweep = pi * 1.3;
     const startAngle = pi * 0.85; // Starts at bottom-left (7:30 position)
@@ -303,11 +358,11 @@ class _NeonRingPainter extends CustomPainter {
 
     void drawSegment(int count, Color color) {
       if (count == 0) return;
-      
+
       // Calculate this segment's portion of the 270-degree sweep
       final segmentSweep = (count / total) * totalSweep;
       final actualSweep = max(0.05, segmentSweep - gap);
-      
+
       // 1. Draw the Glow
       final glowPaint = Paint()
         ..color = color.withValues(alpha: 0.6)
@@ -315,8 +370,14 @@ class _NeonRingPainter extends CustomPainter {
         ..strokeWidth = strokeWidth + 4
         ..strokeCap = StrokeCap.round
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-        
-      canvas.drawArc(rect, currentAngle + (gap / 2), actualSweep, false, glowPaint);
+
+      canvas.drawArc(
+        rect,
+        currentAngle + (gap / 2),
+        actualSweep,
+        false,
+        glowPaint,
+      );
 
       // 2. Draw the solid core line
       final solidPaint = Paint()
@@ -325,8 +386,14 @@ class _NeonRingPainter extends CustomPainter {
         ..strokeWidth = strokeWidth
         ..strokeCap = StrokeCap.round;
 
-      canvas.drawArc(rect, currentAngle + (gap / 2), actualSweep, false, solidPaint);
-      
+      canvas.drawArc(
+        rect,
+        currentAngle + (gap / 2),
+        actualSweep,
+        false,
+        solidPaint,
+      );
+
       currentAngle += segmentSweep;
     }
 
@@ -338,4 +405,35 @@ class _NeonRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _TinyBreakdownItem extends StatelessWidget {
+  final IconData icon;
+  final int count;
+  final Color color;
+
+  const _TinyBreakdownItem({
+    required this.icon,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          count.toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
 }

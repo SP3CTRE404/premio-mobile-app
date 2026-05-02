@@ -68,5 +68,14 @@
 	</array>
 	<key>NSFaceIDUsageDescription</key>
 	<string>SubTrack requires Face ID to secure your subscription data.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>subscriptionCheckTask</string>
+	</array>
 </dict>
 </plist>

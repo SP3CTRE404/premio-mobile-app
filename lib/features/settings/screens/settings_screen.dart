@@ -44,10 +44,8 @@ class SettingsScreen extends ConsumerWidget {
           const SecuritySection(),
           const SizedBox(height: 12),
 
-          const AppSectionHeader(title: 'About', isUppercase: true),
-          const AboutSection(),
-          const SizedBox(height: 24),
-
+          const AppSectionHeader(title: 'Account Management', isUppercase: true),
+          
           // Logout Action
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -61,7 +59,7 @@ class SettingsScreen extends ConsumerWidget {
               child: ListTile(
                 leading: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface),
                 title: const Text(
-                  'Logout',
+                  'Sign out',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: const Text('Sign out of your account'),
@@ -99,6 +97,10 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+
+          const AppSectionHeader(title: 'About', isUppercase: true),
+          const AboutSection(),
           const SizedBox(height: 40),
         ],
       ),
@@ -184,11 +186,12 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     if (confirmed != true) return;
+    if (!context.mounted) return;
 
     // 3. Mandatory Biometric/Native Authentication
     // Auth MUST be the last barrier!
     final authService = ref.read(authServiceProvider);
-    final authenticated = await authService.authenticate();
+    final authenticated = await authService.verifyUser(context);
 
     if (!authenticated) {
       if (context.mounted) CustomToast.show(context: context, message: 'Authentication required to delete account', isError: true);

@@ -168,7 +168,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final authService = ref.read(authServiceProvider);
     
     // Perform manual authentication
-    final success = await authService.authenticate();
+    final success = await authService.verifyUser(context);
     
     if (success && context.mounted) {
       Navigator.of(context).push(

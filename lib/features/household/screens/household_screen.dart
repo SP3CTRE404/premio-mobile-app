@@ -216,7 +216,7 @@ class HouseholdScreen extends ConsumerWidget {
           } else {
             // Standard member flow: biometrics first, then leave
             final authService = ref.read(authServiceProvider);
-            final authenticated = await authService.authenticate();
+            final authenticated = await authService.verifyUser(context);
 
             if (authenticated) {
               try {
@@ -286,7 +286,7 @@ class HouseholdScreen extends ConsumerWidget {
         onTransferAndLeave: (targetId) async {
           // Authentication Barrier before final destructive action
           final authService = ref.read(authServiceProvider);
-          final authenticated = await authService.authenticate();
+          final authenticated = await authService.verifyUser(context);
 
           if (!authenticated) {
             if (context.mounted) {
@@ -339,7 +339,7 @@ class HouseholdScreen extends ConsumerWidget {
         onConfirm: () async {
           // Authentication Barrier
           final authService = ref.read(authServiceProvider);
-          final authenticated = await authService.authenticate();
+          final authenticated = await authService.verifyUser(context);
 
           if (!authenticated) {
             if (context.mounted) {

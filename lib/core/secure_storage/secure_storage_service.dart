@@ -24,6 +24,7 @@ class SecureStorageService {
   static const _keyDueDateAlerts = 'due_date_alerts';
   static const _keyReminderLeadDays = 'reminder_lead_days';
   static const _keyAppLockEnabled = 'app_lock_enabled';
+  static const _keyFallbackPin = 'fallback_pin';
 
   // ── Token ──
   Future<void> saveToken(String token) =>
@@ -94,6 +95,19 @@ class SecureStorageService {
     final raw = await _storage.read(key: _keyAppLockEnabled);
     return raw == 'true';
   }
+
+  // ── Fallback PIN ──
+  Future<void> saveFallbackPin(String pin) =>
+      _storage.write(key: _keyFallbackPin, value: pin);
+
+  Future<String?> getFallbackPin() => _storage.read(key: _keyFallbackPin);
+
+  Future<bool> hasFallbackPin() async {
+    final pin = await getFallbackPin();
+    return pin != null && pin.isNotEmpty;
+  }
+
+  Future<void> deleteFallbackPin() => _storage.delete(key: _keyFallbackPin);
 
   // ── Clear all ──
   Future<void> clearAll() => _storage.deleteAll();

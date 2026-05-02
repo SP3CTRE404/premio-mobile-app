@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/subscriptions/screens/add_subscription_screen.dart';
 import '../../../shared/widgets/skeleton_card.dart';
@@ -132,6 +133,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         final displayMonthly = isAdmin 
                             ? householdMonthly 
                             : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
+                        final personalCount = viewableSubs.where((s) => s.ownerId == currentUserId).length;
+                        final householdCount = viewableSubs.where((s) => s.ownerId != currentUserId).length;
                             
                         return FinancialHeroCard(
                           monthly: displayMonthly,
@@ -139,24 +142,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           dueSoon: dueSoon,
                           overdue: overdue,
                           currencySymbol: currencySymbol,
+                          isAdmin: isAdmin,
+                          personalCount: personalCount,
+                          householdCount: householdCount,
                         );
                       },
                       loading: () => const SkeletonHeroCard(),
-                      error: (err, st) => const FinancialHeroCard(
+                      error: (err, st) => FinancialHeroCard(
                         monthly: 0,
                         upToDate: 0,
                         dueSoon: 0,
                         overdue: 0,
-                        currencySymbol: '\$',
+                        currencySymbol: currencySymbol,
+                        isAdmin: isAdmin,
                       ),
                     ),
   
                     const SizedBox(height: 28),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _sectionTitle(context, 'Action Needed'),
-                        if (isAdmin) _buildViewToggle(context),
+                        Expanded(
+                          child: _sectionTitle(context, 'Action Needed'),
+                        ),
+                        if (isAdmin) ...[
+                          const SizedBox(width: 12),
+                          _buildViewToggle(context),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -201,93 +213,152 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildViewToggle(BuildContext context) {
     final theme = Theme.of(context);
     final isPersonal = _viewMode == DashboardViewMode.personal;
+    
+    // Fluid width adjustment for premium responsiveness
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final toggleWidth = (screenWidth * 0.55).clamp(160.0, 220.0);
 
     return Container(
-      width: 200,
-      height: 44,
+      width: toggleWidth,
+      height: 48,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Stack(
-            children: [
-              // Liquid Indicator
-              AnimatedAlign(
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.elasticOut,
-                alignment: isPersonal ? Alignment.centerLeft : Alignment.centerRight,
-                child: FractionallySizedBox(
-                  widthFactor: 0.5,
-                  child: Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                width: 0.5,
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Inner highlight (top)
+                Positioned(
+                  top: 0,
+                  left: 20,
+                  right: 20,
+                  child: Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0.0),
+                          Colors.white.withValues(alpha: 0.2),
+                          Colors.white.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ),
-              // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _viewMode = DashboardViewMode.personal),
-                      behavior: HitTestBehavior.opaque,
-                      child: Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 300),
-                          style: TextStyle(
-                            color: isPersonal
-                                ? Colors.white
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
+                
+                // Liquid Indicator
+                AnimatedAlign(
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutQuart,
+                  alignment: isPersonal ? Alignment.centerLeft : Alignment.centerRight,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              theme.colorScheme.primary,
+                              theme.colorScheme.primary.withValues(alpha: 0.8),
+                            ],
                           ),
-                          child: const Text('Personal'),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                            // Subtle inner highlight on indicator
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              blurRadius: 1,
+                              offset: const Offset(0, 1),
+                              spreadRadius: -0.5,
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _viewMode = DashboardViewMode.household),
-                      behavior: HitTestBehavior.opaque,
-                      child: Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 300),
-                          style: TextStyle(
-                            color: !isPersonal
-                                ? Colors.white
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                          child: const Text('Household'),
-                        ),
-                      ),
+                ),
+                
+                // Labels
+                Row(
+                  children: [
+                    _buildToggleButton(
+                      context: context,
+                      label: 'Personal',
+                      isSelected: isPersonal,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _viewMode = DashboardViewMode.personal);
+                      },
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    _buildToggleButton(
+                      context: context,
+                      label: 'Household',
+                      isSelected: !isPersonal,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        setState(() => _viewMode = DashboardViewMode.household);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleButton({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 300),
+            style: TextStyle(
+              color: isSelected
+                  ? Colors.white
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.4),
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              letterSpacing: -0.2,
+            ),
+            child: Text(label),
           ),
         ),
       ),
@@ -296,11 +367,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 
   Widget _sectionTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+      ),
     );
   }
 }
@@ -400,7 +476,7 @@ class _DashboardEmptyState extends StatelessWidget {
                 SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    'Add My First Subscription',
+                    'Add a Subscription',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,

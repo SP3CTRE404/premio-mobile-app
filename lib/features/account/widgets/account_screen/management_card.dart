@@ -12,7 +12,7 @@ class ManagementCard extends StatelessWidget {
       children: [
         _buildItem(
           context,
-          icon: Icons.history_outlined,
+          icon: Icons.unsubscribe_rounded,
           title: 'Expired Subscriptions',
           subtitle: 'View and reactivate past plans',
           onTap: () {
