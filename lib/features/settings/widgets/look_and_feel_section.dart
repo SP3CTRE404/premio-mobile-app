@@ -13,8 +13,9 @@ class LookAndFeelSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final currentCurrency = ref.watch(currencySymbolProvider);
+    final currentCurrency = ref.watch(displayCurrencyProvider);
     final currentThemeMode = ref.watch(themeModeProvider);
+    final currenciesAsync = ref.watch(availableCurrenciesProvider);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -28,7 +29,7 @@ class LookAndFeelSection extends ConsumerWidget {
               leading: const Icon(Icons.currency_exchange_rounded,
                   color: AppColors.cobaltBlue),
               title: const Text('Currency'),
-              subtitle: Text(_currencyLabel(currentCurrency)),
+              subtitle: Text(_currencyLabel(currentCurrency, currenciesAsync.value)),
               trailing: const Icon(Icons.chevron_right),
               onTap: () =>
                   _showCurrencyPicker(context, ref, currentCurrency),
@@ -114,8 +115,9 @@ class LookAndFeelSection extends ConsumerWidget {
   }
 
   // ─── Currency helpers ────────────────────────────────────
-  String _currencyLabel(String symbol) {
-    final match = availableCurrencies.where((c) => c.symbol == symbol);
+  String _currencyLabel(String symbol, List<CurrencyOption>? currencies) {
+    if (currencies == null) return symbol;
+    final match = currencies.where((c) => c.symbol == symbol);
     if (match.isNotEmpty) {
       return '${match.first.symbol}  ${match.first.code} — ${match.first.name}';
     }
@@ -158,43 +160,58 @@ class LookAndFeelSection extends ConsumerWidget {
               ),
               const Divider(height: 1),
               Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: availableCurrencies.length,
-                  itemBuilder: (_, index) {
-                    final currency = availableCurrencies[index];
-                    final isSelected = currency.symbol == currentSymbol;
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final asyncData = ref.watch(availableCurrenciesProvider);
+                    return asyncData.when(
+                      data: (currencies) => ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: currencies.length,
+                        itemBuilder: (_, index) {
+                          final currency = currencies[index];
+                          final isSelected = currency.symbol == currentSymbol;
 
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: isSelected
-                            ? AppColors.cobaltBlue
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.08),
-                        child: Text(
-                          currency.symbol,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: isSelected
+                                  ? AppColors.cobaltBlue
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.08),
+                              child: Text(
+                                currency.symbol,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(currency.name),
+                            subtitle: Text(currency.code),
+                            trailing: isSelected
+                                ? const Icon(Icons.check_circle,
+                                    color: AppColors.cobaltBlue)
+                                : null,
+                            onTap: () {
+                              ref
+                                  .read(displayCurrencyProvider.notifier)
+                                  .set(currency.symbol);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        },
                       ),
-                      title: Text(currency.name),
-                      subtitle: Text(currency.code),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle,
-                              color: AppColors.cobaltBlue)
-                          : null,
-                      onTap: () {
-                        ref
-                            .read(currencySymbolProvider.notifier)
-                            .set(currency.symbol);
-                        Navigator.pop(ctx);
-                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (err, stack) => Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Center(child: Text('Error: $err')),
+                      ),
                     );
                   },
                 ),

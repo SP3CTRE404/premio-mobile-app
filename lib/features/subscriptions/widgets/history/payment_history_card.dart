@@ -58,7 +58,7 @@ class PaymentHistoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                formatCurrency(payment.amount, currencySymbol),
+                formatCurrency(payment.amount, payment.currency ?? currencySymbol),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                   color: isDark ? Colors.white : Colors.black87,

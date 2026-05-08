@@ -4,7 +4,6 @@ import '../models/subscription_request.dart';
 import '../services/subscription_repository.dart';
 import '../../account/providers/account_provider.dart';
 import 'history_provider.dart';
-import '../../dashboard/providers/dashboard_provider.dart';
 
 
 /// Holds the list of due / active subscriptions.
@@ -47,13 +46,6 @@ class SubscriptionNotifier extends AsyncNotifier<List<Subscription>> {
     // This allows the UI to keep displaying the old data while fetching the new data,
     // preventing the dashboard from "jumping" or "moving up".
     state = await AsyncValue.guard(_fetchAllActive);
-    
-    // Refresh dashboard-related providers instead of invalidating them 
-    // so they also preserve their previous UI state while reloading.
-    // ignore: unused_result
-    ref.refresh(monthlyTotalProvider);
-    // ignore: unused_result
-    ref.refresh(dueSubscriptionsProvider);
   }
 
 

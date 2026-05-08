@@ -42,6 +42,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
   BillingCycle? _selectedCycle;
   bool? _isAutoPay;
   DateTime? _selectedDate;
+  String? _selectedCurrency;
   CustomIntervalUnit _customUnit = CustomIntervalUnit.days;
   bool _isLoading = false;
   // bool _isShared = false;
@@ -60,6 +61,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     _isAutoPay = widget.initialData?.isAutoPay;
     _selectedCycle = widget.initialData?.billingCycle;
     _selectedDate = widget.initialData?.purchaseDate;
+    _selectedCurrency = widget.initialData?.currency;
 
     // Correctly restore the custom unit if it exists
     if (widget.initialData?.customIntervalUnit != null) {
@@ -109,10 +111,98 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
     }
   }
 
+  void _showCurrencyPicker(String currentSymbol) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Choose Currency',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final asyncData = ref.watch(availableCurrenciesProvider);
+                    return asyncData.when(
+                      data: (currencies) => ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: currencies.length,
+                        itemBuilder: (_, index) {
+                          final currency = currencies[index];
+                          final isSelected = currency.symbol == currentSymbol;
+
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: isSelected
+                                  ? const Color(0xFF0033FF) // cobalt blue
+                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                              child: Text(
+                                currency.symbol,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            title: Text(currency.name),
+                            subtitle: Text(currency.code),
+                            trailing: isSelected
+                                ? const Icon(Icons.check_circle, color: Color(0xFF0033FF))
+                                : null,
+                            onTap: () {
+                              setState(() => _selectedCurrency = currency.symbol);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        },
+                      ),
+                      loading: () => const Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
+                      error: (err, stack) => Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Center(child: Text('Error: $err')),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -146,7 +236,8 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
                     const FormLabel(text: 'Amount'),
                     AmountField(
                       controller: _amountController,
-                      currencySymbol: currencySymbol,
+                      currencySymbol: _selectedCurrency ?? currencySymbol,
+                      onCurrencyTap: () => _showCurrencyPicker(_selectedCurrency ?? currencySymbol),
                     ),
                     const SizedBox(height: 24),
 
@@ -296,6 +387,7 @@ class _AddSubscriptionScreenState extends ConsumerState<AddSubscriptionScreen> {
         purchaseDate: _selectedDate!,
         isAutoPay: _selectedCycle == BillingCycle.oneTime ? false : (_isAutoPay ?? true),
         userId: widget.targetUserId ?? ref.read(userProvider).value?.id,
+        currency: _selectedCurrency ?? ref.read(nativeCurrencyProvider), // Save the native currency as default
       );
 
 

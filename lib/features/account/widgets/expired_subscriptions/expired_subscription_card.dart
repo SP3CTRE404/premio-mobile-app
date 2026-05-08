@@ -74,7 +74,7 @@ class ExpiredSubscriptionCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            formatCurrency(subscription.amount, currencySymbol),
+                            formatCurrency(subscription.amount, subscription.currency ?? currencySymbol),
                             style: textTheme.bodyLarge?.copyWith(
                               color: contentColor,
                               fontWeight: FontWeight.w700,

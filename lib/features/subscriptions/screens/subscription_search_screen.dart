@@ -66,7 +66,7 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
     final subscriptionsAsync = ref.watch(subscriptionProvider);
 
     return Scaffold(

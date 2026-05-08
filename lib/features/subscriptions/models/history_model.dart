@@ -5,6 +5,7 @@ class SubscriptionHistory {
   final double amount;
   final DateTime paymentDate;
   final String status;
+  final String? currency;
 
   SubscriptionHistory({
     required this.id,
@@ -13,6 +14,7 @@ class SubscriptionHistory {
     required this.amount,
     required this.paymentDate,
     this.status = 'Paid',
+    this.currency,
   });
 
   factory SubscriptionHistory.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class SubscriptionHistory {
       amount: (json['amount'] as num).toDouble(),
       paymentDate: DateTime.parse(json['paymentDate'] as String),
       status: json['status'] as String? ?? 'Paid',
+      currency: json['currency'] as String?,
     );
   }
 
@@ -33,6 +36,7 @@ class SubscriptionHistory {
         'amount': amount,
         'paymentDate': paymentDate.toIso8601String(),
         'status': status,
+        'currency': currency,
       };
 
   @override
@@ -44,9 +48,10 @@ class SubscriptionHistory {
         other.serviceName == serviceName &&
         other.amount == amount &&
         other.paymentDate == paymentDate &&
-        other.status == status;
+        other.status == status &&
+        other.currency == currency;
   }
 
   @override
-  int get hashCode => Object.hash(id, subscriptionId, serviceName, amount, paymentDate, status);
+  int get hashCode => Object.hash(id, subscriptionId, serviceName, amount, paymentDate, status, currency);
 }

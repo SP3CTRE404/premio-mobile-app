@@ -8,6 +8,7 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../../subscriptions/providers/subscription_provider.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
+import '../../../core/utils/currency_converter.dart';
 import '../../navigation/screens/main_scaffold.dart';
 import 'create_household_screen.dart';
 import 'join_household_screen.dart';
@@ -112,15 +113,22 @@ class HouseholdScreen extends ConsumerWidget {
     final currentUser = ref.watch(userProvider).value;
 
     final subscriptions = ref.watch(subscriptionProvider).value ?? [];
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(displayCurrencyProvider);
+    final nativeCurrencyFallback = ref.watch(nativeCurrencyProvider);
 
-    // Calculate totals
+    // Calculate totals with conversion
     final int totalMembers = members.length;
     final int sharedSubsCount = subscriptions.length;
-    final double totalValue = subscriptions.fold(
-      0.0,
-      (sum, sub) => sum + sub.amount,
-    );
+    
+    double totalValue = 0.0;
+    for (final sub in subscriptions) {
+      final subCurrency = sub.currency ?? nativeCurrencyFallback;
+      totalValue += CurrencyConverter.convert(
+        amount: sub.amount,
+        fromCurrency: subCurrency,
+        toCurrency: currencySymbol,
+      );
+    }
 
     return RefreshIndicator(
       onRefresh: () => ref.read(householdProvider.notifier).refresh(),

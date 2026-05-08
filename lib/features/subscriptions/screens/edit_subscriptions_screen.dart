@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:subtrack/features/settings/providers/currency_provider.dart';
 import '../../auth/widgets/auth_background.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/subscription_provider.dart';
@@ -118,6 +119,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
     final theme = Theme.of(context);
     final userAsync = ref.watch(userProvider);
     final subscriptionsAsync = ref.watch(subscriptionProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
     
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -197,6 +199,7 @@ class _EditSubscriptionsScreenState extends ConsumerState<EditSubscriptionsScree
                     final sub = filteredSubs[index];
                     return EditSubscriptionCard(
                       sub: sub,
+                      currencySymbol: currencySymbol,
                       onEdit: () => Navigator.push(
                         context,
                         MaterialPageRoute(

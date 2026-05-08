@@ -7,6 +7,7 @@ import '../../../../core/utils/currency_formatter.dart';
 
 class EditSubscriptionCard extends StatelessWidget {
   final Subscription sub;
+  final String currencySymbol;
   final VoidCallback onEdit;
   final VoidCallback onEnd;
   final VoidCallback onDelete;
@@ -14,6 +15,7 @@ class EditSubscriptionCard extends StatelessWidget {
   const EditSubscriptionCard({
     super.key,
     required this.sub,
+    required this.currencySymbol,
     required this.onEdit,
     required this.onEnd,
     required this.onDelete,
@@ -62,7 +64,7 @@ class EditSubscriptionCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  formatCurrency(sub.amount, '₹'),
+                  formatCurrency(sub.amount, sub.currency ?? currencySymbol),
                   style: TextStyle(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 14,

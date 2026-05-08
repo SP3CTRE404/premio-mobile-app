@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:subtrack/core/utils/currency_formatter.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/currency_formatter.dart';
 import '../../models/subscription_model.dart';
 import '../../utils/subscription_ui_helper.dart';
 import '../../../../shared/widgets/icon_detail_item.dart';
@@ -109,7 +109,7 @@ class SubscriptionCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            formatCurrency(subscription.amount, currencySymbol),
+                            formatCurrency(subscription.amount, subscription.currency ?? currencySymbol),
                             style: textTheme.bodyLarge?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w700,

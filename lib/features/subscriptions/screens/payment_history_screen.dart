@@ -29,7 +29,7 @@ class PaymentHistoryScreen extends ConsumerStatefulWidget {
 class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
 
     // If viewing a specific member's history (Admin View - Pushed Screen)
     if (widget.memberId != null) {

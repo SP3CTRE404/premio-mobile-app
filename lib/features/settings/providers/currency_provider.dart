@@ -1,20 +1,20 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/secure_storage/secure_storage_service.dart';
 import '../../account/providers/account_provider.dart';
 
-/// Notifier that holds the user's chosen currency symbol.
-/// Persists the value via [SecureStorageService] so it survives restarts.
-class CurrencySymbolNotifier extends Notifier<String> {
+/// Notifier that holds the user's chosen DISPLAY currency preference for the dashboard.
+/// This only affects estimates and is persisted locally via [SecureStorageService].
+class DisplayCurrencyNotifier extends Notifier<String> {
   @override
   String build() {
-    // Watch userProvider to keep currency symbol in sync with backend profile
+    // Initialize from local storage, fallback to user's native currency
     final user = ref.watch(userProvider).value;
-    if (user != null) {
-      return user.currencySymbol;
-    }
+    final nativeSymbol = user?.currencySymbol ?? '₹';
     
     _loadFromStorage();
-    return '₹'; // default until async load completes
+    return nativeSymbol;
   }
 
   Future<void> _loadFromStorage() async {
@@ -32,24 +32,22 @@ class CurrencySymbolNotifier extends Notifier<String> {
     final storage = ref.read(secureStorageServiceProvider);
     await storage.saveCurrency(symbol);
 
-    // Sync with backend if logged in
-    final user = ref.read(userProvider).value;
-    if (user != null) {
-      await ref.read(userProvider.notifier).updateProfile(
-        fullName: user.fullName,
-        phoneNumber: user.phoneNumber,
-        currencySymbol: symbol, // This needs to be added to updateProfile in AccountProvider
-      );
-    }
+    // Note: We no longer sync this with the backend profile updateProfile 
+    // because the user wants this to be a local display preference only.
   }
 }
 
-/// The user's chosen currency symbol (e.g. '₹', '$', '€', '£', '¥').
-/// Defaults to '₹' but can be changed from Settings.
-final currencySymbolProvider =
-    NotifierProvider<CurrencySymbolNotifier, String>(
-  CurrencySymbolNotifier.new,
+/// The global display currency preference (affects dashboard totals).
+final displayCurrencyProvider =
+    NotifierProvider<DisplayCurrencyNotifier, String>(
+  DisplayCurrencyNotifier.new,
 );
+
+/// The user's native registration currency (immutable fallback for subscriptions).
+final nativeCurrencyProvider = Provider<String>((ref) {
+  final user = ref.watch(userProvider).value;
+  return user?.currencySymbol ?? '₹';
+});
 
 /// Common currency options for the settings picker.
 class CurrencyOption {
@@ -64,14 +62,42 @@ class CurrencyOption {
   });
 }
 
-const availableCurrencies = [
-  CurrencyOption(symbol: '₹', code: 'INR', name: 'Indian Rupee'),
-  CurrencyOption(symbol: '\$', code: 'USD', name: 'US Dollar'),
-  CurrencyOption(symbol: '€', code: 'EUR', name: 'Euro'),
-  CurrencyOption(symbol: '£', code: 'GBP', name: 'British Pound'),
-  CurrencyOption(symbol: '¥', code: 'JPY', name: 'Japanese Yen'),
-  CurrencyOption(symbol: '₩', code: 'KRW', name: 'South Korean Won'),
-  CurrencyOption(symbol: 'A\$', code: 'AUD', name: 'Australian Dollar'),
-  CurrencyOption(symbol: 'C\$', code: 'CAD', name: 'Canadian Dollar'),
-  CurrencyOption(symbol: '₿', code: 'BTC', name: 'Bitcoin'),
-];
+class FrankfurterService {
+  static const String _baseUrl = 'https://api.frankfurter.dev/v2';
+
+  // Helper map to assign symbols to common codes
+  static const Map<String, String> _currencySymbols = {
+    'INR': '₹', 'USD': r'$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 
+    'KRW': '₩', 'AUD': r'A$', 'CAD': r'C$', 'CHF': 'CHF', 'CNY': '¥',
+  };
+
+  Future<List<CurrencyOption>> fetchCurrencies() async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/currencies'));
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        
+        return data.entries.map((entry) {
+          return CurrencyOption(
+            code: entry.key,
+            name: entry.value.toString(),
+            symbol: _currencySymbols[entry.key] ?? entry.key, // Fallback to code
+          );
+        }).toList();
+      }
+      throw Exception('Failed to load currencies');
+    } catch (e) {
+      // Fallback list for offline or error states
+      return [
+        const CurrencyOption(symbol: '₹', code: 'INR', name: 'Indian Rupee'),
+        const CurrencyOption(symbol: r'$', code: 'USD', name: 'US Dollar'),
+      ];
+    }
+  }
+}
+
+final availableCurrenciesProvider = FutureProvider<List<CurrencyOption>>((ref) async {
+  final service = FrankfurterService();
+  return await service.fetchCurrencies();
+});

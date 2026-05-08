@@ -121,7 +121,7 @@ class _MemberDetailsScreenState extends ConsumerState<MemberDetailsScreen> {
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: SubscriptionCard(
                       subscription: sub,
-                      currencySymbol: ref.watch(currencySymbolProvider),
+                      currencySymbol: ref.watch(nativeCurrencyProvider),
                       isExpanded: _expandedSubs.contains(sub.id),
                       onTap: () => _toggleExpand(sub.id),
                       showMadeBy: false,

@@ -31,6 +31,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _householdNameController = TextEditingController();
   bool _createHousehold = false;
   DateTime? _selectedDob;
+  String? _selectedCountry;
+  String? _selectedCurrency;
+
+  static const _countryToCurrencyMap = {
+    'United States': '\$',
+    'India': '₹',
+    'United Kingdom': '£',
+    'Europe': '€',
+    'Japan': '¥',
+    'South Korea': '₩',
+    'Australia': 'A\$',
+    'Canada': 'C\$',
+  };
+
 
   @override
   void dispose() {
@@ -84,6 +98,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         return;
       }
 
+      if (_selectedCountry == null) {
+        CustomToast.show(context: context, message: 'Please select a country', isError: true);
+        return;
+      }
+
       if (_createHousehold && _householdNameController.text.trim().isEmpty) {
         CustomToast.show(context: context, message: 'Please enter a household name', isError: false);
         return;
@@ -97,6 +116,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         createHousehold: _createHousehold,
         householdName:
             _createHousehold ? _householdNameController.text.trim() : '',
+        country: _selectedCountry,
+        currencySymbol: _selectedCurrency,
       );
       ref.read(authProvider.notifier).register(request);
     }
@@ -182,6 +203,58 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         controller: _dobController,
                         readOnly: true,
                         onTap: () => _selectDate(context),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Country Dropdown
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Country',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedCountry,
+                                hint: Text(
+                                  'Select your country',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                isExpanded: true,
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                                items: _countryToCurrencyMap.keys.map((String country) {
+                                  return DropdownMenuItem<String>(
+                                    value: country,
+                                    child: Text(country),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    _selectedCountry = newValue;
+                                    if (newValue != null) {
+                                      _selectedCurrency = _countryToCurrencyMap[newValue];
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
                       Container(

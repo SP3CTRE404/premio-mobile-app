@@ -36,10 +36,11 @@ class Subscription {
   final String? householdName; // NEW: Based on your backend SubscriptionResponse
 
   final int? householdId;
-  final String status; // NEW: Status field (ACTIVE, EXPIRED, etc.)
+  final String status;
   final bool isOverdue;
   final bool isUpcoming;
   final int daysUntilDue;
+  final String? currency;
 
 
   Subscription({
@@ -60,6 +61,7 @@ class Subscription {
     this.isOverdue = false,
     this.isUpcoming = false,
     this.daysUntilDue = 0,
+    this.currency,
   });
 
 
@@ -85,6 +87,7 @@ class Subscription {
       isOverdue: json['isOverdue'] as bool? ?? false,
       isUpcoming: json['isUpcoming'] as bool? ?? false,
       daysUntilDue: json['daysUntilDue'] as int? ?? 0,
+      currency: json['currency'] as String?,
     );
 
   }
@@ -108,6 +111,7 @@ class Subscription {
         'isOverdue': isOverdue,
         'isUpcoming': isUpcoming,
         'daysUntilDue': daysUntilDue,
+        'currency': currency,
       };
 
 
@@ -131,6 +135,7 @@ class Subscription {
     bool? isOverdue,
     bool? isUpcoming,
     int? daysUntilDue,
+    String? currency,
   }) {
 
 
@@ -152,6 +157,7 @@ class Subscription {
       isOverdue: isOverdue ?? this.isOverdue,
       isUpcoming: isUpcoming ?? this.isUpcoming,
       daysUntilDue: daysUntilDue ?? this.daysUntilDue,
+      currency: currency ?? this.currency,
     );
 
   }
@@ -176,7 +182,8 @@ class Subscription {
         other.status == status &&
         other.isOverdue == isOverdue &&
         other.isUpcoming == isUpcoming &&
-        other.daysUntilDue == daysUntilDue;
+        other.daysUntilDue == daysUntilDue &&
+        other.currency == currency;
   }
 
   @override
@@ -186,5 +193,6 @@ class Subscription {
         nextBillingDate, purchaseDate, isAutoPay,
         ownerName, ownerId, householdName,
         householdId, status, isOverdue, isUpcoming,
+        daysUntilDue, currency,
       );
 }

@@ -17,6 +17,8 @@ class RegisterRequest {
   final DateTime? dateOfBirth;
   final bool createHousehold;
   final String householdName;
+  final String? country;
+  final String? currencySymbol;
 
   RegisterRequest({
     required this.email,
@@ -25,14 +27,21 @@ class RegisterRequest {
     this.dateOfBirth,
     required this.createHousehold,
     required this.householdName,
+    this.country,
+    this.currencySymbol,
   });
 
-  Map<String, dynamic> toJson() => {
-    'email': email,
-    'password': password,
-    'fullName': fullName,
-    'dateOfBirth': dateOfBirth?.toIso8601String().split('T').first,
-    'createHousehold': createHousehold,
-    'householdName': householdName,
-  };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+      'dateOfBirth': dateOfBirth?.toIso8601String().split('T').first,
+      'createHousehold': createHousehold,
+      'householdName': householdName,
+    };
+    if (country != null) map['country'] = country;
+    if (currencySymbol != null) map['currencySymbol'] = currencySymbol;
+    return map;
+  }
 }

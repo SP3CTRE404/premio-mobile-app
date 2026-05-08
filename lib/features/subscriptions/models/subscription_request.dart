@@ -12,6 +12,7 @@ class SubscriptionRequest {
   final bool isAutoPay;
   final int? householdId; // NEW: So you can link it to a household
   final int? userId;
+  final String? currency;
 
 
   SubscriptionRequest({
@@ -25,6 +26,7 @@ class SubscriptionRequest {
     required this.isAutoPay,
     this.householdId,
     this.userId,
+    this.currency,
   });
 
 
@@ -52,8 +54,10 @@ class SubscriptionRequest {
     if (userId != null) {
       map['userId'] = userId;
     }
-
+    if (currency != null) {
+      map['currency'] = currency;
+    }
 
     return map;
   }
-}
+}

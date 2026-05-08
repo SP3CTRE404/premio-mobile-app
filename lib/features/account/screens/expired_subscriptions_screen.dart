@@ -33,7 +33,7 @@ class _ExpiredSubscriptionsScreenState extends ConsumerState<ExpiredSubscription
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
     
     // Determine which provider to use
     final expiredAsync = widget.memberId != null

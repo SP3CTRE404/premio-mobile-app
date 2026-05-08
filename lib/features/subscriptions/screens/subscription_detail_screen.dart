@@ -44,7 +44,7 @@ class _SubscriptionDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final currencySymbol = ref.watch(nativeCurrencyProvider);
     final userRole = ref.watch(userRoleProvider);
     final userAsync = ref.watch(userProvider);
     final subscriptionsAsync = ref.watch(subscriptionProvider);

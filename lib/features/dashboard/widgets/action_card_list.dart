@@ -203,7 +203,7 @@ class _ActionCard extends StatelessWidget {
             const SizedBox(width: 12),
             
             Text(
-              formatCurrency(sub.amount, currencySymbol),
+              formatCurrency(sub.amount, sub.currency ?? currencySymbol),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,

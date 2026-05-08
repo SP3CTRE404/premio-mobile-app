@@ -5,11 +5,13 @@ import 'subscription_field_decoration.dart';
 class AmountField extends StatelessWidget {
   final TextEditingController controller;
   final String currencySymbol;
+  final VoidCallback? onCurrencyTap;
 
   const AmountField({
     super.key,
     required this.controller,
     required this.currencySymbol,
+    this.onCurrencyTap,
   });
 
   @override
@@ -32,19 +34,34 @@ class AmountField extends StatelessWidget {
 
   Widget _buildCurrencyPrefix(ThemeData theme, String symbol) {
     return Padding(
-      padding: const EdgeInsets.only(left: 18.0, right: 12.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            symbol,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              fontWeight: FontWeight.bold,
-            ),
+      padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+      child: InkWell(
+        onTap: onCurrencyTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                symbol,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                size: 16,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
+

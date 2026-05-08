@@ -2,7 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:subtrack/features/subscriptions/models/subscription_model.dart';
 import 'package:subtrack/features/subscriptions/screens/add_subscription_screen.dart';
+import '../../../core/utils/currency_converter.dart';
 import '../../../shared/widgets/skeleton_card.dart';
 import '../../account/providers/account_provider.dart';
 import '../../settings/providers/currency_provider.dart';
@@ -39,7 +41,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencySymbolProvider);
+    final displayCurrency = ref.watch(displayCurrencyProvider);
+    final nativeCurrency = ref.watch(nativeCurrencyProvider);
     final userAsync = ref.watch(userProvider);
     final subscriptionsAsync = ref.watch(subscriptionProvider);
     final monthlyTotalAsync = ref.watch(monthlyTotalProvider);
@@ -130,9 +133,44 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       skipLoadingOnReload: true,
                       skipLoadingOnRefresh: true,
                       data: (householdMonthly) {
-                        final displayMonthly = isAdmin 
-                            ? householdMonthly 
-                            : viewableSubs.fold(0.0, (sum, sub) => sum + sub.amount);
+                        double displayMonthly = 0.0;
+                        for (final sub in viewableSubs) {
+                          if (sub.status == 'EXPIRED') continue;
+
+                          double monthlyEquivalent = sub.amount;
+                          switch (sub.billingCycle) {
+                            case BillingCycle.yearly:
+                              monthlyEquivalent = sub.amount / 12;
+                              break;
+                            case BillingCycle.quarterly:
+                              monthlyEquivalent = sub.amount / 3;
+                              break;
+                            case BillingCycle.oneTime:
+                              continue;
+                            case BillingCycle.custom:
+                              if (sub.customIntervalUnit == 'MONTHS') {
+                                monthlyEquivalent = sub.amount / (sub.customIntervalDays ?? 1);
+                              } else if (sub.customIntervalUnit == 'DAYS') {
+                                monthlyEquivalent = sub.amount * (30 / (sub.customIntervalDays ?? 30));
+                              } else if (sub.customIntervalUnit == 'WEEKS') {
+                                monthlyEquivalent = sub.amount * (4 / (sub.customIntervalDays ?? 1));
+                              }
+                              break;
+                            case BillingCycle.monthly:
+                            monthlyEquivalent = sub.amount;
+                              break;
+                          }
+
+                          final subCurrency = sub.currency ?? nativeCurrency;
+                          final convertedAmount = CurrencyConverter.convert(
+                            amount: monthlyEquivalent,
+                            fromCurrency: subCurrency,
+                            toCurrency: displayCurrency,
+                          );
+
+                          displayMonthly += convertedAmount;
+                        }
+                        
                         final personalCount = viewableSubs.where((s) => s.ownerId == currentUserId).length;
                         final householdCount = viewableSubs.where((s) => s.ownerId != currentUserId).length;
                             
@@ -141,7 +179,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           upToDate: upToDate,
                           dueSoon: dueSoon,
                           overdue: overdue,
-                          currencySymbol: currencySymbol,
+                          currencySymbol: displayCurrency,
                           isAdmin: isAdmin,
                           personalCount: personalCount,
                           householdCount: householdCount,
@@ -153,7 +191,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         upToDate: 0,
                         dueSoon: 0,
                         overdue: 0,
-                        currencySymbol: currencySymbol,
+                        currencySymbol: displayCurrency,
                         isAdmin: isAdmin,
                       ),
                     ),
@@ -175,7 +213,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ActionCardList(
                       subscriptions: actionNeeded, 
                       paidItems: _paidItems.map((e) => e.toString()).toSet(), 
-                      currencySymbol: currencySymbol,
+                      currencySymbol: nativeCurrency,
                       showOwner: _viewMode == DashboardViewMode.household,
                       onTogglePaid: (idString) async {
                         final id = int.parse(idString);
