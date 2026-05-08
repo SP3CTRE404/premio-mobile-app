@@ -13,6 +13,7 @@ import '../widgets/auth_redirect.dart';
 import '../widgets/auth_text_field.dart';
 import '../widgets/google_sign_in_button.dart';
 import '../../../shared/widgets/custom_toast.dart';
+import '../../../features/settings/providers/currency_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -33,17 +34,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   DateTime? _selectedDob;
   String? _selectedCountry;
   String? _selectedCurrency;
-
-  static const _countryToCurrencyMap = {
-    'United States': '\$',
-    'India': '₹',
-    'United Kingdom': '£',
-    'Europe': '€',
-    'Japan': '¥',
-    'South Korea': '₩',
-    'Australia': 'A\$',
-    'Canada': 'C\$',
-  };
 
 
   @override
@@ -135,6 +125,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currenciesAsync = ref.watch(availableCurrenciesProvider);
     final authState = ref.watch(authProvider);
     final age = _calculateAge(_selectedDob);
     final isMinor = _selectedDob != null && age < 18;
@@ -211,7 +202,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Country',
+                            'Country/Region',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -226,31 +217,41 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
                               ),
                             ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _selectedCountry,
-                                hint: Text(
-                                  'Select your country',
-                                  style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                            child: currenciesAsync.when(
+                              data: (currencies) => DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedCountry,
+                                  hint: Text(
+                                    'Select your region',
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                    ),
                                   ),
+                                  isExpanded: true,
+                                  icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                                  items: currencies.map((currency) {
+                                    return DropdownMenuItem<String>(
+                                      value: currency.name,
+                                      child: Text(currency.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedCountry = newValue;
+                                      if (newValue != null) {
+                                        _selectedCurrency = currencies.firstWhere((c) => c.name == newValue).symbol;
+                                      }
+                                    });
+                                  },
                                 ),
-                                isExpanded: true,
-                                icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                                items: _countryToCurrencyMap.keys.map((String country) {
-                                  return DropdownMenuItem<String>(
-                                    value: country,
-                                    child: Text(country),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    _selectedCountry = newValue;
-                                    if (newValue != null) {
-                                      _selectedCurrency = _countryToCurrencyMap[newValue];
-                                    }
-                                  });
-                                },
+                              ),
+                              loading: () => const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12.0),
+                                child: Center(child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                              ),
+                              error: (err, stack) => const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12.0),
+                                child: Text('Failed to load regions'),
                               ),
                             ),
                           ),

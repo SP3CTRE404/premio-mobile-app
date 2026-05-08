@@ -8,6 +8,7 @@ class User {
   final String? profilePicture; // NEW: Added Profile Picture field
   final String currencySymbol;
   final DateTime? dateOfBirth;
+  final String? country;
 
   User({
     required this.id,
@@ -19,6 +20,7 @@ class User {
     this.profilePicture,
     this.currencySymbol = '₹',
     this.dateOfBirth,
+    this.country,
   });
 
   int get age => calculateAge(dateOfBirth);
@@ -79,6 +81,7 @@ class User {
       profilePicture: json['profilePicture'] as String?, // Map from backend
       currencySymbol: json['currencySymbol'] as String? ?? '₹',
       dateOfBirth: parsedDob,
+      country: json['country'] as String?,
     );
   }
 
@@ -92,6 +95,7 @@ class User {
         'profilePicture': profilePicture,
         'currencySymbol': currencySymbol,
         'dateOfBirth': dateOfBirth?.toIso8601String(),
+        'country': country,
       };
 
   @override
@@ -105,12 +109,22 @@ class User {
         other.householdId == householdId &&
         other.isHouseholdAdmin == isHouseholdAdmin &&
         other.profilePicture == profilePicture &&
+        other.currencySymbol == currencySymbol &&
+        other.country == country &&
         other.dateOfBirth == dateOfBirth;
   }
 
   @override
   int get hashCode => Object.hash(
-        id, email, fullName, phoneNumber,
-        householdId, isHouseholdAdmin, profilePicture, dateOfBirth,
+        id,
+        email,
+        fullName,
+        phoneNumber,
+        householdId,
+        isHouseholdAdmin,
+        profilePicture,
+        currencySymbol,
+        country,
+        dateOfBirth,
       );
 }

@@ -60,8 +60,8 @@ class UserNotifier extends AsyncNotifier<User?> {
     String? phoneNumber,
     String? profilePicture, // NEW: Accept image string
     String? currencySymbol, // NEW: Sync with backend
+    String? country, // NEW: Sync country
   }) async {
-    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final dio = ref.read(apiClientProvider).dio;
       
@@ -71,17 +71,18 @@ class UserNotifier extends AsyncNotifier<User?> {
         'phoneNumber': phoneNumber,
         'profilePicture': profilePicture,
         'currencySymbol': currencySymbol,
+        'country': country,
       });
 
-      final updatedUser = User.fromJson(response.data);
+      final data = response.data as Map<String, dynamic>;
+      final updatedUser = User.fromJson(data);
       
-      // Update local storage names
+      // Update local storage names and region
       final storage = ref.read(secureStorageServiceProvider);
       await storage.saveUserName(updatedUser.fullName);
       if (updatedUser.phoneNumber != null) {
         await storage.saveUserPhoneNumber(updatedUser.phoneNumber!);
       }
-
       return updatedUser;
     });
   }

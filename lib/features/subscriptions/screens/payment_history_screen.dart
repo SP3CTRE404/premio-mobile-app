@@ -243,7 +243,6 @@ class _SubscriptionHistoryListItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Icon(Icons.history_rounded, color: AppColors.cobaltBlue, size: 20),
                 const SizedBox(width: 4),
                 Icon(
                   Icons.chevron_right_rounded,

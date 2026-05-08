@@ -33,20 +33,13 @@ class ProfileHeader extends ConsumerWidget {
             .map((w) => w[0].toUpperCase())
             .join();
 
-        // Safely parse Base64 image
-        ImageProvider? getAvatar() {
-          if (user.profilePicture != null && user.profilePicture!.isNotEmpty) {
-            try {
-              final base64String = user.profilePicture!.split(',').last;
-              return MemoryImage(base64Decode(base64String));
-            } catch (e) {
-              return null;
-            }
-          }
-          return null;
+        ImageProvider? avatarImage;
+        if (user.profilePicture != null && user.profilePicture!.isNotEmpty) {
+          try {
+            final base64String = user.profilePicture!.split(',').last;
+            avatarImage = MemoryImage(base64Decode(base64String));
+          } catch (_) {}
         }
-
-        final avatarImage = getAvatar();
 
         return Container(
           padding: const EdgeInsets.all(20),
@@ -84,14 +77,47 @@ class ProfileHeader extends ConsumerWidget {
                         letterSpacing: -0.3,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      user.email,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.5),
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.email_outlined, size: 14, color: colorScheme.onSurface.withValues(alpha: 0.4)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            user.email,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
+                    if (user.country != null && user.country!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.cobaltBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.cobaltBlue.withValues(alpha: 0.1)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.public, size: 12, color: AppColors.cobaltBlue),
+                            const SizedBox(width: 6),
+                            Text(
+                              user.country!,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppColors.cobaltBlue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

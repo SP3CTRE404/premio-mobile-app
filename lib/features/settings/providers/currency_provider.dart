@@ -62,42 +62,50 @@ class CurrencyOption {
   });
 }
 
-class FrankfurterService {
-  static const String _baseUrl = 'https://api.frankfurter.dev/v2';
+class CountryService {
+  static const String _baseUrl = 'https://restcountries.com/v3.1/all?fields=name,currencies';
 
-  // Helper map to assign symbols to common codes
-  static const Map<String, String> _currencySymbols = {
-    'INR': '₹', 'USD': r'$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 
-    'KRW': '₩', 'AUD': r'A$', 'CAD': r'C$', 'CHF': 'CHF', 'CNY': '¥',
-  };
-
-  Future<List<CurrencyOption>> fetchCurrencies() async {
+  Future<List<CurrencyOption>> fetchCountries() async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/currencies'));
+      final response = await http.get(Uri.parse(_baseUrl));
       
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> data = json.decode(response.body);
+        final List<CurrencyOption> options = [];
         
-        return data.entries.map((entry) {
-          return CurrencyOption(
-            code: entry.key,
-            name: entry.value.toString(),
-            symbol: _currencySymbols[entry.key] ?? entry.key, // Fallback to code
-          );
-        }).toList();
+        for (var item in data) {
+          final map = item as Map<String, dynamic>;
+          final name = map['name']?['common'] as String?;
+          final currencies = map['currencies'] as Map<String, dynamic>?;
+          
+          if (name != null && currencies != null && currencies.isNotEmpty) {
+            final currencyCode = currencies.keys.first;
+            final currencyDetails = currencies[currencyCode] as Map<String, dynamic>;
+            
+            options.add(CurrencyOption(
+              code: currencyCode,
+              name: name,
+              symbol: currencyDetails['symbol'] ?? currencyCode,
+            ));
+          }
+        }
+        
+        options.sort((a, b) => a.name.compareTo(b.name));
+        return options;
       }
-      throw Exception('Failed to load currencies');
+      throw Exception('Failed to load countries');
     } catch (e) {
-      // Fallback list for offline or error states
       return [
-        const CurrencyOption(symbol: '₹', code: 'INR', name: 'Indian Rupee'),
-        const CurrencyOption(symbol: r'$', code: 'USD', name: 'US Dollar'),
+        const CurrencyOption(symbol: '₹', code: 'INR', name: 'India'),
+        const CurrencyOption(symbol: r'$', code: 'USD', name: 'United States'),
+        const CurrencyOption(symbol: '€', code: 'EUR', name: 'European Union'),
+        const CurrencyOption(symbol: '£', code: 'GBP', name: 'United Kingdom'),
       ];
     }
   }
 }
 
 final availableCurrenciesProvider = FutureProvider<List<CurrencyOption>>((ref) async {
-  final service = FrankfurterService();
-  return await service.fetchCurrencies();
+  final service = CountryService();
+  return await service.fetchCountries();
 });

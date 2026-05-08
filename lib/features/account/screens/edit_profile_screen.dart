@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:subtrack/core/theme/app_colors.dart';
 
 import '../../auth/widgets/auth_background.dart';
 import '../providers/account_provider.dart';
@@ -27,6 +30,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _phoneController;
   File? _pickedImage;
   bool _isLoading = false;
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolled = false;
+  ImageProvider? _avatarProvider;
 
   @override
   void initState() {
@@ -36,6 +42,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController = TextEditingController(text: user?.fullName ?? '');
     _emailController = TextEditingController(text: user?.email ?? '');
     _phoneController = TextEditingController(text: user?.phoneNumber ?? '');
+
+    // Cache image provider to prevent flicker on scroll/rebuild
+    if (user?.profilePicture != null && user!.profilePicture!.isNotEmpty) {
+      try {
+        final b64 = user.profilePicture!.split(',').last;
+        _avatarProvider = MemoryImage(base64Decode(b64));
+      } catch (_) {}
+    }
+
+    _scrollController.addListener(() {
+      if (_scrollController.hasClients) {
+        final isScrolled = _scrollController.offset > 10;
+        if (isScrolled != _isScrolled) {
+          setState(() => _isScrolled = isScrolled);
+        }
+      }
+    });
   }
 
   @override
@@ -43,6 +66,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -57,12 +81,49 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
       
       if (image != null) {
-        setState(() {
-          _pickedImage = File(image.path);
-        });
+        await _cropImage(image.path);
       }
     } catch (e) {
       if (mounted) CustomToast.show(context: context, message: 'Error picking image: $e', isError: true);
+    }
+  }
+
+  Future<void> _cropImage(String path) async {
+    final theme = Theme.of(context);
+    
+    try {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: path,
+        compressFormat: ImageCompressFormat.png,
+        compressQuality: 80,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Edit Photo',
+            toolbarColor: theme.colorScheme.surface,
+            toolbarWidgetColor: theme.colorScheme.onSurface,
+            activeControlsWidgetColor: AppColors.cobaltBlue,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+          ),
+          IOSUiSettings(
+            title: 'Edit Photo',
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+            aspectRatioLockEnabled: true,
+            resetButtonHidden: true,
+            rotateButtonsHidden: false,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          _pickedImage = File(croppedFile.path);
+          _avatarProvider = FileImage(_pickedImage!);
+        });
+      }
+    } catch (e) {
+      if (mounted) CustomToast.show(context: context, message: 'Error cropping image: $e', isError: true);
     }
   }
 
@@ -83,7 +144,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       await ref.read(userProvider.notifier).updateProfile(
         fullName: _nameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
-        profilePicture: base64Image, // Will be null if no new image picked, leaving backend unchanged
+        profilePicture: base64Image,
       );
 
       if (mounted) {
@@ -99,19 +160,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   // Helper to figure out what image to show in the editor circle
   Widget? _getDisplayImage() {
-    final user = ref.read(userProvider).value;
+    if (_avatarProvider == null) return null;
     
-    if (_pickedImage != null) {
-      return ClipOval(child: Image.file(_pickedImage!, fit: BoxFit.cover, width: 128, height: 128));
-    } else if (user?.profilePicture != null && user!.profilePicture!.isNotEmpty) {
-      try {
-        final b64 = user.profilePicture!.split(',').last;
-        return ClipOval(child: Image.memory(base64Decode(b64), fit: BoxFit.cover, width: 128, height: 128));
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
+    return ClipOval(
+      child: Image(
+        key: const ValueKey('profile_avatar'),
+        image: _avatarProvider!,
+        fit: BoxFit.cover,
+        width: 128,
+        height: 128,
+        // Add a gapless playback to prevent white flash when swapping images
+        gaplessPlayback: true,
+      ),
+    );
   }
 
   @override
@@ -124,13 +185,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         title: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+        flexibleSpace: AnimatedOpacity(
+          opacity: _isScrolled ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.surface.withValues(alpha: 0.3),
+                      theme.colorScheme.surface.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
           const AuthBackground(),
           SafeArea(
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
