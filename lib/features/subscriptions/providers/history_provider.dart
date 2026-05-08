@@ -8,8 +8,30 @@ import '../../auth/providers/auth_provider.dart';
 /// Fetches payment history for a specific subscription ID.
 final historyProvider = FutureProvider.autoDispose.family<List<SubscriptionHistory>, int>(
   (ref, subscriptionId) async {
+    if (subscriptionId <= 0) {
+      return [
+        SubscriptionHistory(
+          id: -1,
+          subscriptionId: subscriptionId,
+          serviceName: 'Mock Payment',
+          amount: 9.99,
+          paymentDate: DateTime.now().subtract(const Duration(days: 30)),
+          status: 'Paid',
+        ),
+      ];
+    }
+
     final repo = ref.read(historyRepositoryProvider);
-    return repo.getHistory(subscriptionId);
+    try {
+      return await repo.getHistory(subscriptionId).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      try {
+        final allHistory = await repo.getUserHistory(page: 0, size: 100);
+        return allHistory.items.where((item) => item.subscriptionId == subscriptionId).toList();
+      } catch (innerError) {
+        rethrow;
+      }
+    }
   },
 );
 

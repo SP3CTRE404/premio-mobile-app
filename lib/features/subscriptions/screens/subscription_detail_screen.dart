@@ -10,8 +10,8 @@ import '../providers/user_role_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../widgets/subscription_detail/subscription_fab_menu.dart';
 import '../widgets/subscription_detail/subscription_list_view.dart';
-import './add_subscription_screen.dart';
-import './subscription_search_screen.dart';
+import 'add_subscription_screen.dart';
+import 'subscription_search_screen.dart';
 import '../../../core/theme/app_colors.dart';
 
 class SubscriptionDetailScreen extends ConsumerStatefulWidget {
@@ -286,4 +286,4 @@ class _SubscriptionDetailScreenState
       ),
     );
   }
-}
+}

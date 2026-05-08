@@ -26,8 +26,16 @@ class HistoryRepository {
   // Gets history for a single subscription
   Future<List<SubscriptionHistory>> getHistory(int subscriptionId) async {
     final response = await dio.get(ApiEndpoints.subscriptionHistory(subscriptionId));
-    final list = response.data as List<dynamic>;
-    return list.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
+    final data = response.data;
+    
+    if (data is List) {
+      return data.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
+    } else if (data is Map<String, dynamic>) {
+      // If it's a paginated response (Spring Page object)
+      final content = data['content'] as List? ?? [];
+      return content.map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    return [];
   }
 
   /// GET paginated history for a user.

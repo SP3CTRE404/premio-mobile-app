@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../models/history_model.dart';
-import '../../utils/subscription_ui_helper.dart';
 
 class PaymentHistoryCard extends StatelessWidget {
   final SubscriptionHistory payment;
@@ -17,72 +16,91 @@ class PaymentHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
-    final IconData icon = SubscriptionUIHelper.getIcon(payment.serviceName);
+    final isDark = theme.brightness == Brightness.dark;
+    
     final String formattedDate = DateFormat('MMM dd, yyyy').format(payment.paymentDate);
+    final String formattedTime = DateFormat('hh:mm a').format(payment.paymentDate);
 
-    return Card(
-      color: theme.cardTheme.color ?? colorScheme.surface,
-      surfaceTintColor: Colors.transparent,
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.1), width: 1),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.onSurface.withValues(alpha: isDark ? 0.05 : 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.05),
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-        child: ListTile(
-          leading: CircleAvatar(
-            backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.3),
-            child: Icon(icon, color: colorScheme.primary),
-          ),
-          title: Text(
-            payment.serviceName,
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  formattedDate,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  formattedTime,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-          subtitle: Text(
-            'Paid on $formattedDate',
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
                 formatCurrency(payment.amount, currencySymbol),
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black87,
+                  letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: _getStatusColor(payment.status).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   payment.status.toUpperCase(),
-                  style: textTheme.labelSmall?.copyWith(
-                    color: Colors.green,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: _getStatusColor(payment.status),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+      case 'success':
+      case 'completed':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'failed':
+        return Colors.red;
+      default:
+        return Colors.blue;
+    }
   }
 }
