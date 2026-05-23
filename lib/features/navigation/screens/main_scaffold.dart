@@ -11,6 +11,7 @@ import '../../account/screens/account_screen.dart';
 import '../../household/screens/household_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../../tutorial/providers/tutorial_provider.dart';
 
 import '../../account/providers/account_provider.dart';
 import '../../household/screens/join_household_screen.dart';
@@ -131,6 +132,26 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         _isPill = true;
         _isAtBottom = false;
       });
+    });
+
+    ref.listen(tutorialProvider, (previous, next) {
+      if (previous == null || previous.value == null) return;
+      
+      final prevStep = previous.value?.activeStep;
+      final activeStep = next.value?.activeStep;
+      if (prevStep == activeStep) return;
+
+      if (activeStep == 'dashboard_hello') {
+        ref.read(navigationIndexProvider.notifier).setIndex(2);
+      } else if (activeStep == 'bottom_nav_household') {
+        ref.read(navigationIndexProvider.notifier).setIndex(0);
+      } else if (activeStep == 'bottom_nav_subscriptions') {
+        ref.read(navigationIndexProvider.notifier).setIndex(1);
+      } else if (activeStep == 'bottom_nav_history') {
+        ref.read(navigationIndexProvider.notifier).setIndex(3);
+      } else if (activeStep == 'bottom_nav_account') {
+        ref.read(navigationIndexProvider.notifier).setIndex(4);
+      }
     });
 
     return Scaffold(

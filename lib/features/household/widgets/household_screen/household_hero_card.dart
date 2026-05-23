@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -61,6 +63,45 @@ class _HouseholdHeroCardState extends ConsumerState<HouseholdHeroCard> {
       }
     } else {
       _decodedImageBytes = null;
+    }
+  }
+
+  Future<String?> _cropImage(String path) async {
+    final theme = Theme.of(context);
+    try {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: path,
+        compressFormat: ImageCompressFormat.png,
+        compressQuality: 80,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Edit Photo',
+            toolbarColor: theme.colorScheme.surface,
+            toolbarWidgetColor: theme.colorScheme.onSurface,
+            activeControlsWidgetColor: AppColors.cobaltBlue,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+          ),
+          IOSUiSettings(
+            title: 'Edit Photo',
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+            aspectRatioLockEnabled: true,
+            resetButtonHidden: true,
+            rotateButtonsHidden: false,
+          ),
+        ],
+      );
+      return croppedFile?.path;
+    } catch (e) {
+      if (mounted) {
+        CustomToast.show(
+          context: context,
+          message: 'Error cropping image: $e',
+          isError: true,
+        );
+      }
+      return null;
     }
   }
 
@@ -145,23 +186,39 @@ class _HouseholdHeroCardState extends ConsumerState<HouseholdHeroCard> {
               GestureDetector(
                 onTap: widget.isAdmin ? () async {
                   final ImagePicker picker = ImagePicker();
-                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                  
-                  if (image != null) {
-                    try {
-                      final bytes = await image.readAsBytes();
-                      final base64String = base64Encode(bytes);
-                      final imgData = 'data:image/png;base64,$base64String';
-                      
-                      await ref.read(householdProvider.notifier).updateHouseholdImage(imgData);
-                      
-                      if (context.mounted) {
-                        CustomToast.show(context: context, message: 'Image uploaded successfully!', isError: false);
+                  try {
+                    final XFile? image = await picker.pickImage(
+                      source: ImageSource.gallery,
+                      maxWidth: 1000,
+                      maxHeight: 1000,
+                      imageQuality: 85,
+                    );
+                    
+                    if (image != null && mounted) {
+                      final croppedPath = await _cropImage(image.path);
+                      if (croppedPath != null) {
+                        final bytes = await File(croppedPath).readAsBytes();
+                        final base64String = base64Encode(bytes);
+                        final imgData = 'data:image/png;base64,$base64String';
+                        
+                        await ref.read(householdProvider.notifier).updateHouseholdImage(imgData);
+                        
+                        if (context.mounted) {
+                          CustomToast.show(
+                            context: context,
+                            message: 'Image uploaded successfully!',
+                            isError: false,
+                          );
+                        }
                       }
-                    } catch(e) {
-                      if (context.mounted) {
-                        CustomToast.show(context: context, message: 'Failed to upload image', isError: true);
-                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      CustomToast.show(
+                        context: context,
+                        message: 'Failed to upload image: $e',
+                        isError: true,
+                      );
                     }
                   }
                 } : null,

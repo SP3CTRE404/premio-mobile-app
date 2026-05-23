@@ -14,6 +14,8 @@ import '../../subscriptions/providers/subscription_provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/action_card_list.dart';
 import '../widgets/financial_hero_card.dart';
+import '../../tutorial/widgets/tutorial_anchor.dart';
+import '../../tutorial/widgets/tutorial_bubble.dart';
 
 enum DashboardViewMode { personal, household }
 
@@ -66,12 +68,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Hello, ${user?.fullName.split(' ').first ?? 'User'}!',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                    TutorialAnchor(
+                      tutorialId: 'dashboard_hello',
+                      title: 'Welcome to SubTrack!',
+                      description: "This is your dashboard. Let's take a quick tour of your subscription management center.",
+                      arrowDirection: ArrowDirection.up,
+                      alignment: BubbleAlignment.right,
+                      child: Text(
+                        'Hello, ${user?.fullName.split(' ').first ?? 'User'}!',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -174,15 +183,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         final personalCount = viewableSubs.where((s) => s.ownerId == currentUserId).length;
                         final householdCount = viewableSubs.where((s) => s.ownerId != currentUserId).length;
                             
-                        return FinancialHeroCard(
-                          monthly: displayMonthly,
-                          upToDate: upToDate,
-                          dueSoon: dueSoon,
-                          overdue: overdue,
-                          currencySymbol: displayCurrency,
-                          isAdmin: isAdmin,
-                          personalCount: personalCount,
-                          householdCount: householdCount,
+                        return TutorialAnchor(
+                          tutorialId: 'dashboard_hero',
+                          title: 'Financial Overview',
+                          description: 'Track your total monthly subscription costs, along with status counts of active, upcoming, and overdue payments at a glance.',
+                          arrowDirection: ArrowDirection.up,
+                          alignment: BubbleAlignment.center,
+                          child: FinancialHeroCard(
+                            monthly: displayMonthly,
+                            upToDate: upToDate,
+                            dueSoon: dueSoon,
+                            overdue: overdue,
+                            currencySymbol: displayCurrency,
+                            isAdmin: isAdmin,
+                            personalCount: personalCount,
+                            householdCount: householdCount,
+                          ),
                         );
                       },
                       loading: () => const SkeletonHeroCard(),
@@ -201,7 +217,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          child: _sectionTitle(context, 'Action Needed'),
+                          child: TutorialAnchor(
+                            tutorialId: 'dashboard_action_needed',
+                            title: 'Payments Action List',
+                            description: 'Any manual-pay subscriptions that are upcoming or overdue will show up here. Mark them as paid to keep them up to date.',
+                            arrowDirection: ArrowDirection.up,
+                            alignment: BubbleAlignment.right,
+                            child: _sectionTitle(context, 'Action Needed'),
+                          ),
                         ),
                         if (isAdmin) ...[
                           const SizedBox(width: 12),

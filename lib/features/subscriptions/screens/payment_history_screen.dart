@@ -11,6 +11,8 @@ import '../providers/subscription_provider.dart';
 import '../utils/subscription_ui_helper.dart';
 import '../widgets/history/payment_history_list_view.dart';
 import '../widgets/history/subscription_history_bubble.dart';
+import '../../tutorial/widgets/tutorial_anchor.dart';
+import '../../tutorial/widgets/tutorial_bubble.dart';
 
 class PaymentHistoryScreen extends ConsumerStatefulWidget {
   final int? memberId;
@@ -84,7 +86,13 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
       return Center(
         child: Padding(
           padding: EdgeInsets.only(top: topPadding),
-          child: const Text('No subscriptions found.'),
+          child: const TutorialAnchor(
+            tutorialId: 'bottom_nav_history',
+            title: 'Payment History',
+            description: 'This is where your payment logs are tracked. Tap on any subscription to view transaction details.',
+            arrowDirection: ArrowDirection.up,
+            child: Text('No subscriptions found.'),
+          ),
         ),
       );
     }
@@ -98,11 +106,21 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final sub = allItems[index];
-        return _SubscriptionHistoryListItem(
+        final item = _SubscriptionHistoryListItem(
           subscription: sub,
           currencySymbol: currencySymbol,
           onTap: () => _showHistoryBubble(sub, currencySymbol),
         );
+        if (index == 0) {
+          return TutorialAnchor(
+            tutorialId: 'bottom_nav_history',
+            title: 'Payment History',
+            description: 'This is your payment logs list. Tap any subscription in this history list to inspect its details and billing logs.',
+            arrowDirection: ArrowDirection.up,
+            child: item,
+          );
+        }
+        return item;
       },
     );
   }

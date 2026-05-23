@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:subtrack/features/auth/providers/auth_provider.dart';
@@ -15,30 +16,94 @@ import '../widgets/look_and_feel_section.dart';
 import '../widgets/security_section.dart';
 import '../../../../shared/widgets/app_section_header.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isScrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.hasClients) {
+        final isScrolled = _scrollController.offset > 10;
+        if (isScrolled != _isScrolled) {
+          setState(() {
+            _isScrolled = isScrolled;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Proactively watch these providers to ensure data is fresh and loaded
     // as soon as the SettingsScreen is displayed.
     ref.watch(userRoleProvider);
     ref.watch(householdProvider);
 
+    final theme = Theme.of(context);
+
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        flexibleSpace: AnimatedOpacity(
+          opacity: _isScrolled ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.surface.withValues(alpha: 0.3),
+                      theme.colorScheme.surface.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        controller: _scrollController,
+        padding: EdgeInsets.fromLTRB(
+          0,
+          MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+          0,
+          40,
+        ),
         children: [
           const AppSectionHeader(title: 'Look and Feel', isUppercase: true),
           const LookAndFeelSection(),
           const SizedBox(height: 12),
+
 
           const AppSectionHeader(title: 'Security', isUppercase: true),
           const SecuritySection(),
@@ -51,13 +116,13 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Card(
               elevation: 0,
-              color: Theme.of(context).colorScheme.surface,
+              color: theme.colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1)),
+                side: BorderSide(color: theme.colorScheme.onSurface.withValues(alpha: 0.1)),
               ),
               child: ListTile(
-                leading: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.onSurface),
+                leading: Icon(Icons.logout_rounded, color: theme.colorScheme.onSurface),
                 title: const Text(
                   'Sign out',
                   style: TextStyle(fontWeight: FontWeight.bold),

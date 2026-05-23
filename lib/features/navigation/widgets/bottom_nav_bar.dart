@@ -20,102 +20,173 @@ class BottomNavBar extends ConsumerWidget {
     final baseColor =
         theme.bottomNavigationBarTheme.backgroundColor ?? Colors.black;
 
+    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    // Exact height of the widget container (no bottomPadding for pill)
+    final double widgetHeight = isPill ? 104.0 : 60.0 + bottomPadding;
+
+    // Total height of the blurred background region
+    final double blurHeight = isPill ? 84.0 : 60.0 + bottomPadding;
+
+    // Start Y coordinate of the blurred background region
+    final double blurStartY = isPill ? 20.0 : 0.0;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
-      margin: isPill
-          ? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0)
-          : EdgeInsets.zero,
-      height: isPill ? 64 : 60 + MediaQuery.of(context).padding.bottom,
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: isPill
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 5),
-                ),
-              ]
-            : [],
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            decoration: BoxDecoration(
-              color: isPill ? baseColor : baseColor.withValues(alpha: 0.65),
-              border: Border(
-                top: BorderSide(
-                  color: isPill
-                      ? Colors.transparent
-                      : Colors.white.withValues(alpha: 0.12),
-                  width: isPill ? 0.0 : 0.8,
+      height: widgetHeight,
+      width: double.infinity,
+      color: Colors.transparent,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // 1. The progressive blur regions (5 adjacent vertical strips of increasing blur)
+          for (int i = 0; i < 5; i++)
+            AnimatedPositioned(
+              key: ValueKey('blur_segment_$i'),
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              left: 0,
+              right: 0,
+              top: blurStartY + (i * (blurHeight / 5.0)),
+              height: blurHeight / 5.0,
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: (i + 1) * 1.8,
+                    sigmaY: (i + 1) * 1.8,
+                  ),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
                 ),
               ),
             ),
-            child: Padding(
-              padding: isPill
-                  ? const EdgeInsets.all(12.0)
-                  : EdgeInsets.fromLTRB(
-                      16.0,
-                      0,
-                      16.0,
-                      MediaQuery.of(context).padding.bottom,
-                    ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  NavItem(
-                    outlinedIcon: isSingle
-                        ? Icons.add_home_work_outlined
-                        : Icons.home_outlined,
-                    filledIcon: isSingle
-                        ? Icons.add_home_work_rounded
-                        : Icons.home_rounded,
-                    label: 'Household',
-                    index: 0,
-                    isPill: isPill,
-                  ),
-                  NavItem(
-                    outlinedIcon: Icons.receipt_long_outlined,
-                    filledIcon: Icons.receipt_long_rounded,
-                    label: 'Subscriptions',
-                    index: 1,
-                    isPill: isPill,
-                  ),
-                  NavItem(
-                    outlinedIcon: Icons.grid_view_outlined,
-                    filledIcon: Icons.grid_view_rounded,
-                    label: 'Dashboard',
-                    index: 2,
-                    isProminent: true,
-                    isPill: isPill,
-                  ),
-                  NavItem(
-                    outlinedIcon: Icons.history_rounded,
-                    filledIcon: Icons.history_rounded,
-                    label: 'History',
-                    index: 3,
-                    isPill: isPill,
-                  ),
-                  NavItem(
-                    outlinedIcon: Icons.person_outline_rounded,
-                    filledIcon: Icons.person_rounded,
-                    label: 'Account',
-                    index: 4,
-                    isPill: isPill,
-                  ),
 
-
-                ],
+          // 2. The progressive gradient color overlay
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            left: 0,
+            right: 0,
+            top: blurStartY,
+            bottom: 0,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.surface.withValues(alpha: 0.0),
+                      theme.colorScheme.surface.withValues(alpha: 0.15),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+
+          // 3. The main navigation bar container
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              margin: isPill
+                  ? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0)
+                  : EdgeInsets.zero,
+              height: isPill ? 64 : 60 + bottomPadding,
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                boxShadow: isPill
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 20,
+                          offset: const Offset(0, 5),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: ClipRRect(
+                borderRadius: radius,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isPill ? baseColor.withValues(alpha: 0.75) : baseColor.withValues(alpha: 0.65),
+                      borderRadius: radius,
+                      border: Border.all(
+                        color: isPill
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.08)
+                            : Colors.white.withValues(alpha: 0.12),
+                        width: isPill ? 1.0 : 0.8,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: isPill
+                          ? const EdgeInsets.all(12.0)
+                          : EdgeInsets.fromLTRB(
+                              16.0,
+                              0,
+                              16.0,
+                              bottomPadding,
+                            ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          NavItem(
+                            outlinedIcon: isSingle
+                                ? Icons.add_home_work_outlined
+                                : Icons.home_outlined,
+                            filledIcon: isSingle
+                                ? Icons.add_home_work_rounded
+                                : Icons.home_rounded,
+                            label: 'Household',
+                            index: 0,
+                            isPill: isPill,
+                          ),
+                          NavItem(
+                            outlinedIcon: Icons.receipt_long_outlined,
+                            filledIcon: Icons.receipt_long_rounded,
+                            label: 'Subscriptions',
+                            index: 1,
+                            isPill: isPill,
+                          ),
+                          NavItem(
+                            outlinedIcon: Icons.grid_view_outlined,
+                            filledIcon: Icons.grid_view_rounded,
+                            label: 'Dashboard',
+                            index: 2,
+                            isProminent: true,
+                            isPill: isPill,
+                          ),
+                          NavItem(
+                            outlinedIcon: Icons.history_rounded,
+                            filledIcon: Icons.history_rounded,
+                            label: 'History',
+                            index: 3,
+                            isPill: isPill,
+                          ),
+                          NavItem(
+                            outlinedIcon: Icons.person_outline_rounded,
+                            filledIcon: Icons.person_rounded,
+                            label: 'Account',
+                            index: 4,
+                            isPill: isPill,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

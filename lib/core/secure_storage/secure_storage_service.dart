@@ -109,6 +109,18 @@ class SecureStorageService {
 
   Future<void> deleteFallbackPin() => _storage.delete(key: _keyFallbackPin);
 
+  // ── Onboarding Tutorials ──
+  Future<void> saveTutorialCompleted(String tutorialId, bool completed) =>
+      _storage.write(key: 'tutorial_completed_$tutorialId', value: completed.toString());
+
+  Future<bool> isTutorialCompleted(String tutorialId) async {
+    final raw = await _storage.read(key: 'tutorial_completed_$tutorialId');
+    return raw == 'true';
+  }
+
+  Future<void> deleteTutorialCompleted(String tutorialId) =>
+      _storage.delete(key: 'tutorial_completed_$tutorialId');
+
   // ── Clear all ──
   Future<void> clearAll() => _storage.deleteAll();
 }

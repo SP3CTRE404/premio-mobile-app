@@ -23,6 +23,8 @@ import '../../../../shared/widgets/destructive_action_dialog.dart';
 import '../widgets/shared/selection_card.dart';
 import '../../../shared/widgets/custom_toast.dart';
 import '../../../core/auth/auth_service.dart';
+import '../../tutorial/widgets/tutorial_anchor.dart';
+import '../../tutorial/widgets/tutorial_bubble.dart';
 
 class HouseholdScreen extends ConsumerWidget {
   const HouseholdScreen({super.key});
@@ -61,10 +63,17 @@ class HouseholdScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const AuthHeader(
-                title: 'Get Started',
-                subtitle:
-                    'Manage your subscriptions with family or roommates in a shared space.',
+              const TutorialAnchor(
+                tutorialId: 'bottom_nav_household',
+                title: 'Household Management',
+                description: 'Manage subscriptions with family or roommates in a shared space. Create a new household or join an existing one using an invite code.',
+                arrowDirection: ArrowDirection.up,
+                alignment: BubbleAlignment.center,
+                child: AuthHeader(
+                  title: 'Get Started',
+                  subtitle:
+                      'Manage your subscriptions with family or roommates in a shared space.',
+                ),
               ),
               const SizedBox(height: 50),
               SelectionCard(
@@ -139,14 +148,21 @@ class HouseholdScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HouseholdHeroCard(
-              householdName: householdName,
-              imageUrl: household['imageUrl'],
-              isAdmin: isAdmin,
-              sharedSubs: sharedSubsCount.toString(),
-              totalValue: totalValue,
-              currencySymbol: currencySymbol,
-              onInviteTap: () => _showInviteBottomSheet(context, householdName),
+            TutorialAnchor(
+              tutorialId: 'bottom_nav_household',
+              title: 'Household Space',
+              description: 'This is your shared household view. Here you can track total household spend, active subscriptions, and split costs with members.',
+              arrowDirection: ArrowDirection.up,
+              alignment: BubbleAlignment.center,
+              child: HouseholdHeroCard(
+                householdName: householdName,
+                imageUrl: household['imageUrl'],
+                isAdmin: isAdmin,
+                sharedSubs: sharedSubsCount.toString(),
+                totalValue: totalValue,
+                currencySymbol: currencySymbol,
+                onInviteTap: () => _showInviteBottomSheet(context, householdName),
+              ),
             ),
 
             const SizedBox(height: 36),

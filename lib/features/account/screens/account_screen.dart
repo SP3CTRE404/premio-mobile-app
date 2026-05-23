@@ -4,6 +4,8 @@ import '../widgets/account_screen/management_card.dart';
 import '../widgets/account_screen/profile_header.dart';
 import '../widgets/account_screen/section_block.dart';
 import '../widgets/account_screen/support_card.dart';
+import '../../tutorial/widgets/tutorial_anchor.dart';
+import '../../tutorial/widgets/tutorial_bubble.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
@@ -24,7 +26,13 @@ class AccountScreen extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ProfileHeader(),
+                TutorialAnchor(
+                  tutorialId: 'bottom_nav_account',
+                  title: 'Account Settings',
+                  description: 'Manage your profile details, currency preferences, and other settings. You can also replay this onboarding tour at any time.',
+                  arrowDirection: ArrowDirection.up,
+                  child: ProfileHeader(),
+                ),
                 SizedBox(height: 28),
                 SectionBlock(
                   title: 'Management',

@@ -14,13 +14,28 @@ class AuthNotifier extends Notifier<AuthStatus> {
   @override
   AuthStatus build() => AuthStatus.initial;
 
-  Future<void> checkAuthStatus() async {
+  Future<void> checkAuthStatus({Duration? minDuration}) async {
+    final startTime = DateTime.now();
     state = AuthStatus.loading;
     try {
       final repository = ref.read(authRepositoryProvider);
       final hasToken = await repository.hasValidToken();
+      if (minDuration != null) {
+        final elapsed = DateTime.now().difference(startTime);
+        final remaining = minDuration - elapsed;
+        if (!remaining.isNegative) {
+          await Future.delayed(remaining);
+        }
+      }
       state = hasToken ? AuthStatus.authenticated : AuthStatus.unauthenticated;
     } catch (e) {
+      if (minDuration != null) {
+        final elapsed = DateTime.now().difference(startTime);
+        final remaining = minDuration - elapsed;
+        if (!remaining.isNegative) {
+          await Future.delayed(remaining);
+        }
+      }
       state = AuthStatus.unauthenticated;
     }
   }

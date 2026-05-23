@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'launching_item.dart';
 import 'subscription_fab_small.dart';
+import '../../../tutorial/widgets/tutorial_anchor.dart';
+import '../../../tutorial/widgets/tutorial_bubble.dart';
 
 class SubscriptionFabMenu extends StatefulWidget {
   const SubscriptionFabMenu({
@@ -86,21 +88,27 @@ class SubscriptionFabMenuState extends State<SubscriptionFabMenu>
           Positioned(
             bottom: 0,
             right: 0,
-            child: FloatingActionButton(
-              heroTag: 'main_menu_fab',
-              onPressed: _toggleMainMenu,
-              backgroundColor: AppColors.cobaltBlue,
-              shape: const CircleBorder(),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                transitionBuilder: (child, anim) => RotationTransition(
-                  turns: Tween(begin: 0.875, end: 1.0).animate(anim),
-                  child: ScaleTransition(scale: anim, child: child),
-                ),
-                child: Icon(
-                  _isMainMenuOpen ? Icons.close : Icons.menu_rounded,
-                  size: 30,
-                  key: ValueKey(_isMainMenuOpen),
+            child: TutorialAnchor(
+              tutorialId: 'bottom_nav_subscriptions',
+              title: 'Manage Subscriptions',
+              description: 'Tap this action menu to search templates or manually add new subscriptions to your tracker.',
+              arrowDirection: ArrowDirection.down,
+              child: FloatingActionButton(
+                heroTag: 'main_menu_fab',
+                onPressed: _toggleMainMenu,
+                backgroundColor: AppColors.cobaltBlue,
+                shape: const CircleBorder(),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  transitionBuilder: (child, anim) => RotationTransition(
+                    turns: Tween(begin: 0.875, end: 1.0).animate(anim),
+                    child: ScaleTransition(scale: anim, child: child),
+                  ),
+                  child: Icon(
+                    _isMainMenuOpen ? Icons.close : Icons.menu_rounded,
+                    size: 30,
+                    key: ValueKey(_isMainMenuOpen),
+                  ),
                 ),
               ),
             ),

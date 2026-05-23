@@ -7,6 +7,7 @@ class ExpiredSubscriptionsListView extends StatelessWidget {
   final String currencySymbol;
   final Set<String> expandedCards;
   final Function(String) onToggleCard;
+  final ScrollController? controller;
 
   const ExpiredSubscriptionsListView({
     super.key,
@@ -14,6 +15,7 @@ class ExpiredSubscriptionsListView extends StatelessWidget {
     required this.currencySymbol,
     required this.expandedCards,
     required this.onToggleCard,
+    this.controller,
   });
 
   @override
@@ -23,7 +25,13 @@ class ExpiredSubscriptionsListView extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16.0),
+      controller: controller,
+      padding: EdgeInsets.fromLTRB(
+        16.0,
+        MediaQuery.of(context).padding.top + kToolbarHeight + 8,
+        16.0,
+        16.0,
+      ),
       itemCount: subscriptions.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
