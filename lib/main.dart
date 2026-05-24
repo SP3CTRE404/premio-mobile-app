@@ -59,7 +59,7 @@ class SubTrackApp extends ConsumerWidget {
     });
 
     return MaterialApp(
-      title: 'SubTrack',
+      title: 'Premio',
       navigatorKey: _navigatorKey, // Providing key to root navigator
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

@@ -17,4 +17,8 @@ class ApiEndpoints {
   static String expiredSubscriptions(int userId) => '/api/subscriptions/user/$userId/expired';
   static String userHistory(int userId) => '/api/subscriptions/user/$userId/history';
   static String subscriptionHistory(int subscriptionId) => '/api/subscriptions/$subscriptionId/history';
+
+  // ── Notifications ──
+  static const String pendingNotifications = '/api/notifications/pending';
+  static String markNotificationRead(int id) => '/api/notifications/$id/read';
 }

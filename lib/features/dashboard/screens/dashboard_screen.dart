@@ -70,7 +70,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   children: [
                     TutorialAnchor(
                       tutorialId: 'dashboard_hello',
-                      title: 'Welcome to SubTrack!',
+                      title: 'Welcome to Premio!',
                       description: "This is your dashboard. Let's take a quick tour of your subscription management center.",
                       arrowDirection: ArrowDirection.up,
                       alignment: BubbleAlignment.right,

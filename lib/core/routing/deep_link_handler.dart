@@ -53,16 +53,16 @@ class _DeepLinkHandlerState extends ConsumerState<DeepLinkHandler> {
 
   void _handleLink(Uri uri) {
     // We handle two formats:
-    // 1. https://subtrack.app/join/CODE
-    // 2. subtrack://join/CODE (for local testing/fallback)
+    // 1. https://premio.app/join/CODE
+    // 2. premio://join/CODE (for local testing/fallback)
     
     String? inviteCode;
     
-    if (uri.scheme == 'subtrack' && uri.host == 'join') {
-      // subtrack://join/CODE
+    if (uri.scheme == 'premio' && uri.host == 'join') {
+      // premio://join/CODE
       inviteCode = uri.path.replaceAll('/', '');
     } else if (uri.path.startsWith('/join')) {
-      // https://subtrack.app/join/CODE
+      // https://premio.app/join/CODE
       inviteCode = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : null;
     }
     

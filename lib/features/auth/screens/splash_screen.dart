@@ -80,7 +80,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'SUBTRACK',
+                    'PREMIO',
                     style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.w900, // Extra-bold tech weight
@@ -102,6 +102,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     child: Container(
                       height: 3.5,
                       color: AppColors.cobaltBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 14.0),
+                  Text(
+                    'SUBSCRIPTION MANAGER',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 4.0,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],

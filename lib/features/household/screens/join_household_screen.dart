@@ -62,7 +62,7 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'For your safety, users under 18 must join a household managed by an adult to use SubTrack. Once you join, you will have full access under their oversight.',
+                      'For your safety, users under 18 must join a household managed by an adult to use Premio. Once you join, you will have full access under their oversight.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.blue.shade300,
                             fontWeight: FontWeight.w500,
@@ -127,7 +127,7 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
                 if (result.contains('/join/')) {
                   code = result.split('/').last;
                 } else if (result.contains('/join')) {
-                  // Fallback for subtrack://join/CODE
+                  // Fallback for premio://join/CODE
                   code = result.split('/').last;
                 }
 

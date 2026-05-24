@@ -14,6 +14,7 @@ import '../../subscriptions/providers/user_role_provider.dart';
 import '../widgets/about_section.dart';
 import '../widgets/look_and_feel_section.dart';
 import '../widgets/security_section.dart';
+
 import '../../../../shared/widgets/app_section_header.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -163,6 +164,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
+
+
 
           const AppSectionHeader(title: 'About', isUppercase: true),
           const AboutSection(),

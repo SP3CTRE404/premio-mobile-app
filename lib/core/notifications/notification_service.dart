@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -9,7 +10,7 @@ class NotificationService {
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -28,25 +29,31 @@ class NotificationService {
         // Handle notification tap
       },
     );
+
+    if (Platform.isAndroid) {
+      final androidImplementation = _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await androidImplementation?.requestNotificationsPermission();
+    }
   }
 
   Future<void> showNotification({
     required int id,
     required String title,
     required String body,
+    String channelId = 'premio_reminders_high',
+    String channelName = 'Premio Reminders',
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'subscription_reminders',
-      'Subscription Reminders',
-      channelDescription: 'Notifications for upcoming and overdue subscriptions',
+    final AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      channelId,
+      channelName,
       importance: Importance.max,
       priority: Priority.high,
       showWhen: true,
     );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(),
     );
 
     await _notificationsPlugin.show(

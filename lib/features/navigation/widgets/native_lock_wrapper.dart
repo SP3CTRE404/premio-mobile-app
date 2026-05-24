@@ -216,7 +216,7 @@ class _NativeLockWrapperState extends ConsumerState<NativeLockWrapper> with Widg
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'SubTrack is Locked',
+                          'Premio is Locked',
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),

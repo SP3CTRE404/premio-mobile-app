@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/help_center_screen.dart';
 
 class SupportCard extends StatelessWidget {
   const SupportCard({super.key});
@@ -10,13 +11,14 @@ class SupportCard extends StatelessWidget {
         _SupportTile(
           icon: Icons.help_outline_rounded,
           label: 'Help Center',
-          onTap: () {},
-          showDivider: true,
-        ),
-        _SupportTile(
-          icon: Icons.feedback_outlined,
-          label: 'Send Feedback',
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HelpCenterScreen(),
+              ),
+            );
+          },
           showDivider: false,
         ),
       ],

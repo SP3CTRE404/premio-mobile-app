@@ -40,7 +40,7 @@ class LogoutButton extends ConsumerWidget {
         title: const Text('Sign Out',
             style: TextStyle(fontWeight: FontWeight.bold)),
         content:
-            const Text('Are you sure you want to sign out of SubTrack?'),
+            const Text('Are you sure you want to sign out of Premio?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

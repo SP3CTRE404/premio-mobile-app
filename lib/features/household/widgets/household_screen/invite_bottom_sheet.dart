@@ -20,7 +20,7 @@ class InviteBottomSheet extends ConsumerWidget {
     final theme = Theme.of(context);
     final household = ref.watch(householdProvider).value;
     final inviteCode = household?['inviteCode'] ?? 'LOADING...';
-    final shareLink = 'subtrack://join/$inviteCode';
+    final shareLink = 'premio://join/$inviteCode';
 
     return Container(
       padding: EdgeInsets.only(
@@ -120,8 +120,8 @@ class InviteBottomSheet extends ConsumerWidget {
                   onPressed: () {
                     SharePlus.instance.share(
                       ShareParams(
-                        text: 'Join my household on SubTrack! $shareLink',
-                        subject: 'Join my SubTrack Household',
+                        text: 'Join my household on Premio! $shareLink',
+                        subject: 'Join my Premio Household',
                       ),
                     );
                   },

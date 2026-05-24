@@ -15,6 +15,7 @@ import '../../tutorial/providers/tutorial_provider.dart';
 
 import '../../account/providers/account_provider.dart';
 import '../../household/screens/join_household_screen.dart';
+import '../../../core/notifications/providers/notification_check_provider.dart';
 
 class NavigationIndexNotifier extends Notifier<int> {
   @override
@@ -72,6 +73,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(notificationCheckProvider);
     final currentIndex = ref.watch(navigationIndexProvider);
     final userRole = ref.watch(userRoleProvider);
     final isSingle = userRole == UserRole.single;
@@ -118,7 +120,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     final List<String> titles = [
       isSingle ? 'Collaborate' : 'Household',
       'Ongoing Subscriptions',
-      'SubTrack',
+      'Premio',
       'History',
       'Account',
     ];

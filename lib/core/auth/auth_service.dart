@@ -42,7 +42,7 @@ class AuthService {
     isAuthenticating = true;
     try {
       final result = await _auth.authenticate(
-        localizedReason: 'Please authenticate to unlock SubTrack',
+        localizedReason: 'Please authenticate to unlock Premio',
         biometricOnly: false,
       );
       return result;
