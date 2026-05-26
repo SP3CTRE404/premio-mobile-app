@@ -31,6 +31,7 @@ class EditSubscriptionCard extends StatelessWidget {
       isOverdue: sub.isOverdue,
       isUpcoming: sub.isUpcoming,
       daysUntilDue: sub.daysUntilDue,
+      isAutoPay: sub.isAutoPay,
     );
 
     return Container(

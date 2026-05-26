@@ -33,11 +33,13 @@ class SubscriptionCard extends StatelessWidget {
       isOverdue: subscription.isOverdue,
       isUpcoming: subscription.isUpcoming,
       daysUntilDue: subscription.daysUntilDue,
+      isAutoPay: subscription.isAutoPay,
     );
     final String dueStatus = SubscriptionUIHelper.getDueStatus(
       isOverdue: subscription.isOverdue,
       isUpcoming: subscription.isUpcoming,
       daysUntilDue: subscription.daysUntilDue,
+      isAutoPay: subscription.isAutoPay,
     );
 
     final String paymentType = subscription.isAutoPay ? 'Auto-pay' : 'Manual';

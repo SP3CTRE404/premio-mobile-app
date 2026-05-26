@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SectionBlock extends StatelessWidget {
-  const SectionBlock({
-    super.key,
-    required this.title,
-    required this.child,
-  });
+  const SectionBlock({super.key, required this.title, required this.child});
 
   final String title;
   final Widget child;

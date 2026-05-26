@@ -59,8 +59,13 @@ class SubscriptionUIHelper {
     required bool isOverdue,
     required bool isUpcoming,
     required int daysUntilDue,
+    bool isAutoPay = false,
     bool isDark = false,
   }) {
+    if (isAutoPay) {
+      if (daysUntilDue == 0 || daysUntilDue == 1) return Colors.amber;
+      return AppColors.cobaltBlue;
+    }
     if (isOverdue || daysUntilDue < 0) {
       return Colors.redAccent;
     }
@@ -73,7 +78,20 @@ class SubscriptionUIHelper {
     required bool isOverdue,
     required bool isUpcoming,
     required int daysUntilDue,
+    bool isAutoPay = false,
   }) {
+    if (isAutoPay) {
+      if (daysUntilDue < 0) {
+        return 'Auto-renewed';
+      }
+      if (daysUntilDue == 0) {
+        return 'Renewing today';
+      }
+      if (daysUntilDue == 1) {
+        return 'Renewing tomorrow';
+      }
+      return 'Auto-pays in $daysUntilDue ${daysUntilDue == 1 ? 'day' : 'days'}';
+    }
     if (isOverdue || daysUntilDue < 0) {
       final absDays = daysUntilDue.abs();
       return 'Overdue by $absDays ${absDays == 1 ? 'day' : 'days'}';

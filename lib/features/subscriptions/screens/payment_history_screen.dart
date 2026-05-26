@@ -8,6 +8,9 @@ import '../../settings/providers/currency_provider.dart';
 import '../models/subscription_model.dart';
 import '../providers/history_provider.dart';
 import '../providers/subscription_provider.dart';
+import '../providers/user_role_provider.dart';
+import '../models/user_role.dart';
+import '../../account/providers/account_provider.dart';
 import '../utils/subscription_ui_helper.dart';
 import '../widgets/history/payment_history_list_view.dart';
 import '../widgets/history/subscription_history_bubble.dart';
@@ -61,26 +64,42 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
     // Personal View (Tab View)
     final activeAsync = ref.watch(subscriptionProvider);
     final expiredAsync = ref.watch(expiredSubscriptionsProvider);
+    final userAsync = ref.watch(userProvider);
+    final userRole = ref.watch(userRoleProvider);
     
     // Account for the MainScaffold's transparent AppBar
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight - 40;
 
-    return _buildSubscriptionList(activeAsync, expiredAsync, currencySymbol, topPadding);
+    return _buildSubscriptionList(
+      activeAsync: activeAsync,
+      expiredAsync: expiredAsync,
+      currencySymbol: currencySymbol,
+      topPadding: topPadding,
+      userRole: userRole,
+      currentUserId: userAsync.value?.id,
+    );
   }
 
-  Widget _buildSubscriptionList(
-    AsyncValue<List<Subscription>> activeAsync,
-    AsyncValue<List<Subscription>> expiredAsync,
-    String currencySymbol,
-    double topPadding,
-  ) {
+  Widget _buildSubscriptionList({
+    required AsyncValue<List<Subscription>> activeAsync,
+    required AsyncValue<List<Subscription>> expiredAsync,
+    required String currencySymbol,
+    required double topPadding,
+    required UserRole userRole,
+    required int? currentUserId,
+  }) {
     if (activeAsync.isLoading || expiredAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     final activeItems = activeAsync.value ?? [];
     final expiredItems = expiredAsync.value ?? [];
-    final allItems = [...activeItems, ...expiredItems];
+    
+    final viewableActive = userRole == UserRole.admin
+        ? activeItems
+        : activeItems.where((s) => s.ownerId == currentUserId).toList();
+
+    final allItems = [...viewableActive, ...expiredItems];
 
     if (allItems.isEmpty) {
       return Center(
