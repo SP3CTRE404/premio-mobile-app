@@ -9,7 +9,7 @@ void main() {
         child: SubTrackApp(),
       ),
     );
-    // Since Appbar has 'Premio' title
-    expect(find.text('Premio'), findsOneWidget);
+    // Since Splash screen has 'PREMIO' title
+    expect(find.text('PREMIO'), findsOneWidget);
   });
 }
