@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/auth/auth_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/custom_toast.dart';
 import '../providers/app_lock_provider.dart';
 
 class SecuritySection extends ConsumerWidget {
@@ -40,8 +42,23 @@ class SecuritySection extends ConsumerWidget {
                   value: isAppLockEnabled,
                   activeTrackColor: AppColors.cobaltBlue.withValues(alpha: 0.5),
                   activeThumbColor: AppColors.cobaltBlue,
-                  onChanged: (value) {
-                    ref.read(appLockProvider.notifier).setAppLockEnabled(value);
+                  onChanged: (value) async {
+                    if (!value) {
+                      final authenticated = await ref.read(authServiceProvider).verifyUser(context);
+                      if (authenticated) {
+                        await ref.read(appLockProvider.notifier).setAppLockEnabled(false);
+                      } else {
+                        if (context.mounted) {
+                          CustomToast.show(
+                            context: context,
+                            message: 'Authentication required to disable App Lock',
+                            isError: true,
+                          );
+                        }
+                      }
+                    } else {
+                      await ref.read(appLockProvider.notifier).setAppLockEnabled(true);
+                    }
                   },
                 ),
               ),

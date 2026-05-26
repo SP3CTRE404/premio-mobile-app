@@ -25,6 +25,7 @@ class SecureStorageService {
   static const _keyReminderLeadDays = 'reminder_lead_days';
   static const _keyAppLockEnabled = 'app_lock_enabled';
   static const _keyFallbackPin = 'fallback_pin';
+  static const _keyOnboardingCompleted = 'onboarding_completed';
 
   // ── Token ──
   Future<void> saveToken(String token) =>
@@ -120,6 +121,15 @@ class SecureStorageService {
 
   Future<void> deleteTutorialCompleted(String tutorialId) =>
       _storage.delete(key: 'tutorial_completed_$tutorialId');
+
+  // ── Onboarding Screen ──
+  Future<void> saveOnboardingCompleted(bool completed) =>
+      _storage.write(key: _keyOnboardingCompleted, value: completed.toString());
+
+  Future<bool> isOnboardingCompleted() async {
+    final raw = await _storage.read(key: _keyOnboardingCompleted);
+    return raw == 'true';
+  }
 
   // ── Clear all ──
   Future<void> clearAll() => _storage.deleteAll();

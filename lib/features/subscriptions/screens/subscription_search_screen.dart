@@ -7,6 +7,9 @@ import '../../settings/providers/currency_provider.dart';
 import '../providers/subscription_provider.dart';
 import '../widgets/subscription_detail/subscription_card.dart';
 import '../widgets/edit_subscription/subscription_search_bar.dart';
+import '../../account/providers/account_provider.dart';
+import '../models/user_role.dart';
+import '../providers/user_role_provider.dart';
 
 class SubscriptionSearchScreen extends ConsumerStatefulWidget {
   const SubscriptionSearchScreen({super.key});
@@ -68,6 +71,8 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
   Widget build(BuildContext context) {
     final currencySymbol = ref.watch(nativeCurrencyProvider);
     final subscriptionsAsync = ref.watch(subscriptionProvider);
+    final userRole = ref.watch(userRoleProvider);
+    final userAsync = ref.watch(userProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -118,7 +123,14 @@ class _SubscriptionSearchScreenState extends ConsumerState<SubscriptionSearchScr
           
           subscriptionsAsync.when(
             data: (allSubs) {
-              final filtered = allSubs
+              final isAdmin = userRole == UserRole.admin;
+              final currentUserId = userAsync.value?.id;
+
+              final viewableSubs = isAdmin
+                  ? allSubs
+                  : allSubs.where((s) => s.ownerId == currentUserId).toList();
+
+              final filtered = viewableSubs
                   .where((s) => s.serviceName.toLowerCase().contains(_query.toLowerCase()))
                   .toList();
 

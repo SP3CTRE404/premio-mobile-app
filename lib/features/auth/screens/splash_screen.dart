@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/secure_storage/secure_storage_service.dart';
 import '../providers/auth_provider.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -52,10 +54,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     Future.microtask(() async {
       // Warm up the in-memory JWT cache before any API calls
       await ref.read(apiClientProvider).warmUpToken();
-      // Enforce the 2-second minimum duration for the splash screen
-      await ref.read(authProvider.notifier).checkAuthStatus(
-        minDuration: const Duration(seconds: 2),
-      );
+      
+      final storage = ref.read(secureStorageServiceProvider);
+      final onboardingCompleted = await storage.isOnboardingCompleted();
+
+      if (!onboardingCompleted) {
+        // Enforce the 2-second minimum duration for splash visual
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        }
+      } else {
+        // Enforce the 2-second minimum duration for the splash screen
+        await ref.read(authProvider.notifier).checkAuthStatus(
+          minDuration: const Duration(seconds: 2),
+        );
+      }
     });
   }
 
